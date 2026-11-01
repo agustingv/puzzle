@@ -9,13 +9,12 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import com.agustingv.puzzles.game.word.WordGuessGame
 import com.agustingv.puzzles.game.word.WordList
+import com.agustingv.puzzles.ui.common.BundledWords
 
 class WordViewModel(application: Application, private val saved: SavedStateHandle) :
     AndroidViewModel(application) {
 
-    private val words: Map<Int, List<String>> by lazy {
-        WordList.parse(application.assets.open(WordList.ASSET).bufferedReader().use { it.readText() })
-    }
+    private val words = BundledWords.get(application)
 
     var game by mutableStateOf(restore() ?: pickGame(WordList.LENGTHS.first()))
         private set

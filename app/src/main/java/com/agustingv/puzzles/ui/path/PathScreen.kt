@@ -11,8 +11,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.systemGestureExclusion
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import com.agustingv.puzzles.R
 import com.agustingv.puzzles.game.path.PathGame
 import com.agustingv.puzzles.ui.common.GameClock
+import com.agustingv.puzzles.ui.common.GameResult
 import com.agustingv.puzzles.ui.common.GameScaffold
 import com.agustingv.puzzles.ui.theme.Accent
 import com.agustingv.puzzles.ui.theme.Border
@@ -59,16 +59,10 @@ fun PathScreen(viewModel: PathViewModel, onExit: () -> Unit) {
         onExit = onExit,
         actions = {
             when {
-                game.isComplete -> {
-                    Text(
-                        text = stringResource(R.string.path_solved),
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Button(onClick = { viewModel.newGame(game.difficulty) }) {
-                        Text(stringResource(R.string.play_again))
-                    }
-                }
+                game.isComplete -> GameResult(
+                    message = stringResource(R.string.path_solved),
+                    onPlayAgain = { viewModel.newGame(game.difficulty) },
+                )
                 else -> {
                     if (game.isFullButWrong) {
                         Text(
@@ -109,6 +103,8 @@ private fun Board(game: PathGame, side: Dp, onPress: (Int) -> Unit, onDrag: (Int
             .clip(RoundedCornerShape(12.dp))
             .background(Color.White)
             .semantics { contentDescription = description }
+            // A drag starting near the screen edge is for the board, not the system's back gesture.
+            .systemGestureExclusion()
             .pointerInput(size, cellPx) {
                 awaitEachGesture {
                     val down = awaitFirstDown()
@@ -119,17 +115,19 @@ private fun Board(game: PathGame, side: Dp, onPress: (Int) -> Unit, onDrag: (Int
                     while (true) {
                         val event = awaitPointerEvent()
                         val change = event.changes.firstOrNull { it.id == down.id } ?: break
-                        if (!change.pressed) break
                         change.consume()
 
                         // A fast swipe jumps several cells between events: walk the segment so no
-                        // cell along the way is skipped.
+                        // cell along the way is skipped. That includes the last stretch up to where
+                        // the finger lifts, which can be past the last move event.
                         val delta = change.position - previous
                         val steps = (delta.getDistance() / (cellPx / 4f)).toInt().coerceAtLeast(1)
                         for (step in 1..steps) {
                             cellAt(previous + delta * (step / steps.toFloat()))?.let { drag(it) }
                         }
                         previous = change.position
+
+                        if (!change.pressed) break
                     }
                 }
             },

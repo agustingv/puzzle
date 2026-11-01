@@ -37,7 +37,11 @@ import com.agustingv.puzzles.ui.theme.PuzzlesTheme
 
 @Composable
 fun MenuScreen(
+    onPlayRace: (length: Int) -> Unit,
+    onPlayHangman: (length: Int) -> Unit,
     onPlayWord: (length: Int) -> Unit,
+    onPlayWordSearch: (Difficulty) -> Unit,
+    onPlayCrossword: (Difficulty) -> Unit,
     onPlayPath: (Difficulty) -> Unit,
     onPlaySliding: (Difficulty) -> Unit,
 ) {
@@ -62,14 +66,36 @@ fun MenuScreen(
             )
         }
 
-        GameCard(
-            icon = "🟩",
+        // Icons are kept to old emoji: minSdk 24 has no glyph for newer ones like 🟩 or 🪢.
+        LengthCard(
+            icon = "🏁",
+            title = stringResource(R.string.race_title),
+            description = stringResource(R.string.race_description),
+            onPlay = onPlayRace,
+        )
+        LengthCard(
+            icon = "🎯",
+            title = stringResource(R.string.hangman_title),
+            description = stringResource(R.string.hangman_description),
+            onPlay = onPlayHangman,
+        )
+        LengthCard(
+            icon = "🔠",
             title = stringResource(R.string.word_title),
             description = stringResource(R.string.word_description),
-            optionsLabel = stringResource(R.string.option_letters),
-            options = WordList.LENGTHS,
-            optionLabel = { it.toString() },
             onPlay = onPlayWord,
+        )
+        DifficultyCard(
+            icon = "🔍",
+            title = stringResource(R.string.wordsearch_title),
+            description = stringResource(R.string.wordsearch_description),
+            onPlay = onPlayWordSearch,
+        )
+        DifficultyCard(
+            icon = "🧩",
+            title = stringResource(R.string.crossword_title),
+            description = stringResource(R.string.crossword_description),
+            onPlay = onPlayCrossword,
         )
         DifficultyCard(
             icon = "🔗",
@@ -84,6 +110,19 @@ fun MenuScreen(
             onPlay = onPlaySliding,
         )
     }
+}
+
+@Composable
+private fun LengthCard(icon: String, title: String, description: String, onPlay: (Int) -> Unit) {
+    GameCard(
+        icon = icon,
+        title = title,
+        description = description,
+        optionsLabel = stringResource(R.string.option_letters),
+        options = WordList.LENGTHS,
+        optionLabel = { it.toString() },
+        onPlay = onPlay,
+    )
 }
 
 @Composable
@@ -163,5 +202,15 @@ private val Difficulty.labelRes: Int
 @Preview(showBackground = true, widthDp = 360)
 @Composable
 private fun MenuPreview() {
-    PuzzlesTheme { MenuScreen(onPlayWord = {}, onPlayPath = {}, onPlaySliding = {}) }
+    PuzzlesTheme {
+        MenuScreen(
+            onPlayRace = {},
+            onPlayHangman = {},
+            onPlayWord = {},
+            onPlayWordSearch = {},
+            onPlayCrossword = {},
+            onPlayPath = {},
+            onPlaySliding = {},
+        )
+    }
 }

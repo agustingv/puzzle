@@ -12,14 +12,63 @@
 
     <string name="option_difficulty">Dificultad</string>
     <string name="option_letters">Número de letras</string>
+    <string name="key_submit">Comprobar</string>
+    <string name="key_delete">Borrar</string>
+    <string name="game_lost_word">Perdiste: la palabra era «%1$s»</string>
+
+    <string name="race_title">Carrera</string>
+    <string name="race_description">Adivina 10 palabras contrarreloj a partir de sus letras desordenadas.</string>
+    <string name="race_round">Palabra %1$d / %2$d</string>
+    <string name="race_score">Resultado: %1$d / %2$d</string>
+    <string name="race_seconds_left">%1$d s</string>
+    <string name="race_wrong">Incorrecto, sigue intentando.</string>
+    <string name="race_hits">Acertadas: %1$s</string>
+    <string name="race_result_correct">✔ correcto</string>
+    <string name="race_result_timeout">⏱ tiempo agotado</string>
+    <string name="race_finished_perfect">¡Todas acertadas!</string>
+    <string name="race_finished">Carrera terminada</string>
+
+    <string name="hangman_title">Ahorcado</string>
+    <string name="hangman_description">El clásico juego del ahorcado, adivinando letra a letra.</string>
+    <string name="hangman_misses">Fallos: %1$d / %2$d</string>
+    <string name="hangman_won">¡Ganaste!</string>
+    <string name="hangman_drawing">Dibujo del ahorcado: %1$d de %2$d fallos</string>
+
+    <string name="zoom_in">Acercar</string>
+    <string name="zoom_out">Alejar</string>
+    <string name="grid_found">Encontradas: %1$d / %2$d</string>
+    <string name="grid_solved">Resueltas: %1$d / %2$d</string>
+
+    <string name="wordsearch_title">Sopa de Letras</string>
+    <string name="wordsearch_description">Encuentra palabras escondidas en una cuadrícula, en cualquier dirección.</string>
+    <string name="wordsearch_won">¡Completado! Encontraste las %1$d palabras.</string>
+    <string name="wordsearch_word_found">%1$s, encontrada</string>
+    <string name="wordsearch_miss">Esas letras no forman ninguna palabra pendiente.</string>
+
+    <string name="crossword_title">Crucigrama</string>
+    <string name="crossword_description">Resuelve las pistas y rellena la cuadrícula: las palabras se cruzan por sus letras compartidas.</string>
+    <string name="crossword_won">¡Completado! Resolviste las %1$d palabras.</string>
+    <string name="crossword_lost">Perdiste: acertaste %1$d / %2$d palabras.</string>
+    <string name="crossword_across">Horizontales</string>
+    <string name="crossword_down">Verticales</string>
+    <string name="crossword_clues">Pistas</string>
+    <string name="crossword_keyboard">Teclado</string>
+    <string name="crossword_finish">Finalizar</string>
+    <string name="crossword_finish_title">¿Finalizar el crucigrama?</string>
+    <string name="crossword_finish_text">Las palabras sin resolver contarán como falladas.</string>
+    <string name="crossword_continue">Seguir jugando</string>
+    <string name="crossword_wrong">incorrecta</string>
+    <string name="crossword_previous">Palabra anterior</string>
+    <string name="crossword_next">Palabra siguiente</string>
+    <string name="crossword_cell">Fila %1$d, columna %2$d: %3$s</string>
+    <string name="crossword_cell_selected">Fila %1$d, columna %2$d: %3$s, seleccionada</string>
+    <string name="crossword_clue_across">%1$d horizontal</string>
+    <string name="crossword_clue_down">%1$d vertical</string>
 
     <string name="word_title">Adivina la Palabra</string>
     <string name="word_description">Adivina la palabra en 6 intentos: verde si la letra está en su sitio, amarillo si está en la palabra pero en otra posición.</string>
     <string name="word_attempt">Intento %1$d / %2$d</string>
     <string name="word_won">¡Ganaste! (%1$d/%2$d)</string>
-    <string name="word_lost">Perdiste: la palabra era «%1$s»</string>
-    <string name="word_key_submit">Comprobar</string>
-    <string name="word_key_delete">Borrar</string>
     <string name="word_letter_correct">%1$s: en su sitio</string>
     <string name="word_letter_present">%1$s: en otra posición</string>
     <string name="word_letter_absent">%1$s: no está</string>

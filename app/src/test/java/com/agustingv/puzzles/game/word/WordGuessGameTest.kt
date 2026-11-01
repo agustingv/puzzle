@@ -1,5 +1,6 @@
 package com.agustingv.puzzles.game.word
 
+import com.agustingv.puzzles.game.foldAccents
 import com.agustingv.puzzles.game.word.LetterState.ABSENT
 import com.agustingv.puzzles.game.word.LetterState.CORRECT
 import com.agustingv.puzzles.game.word.LetterState.PRESENT
@@ -97,7 +98,7 @@ class WordGuessGameTest {
             for (word in list) {
                 assertEquals(word, length, word.length)
                 assertTrue("not NFC: $word", Normalizer.isNormalized(word, Normalizer.Form.NFC))
-                assertTrue("not typeable: $word", WordGuessGame.fold(word).all { it in keyboard })
+                assertTrue("not typeable: $word", foldAccents(word).all { it in keyboard })
             }
         }
     }

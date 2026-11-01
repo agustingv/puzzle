@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import com.agustingv.puzzles.R
 import com.agustingv.puzzles.game.sliding.SlidingPuzzleGame
 import com.agustingv.puzzles.ui.common.GameClock
+import com.agustingv.puzzles.ui.common.GameResult
 import com.agustingv.puzzles.ui.common.GameScaffold
 import com.agustingv.puzzles.ui.theme.Accent
 import com.agustingv.puzzles.ui.theme.Border
@@ -51,14 +50,10 @@ fun SlidingScreen(viewModel: SlidingViewModel, onExit: () -> Unit) {
         onExit = onExit,
         actions = {
             if (game.isSolved) {
-                Text(
-                    text = stringResource(R.string.sliding_solved),
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
+                GameResult(
+                    message = stringResource(R.string.sliding_solved),
+                    onPlayAgain = { viewModel.newGame(game.difficulty) },
                 )
-                Button(onClick = { viewModel.newGame(game.difficulty) }) {
-                    Text(stringResource(R.string.play_again))
-                }
             }
         },
         board = { side ->

@@ -1,5 +1,7 @@
 package com.agustingv.puzzles.game.word
 
+import com.agustingv.puzzles.game.foldAccents
+
 enum class LetterState { CORRECT, PRESENT, ABSENT }
 
 data class GuessedLetter(val char: Char, val state: LetterState)
@@ -59,9 +61,6 @@ data class WordGuessGame(val word: String, val guesses: List<String> = emptyList
     companion object {
         const val MAX_ATTEMPTS = 6
 
-        private val FOLD = mapOf('á' to 'a', 'é' to 'e', 'í' to 'i', 'ó' to 'o', 'ú' to 'u', 'ü' to 'u')
-
-        fun fold(text: String): String =
-            text.lowercase().map { FOLD[it] ?: it }.joinToString("")
+        private fun fold(text: String) = foldAccents(text)
     }
 }
