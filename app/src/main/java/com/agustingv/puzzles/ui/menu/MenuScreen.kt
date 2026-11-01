@@ -42,7 +42,10 @@ fun MenuScreen(
     onPlayWord: (length: Int) -> Unit,
     onPlayWordSearch: (Difficulty) -> Unit,
     onPlayCrossword: (Difficulty) -> Unit,
+    onPlaySudoku: (Difficulty) -> Unit,
     onPlayPath: (Difficulty) -> Unit,
+    onPlayKakuro: (Difficulty) -> Unit,
+    onPlayMemorama: (Difficulty) -> Unit,
     onPlaySliding: (Difficulty) -> Unit,
 ) {
     Column(
@@ -98,10 +101,28 @@ fun MenuScreen(
             onPlay = onPlayCrossword,
         )
         DifficultyCard(
+            icon = "🔢",
+            title = stringResource(R.string.sudoku_title),
+            description = stringResource(R.string.sudoku_description),
+            onPlay = onPlaySudoku,
+        )
+        DifficultyCard(
             icon = "🔗",
             title = stringResource(R.string.path_title),
             description = stringResource(R.string.path_description),
             onPlay = onPlayPath,
+        )
+        DifficultyCard(
+            icon = "➕",
+            title = stringResource(R.string.kakuro_title),
+            description = stringResource(R.string.kakuro_description),
+            onPlay = onPlayKakuro,
+        )
+        DifficultyCard(
+            icon = "🃏",
+            title = stringResource(R.string.memorama_title),
+            description = stringResource(R.string.memorama_description),
+            onPlay = onPlayMemorama,
         )
         DifficultyCard(
             icon = "🔀",
@@ -209,7 +230,10 @@ private fun MenuPreview() {
             onPlayWord = {},
             onPlayWordSearch = {},
             onPlayCrossword = {},
+            onPlaySudoku = {},
             onPlayPath = {},
+            onPlayKakuro = {},
+            onPlayMemorama = {},
             onPlaySliding = {},
         )
     }

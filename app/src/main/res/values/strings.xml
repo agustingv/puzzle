@@ -39,6 +39,33 @@
     <string name="grid_found">Encontradas: %1$d / %2$d</string>
     <string name="grid_solved">Resueltas: %1$d / %2$d</string>
 
+    <string name="generating">Preparando el puzle…</string>
+    <string name="key_digit">Tecla %1$d</string>
+    <string name="grid_filled">Rellenas: %1$d / %2$d</string>
+    <string name="digit_cell">Fila %1$d, columna %2$d: %3$s</string>
+    <string name="digit_cell_given">Fila %1$d, columna %2$d: %3$s, fija</string>
+    <string name="digit_cell_selected">Fila %1$d, columna %2$d: %3$s, seleccionada</string>
+    <string name="digit_cell_wrong">Fila %1$d, columna %2$d: %3$s, incorrecta</string>
+
+    <string name="memorama_title">Memorama</string>
+    <string name="memorama_description">Encuentra todas las parejas de cartas iguales volteándolas de dos en dos.</string>
+    <string name="memorama_status">Parejas: %1$d / %2$d · Intentos: %3$d</string>
+    <string name="memorama_won">¡Completado! Encontraste las %1$d parejas.</string>
+    <string name="memorama_card_hidden">Carta %1$d, boca abajo</string>
+    <string name="memorama_card_up">Carta %1$d: %2$s</string>
+    <string name="memorama_card_matched">Carta %1$d: %2$s, emparejada</string>
+
+    <string name="sudoku_title">Sudoku</string>
+    <string name="sudoku_description">El clásico 9x9: completa cada fila, columna y caja de 3x3 con los números del 1 al 9, sin repetir.</string>
+    <string name="sudoku_won">¡Completado!</string>
+
+    <string name="kakuro_title">Kakuro</string>
+    <string name="kakuro_description">Rellena las casillas con números del 1 al 9, sin repetir en cada serie, para que sumen la pista indicada.</string>
+    <string name="kakuro_won">¡Completado!</string>
+    <string name="kakuro_clue_both">Pista en fila %1$d, columna %2$d: horizontal %3$d, vertical %4$d</string>
+    <string name="kakuro_clue_across">Pista en fila %1$d, columna %2$d: horizontal %3$d</string>
+    <string name="kakuro_clue_down">Pista en fila %1$d, columna %2$d: vertical %3$d</string>
+
     <string name="wordsearch_title">Sopa de Letras</string>
     <string name="wordsearch_description">Encuentra palabras escondidas en una cuadrícula, en cualquier dirección.</string>
     <string name="wordsearch_won">¡Completado! Encontraste las %1$d palabras.</string>
