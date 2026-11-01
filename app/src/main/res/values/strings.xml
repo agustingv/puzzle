@@ -5,6 +5,27 @@
     <string name="play_again">Jugar otra vez</string>
     <string name="exit">Salir</string>
     <string name="back">Volver</string>
+
+    <string name="privacy_title">Política de privacidad</string>
+    <string name="privacy_updated">Última actualización: 1 de noviembre de 2026</string>
+    <string name="privacy_summary_title">En resumen</string>
+    <string name="privacy_summary">Puzzles no recopila ningún dato personal. Tus partidas y récords se quedan en tu móvil.</string>
+    <string name="privacy_collect_title">Datos que recopila la app</string>
+    <string name="privacy_collect">Ninguno. No hay cuentas ni registro, no hay publicidad ni analítica, y la app no incluye servicios de terceros que traten datos. Ni siquiera tiene permiso para conectarse a Internet.</string>
+    <string name="privacy_device_title">Datos guardados en tu móvil</string>
+    <string name="privacy_device">La app guarda en el almacenamiento privado de tu móvil las partidas en curso y tus mejores tiempos. Solo sirven para que puedas continuar jugando y ver tus récords, y nunca llegan al desarrollador.</string>
+    <string name="privacy_backup_title">Copias de seguridad de Android</string>
+    <string name="privacy_backup">Si tienes activada la copia de seguridad de Android, el sistema puede incluir esas partidas y récords en la copia de tu cuenta de Google y restaurarlos en otro móvil. Eso lo gestiona Google según tus ajustes y su política de privacidad; el desarrollador no tiene acceso. Puedes desactivarla en los ajustes de Android.</string>
+    <string name="privacy_delete_title">Cómo borrar tus datos</string>
+    <string name="privacy_delete">Borra los datos de la app en los ajustes de Android o desinstálala. Las copias de seguridad se gestionan desde tu cuenta de Google.</string>
+    <string name="privacy_play_title">Google Play</string>
+    <string name="privacy_play">Si descargas la app desde Google Play, Google trata los datos de esa descarga según su propia política de privacidad.</string>
+    <string name="privacy_children_title">Menores</string>
+    <string name="privacy_children">La app no recopila datos de nadie, tampoco de menores.</string>
+    <string name="privacy_changes_title">Cambios en esta política</string>
+    <string name="privacy_changes">Si la app cambia su manera de tratar los datos, se actualizará esta política y su fecha.</string>
+    <string name="privacy_contact_title">Contacto</string>
+    <string name="privacy_contact">Desarrollador: Agustín García. Correo: contacto@agustin-garcia.es</string>
     <string name="new_game">Nueva partida</string>
     <string name="continue_game">Continuar</string>
     <string name="saved_game">Partida en curso: %1$s · %2$s</string>

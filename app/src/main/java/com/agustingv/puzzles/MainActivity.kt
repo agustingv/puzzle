@@ -25,6 +25,7 @@ import com.agustingv.puzzles.ui.memorama.MemoramaScreen
 import com.agustingv.puzzles.ui.memorama.MemoramaViewModel
 import com.agustingv.puzzles.ui.menu.GameInfo
 import com.agustingv.puzzles.ui.menu.MenuScreen
+import com.agustingv.puzzles.ui.menu.PrivacyScreen
 import com.agustingv.puzzles.ui.menu.RecordsScreen
 import com.agustingv.puzzles.ui.path.PathScreen
 import com.agustingv.puzzles.ui.path.PathViewModel
@@ -54,6 +55,7 @@ class MainActivity : ComponentActivity() {
 private fun PuzzlesApp() {
     var playing by rememberSaveable { mutableStateOf<GameInfo?>(null) }
     var recordsOf by rememberSaveable { mutableStateOf<GameInfo?>(null) }
+    var showPrivacy by rememberSaveable { mutableStateOf(false) }
 
     val race: RaceViewModel = viewModel()
     val hangman: HangmanViewModel = viewModel()
@@ -73,6 +75,7 @@ private fun PuzzlesApp() {
     val recordsGame = recordsOf
 
     when {
+        showPrivacy -> PrivacyScreen(onExit = { showPrivacy = false })
         recordsGame != null -> RecordsScreen(recordsGame, records, onExit = { recordsOf = null })
         game == null -> MenuScreen(
             saved = { info ->
@@ -106,6 +109,7 @@ private fun PuzzlesApp() {
             },
             onContinue = { playing = it },
             onRecords = { recordsOf = it },
+            onPrivacy = { showPrivacy = true },
         )
         else -> when (game) {
             GameInfo.RACE -> RaceScreen(race, toMenu)

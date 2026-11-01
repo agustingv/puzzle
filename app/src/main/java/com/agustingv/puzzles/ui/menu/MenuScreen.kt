@@ -44,6 +44,7 @@ fun MenuScreen(
     onNewGame: (GameInfo, variant: String) -> Unit,
     onContinue: (GameInfo) -> Unit,
     onRecords: (GameInfo) -> Unit,
+    onPrivacy: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -74,6 +75,10 @@ fun MenuScreen(
                 onContinue = { onContinue(info) },
                 onRecords = { onRecords(info) },
             )
+        }
+
+        TextButton(onClick = onPrivacy, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+            Text(stringResource(R.string.privacy_title))
         }
     }
 }
@@ -172,6 +177,7 @@ private fun MenuPreview() {
             onNewGame = { _, _ -> },
             onContinue = {},
             onRecords = {},
+            onPrivacy = {},
         )
     }
 }

@@ -118,15 +118,19 @@ private fun Board(game: PathGame, side: Dp, onPress: (Int) -> Unit, onDrag: (Int
                         val change = event.changes.firstOrNull { it.id == down.id } ?: break
                         change.consume()
 
-                        // A fast swipe jumps several cells between events: walk the segment so no
-                        // cell along the way is skipped. That includes the last stretch up to where
+                        // A fast swipe jumps several cells between events: walk each segment so no
+                        // cell along the way is skipped. Android can batch several moves into one
+                        // event, so its intermediate points count too: going straight to the last
+                        // one would cut across a turn. That includes the last stretch up to where
                         // the finger lifts, which can be past the last move event.
-                        val delta = change.position - previous
-                        val steps = (delta.getDistance() / (cellPx / 4f)).toInt().coerceAtLeast(1)
-                        for (step in 1..steps) {
-                            cellAt(previous + delta * (step / steps.toFloat()))?.let { drag(it) }
+                        for (point in change.historical.map { it.position } + change.position) {
+                            val delta = point - previous
+                            val steps = (delta.getDistance() / (cellPx / 4f)).toInt().coerceAtLeast(1)
+                            for (step in 1..steps) {
+                                cellAt(previous + delta * (step / steps.toFloat()))?.let { drag(it) }
+                            }
+                            previous = point
                         }
-                        previous = change.position
 
                         if (!change.pressed) break
                     }
