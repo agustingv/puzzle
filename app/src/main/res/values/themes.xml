@@ -1,0 +1,6 @@
+<resources>
+    <!-- Only covers the window behind Compose; the real theme is ui/theme/Theme.kt. -->
+    <style name="Theme.Puzzles" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/paper</item>
+    </style>
+</resources>

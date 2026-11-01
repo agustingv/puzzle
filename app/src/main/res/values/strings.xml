@@ -1,0 +1,45 @@
+<resources>
+    <string name="app_name">Puzzles</string>
+    <string name="menu_subtitle">Juegos de números y letras para procrastinar</string>
+    <string name="play">Jugar</string>
+    <string name="play_again">Jugar otra vez</string>
+    <string name="exit">Salir</string>
+
+    <string name="difficulty_easy">Fácil</string>
+    <string name="difficulty_medium">Medio</string>
+    <string name="difficulty_hard">Difícil</string>
+    <string name="difficulty_expert">Experto</string>
+
+    <string name="option_difficulty">Dificultad</string>
+    <string name="option_letters">Número de letras</string>
+
+    <string name="word_title">Adivina la Palabra</string>
+    <string name="word_description">Adivina la palabra en 6 intentos: verde si la letra está en su sitio, amarillo si está en la palabra pero en otra posición.</string>
+    <string name="word_attempt">Intento %1$d / %2$d</string>
+    <string name="word_won">¡Ganaste! (%1$d/%2$d)</string>
+    <string name="word_lost">Perdiste: la palabra era «%1$s»</string>
+    <string name="word_key_submit">Comprobar</string>
+    <string name="word_key_delete">Borrar</string>
+    <string name="word_letter_correct">%1$s: en su sitio</string>
+    <string name="word_letter_present">%1$s: en otra posición</string>
+    <string name="word_letter_absent">%1$s: no está</string>
+
+    <string name="path_title">Camino</string>
+    <string name="path_description">Traza una única línea que conecte los números en orden y recorra todas las casillas de la cuadrícula.</string>
+    <string name="path_progress">%1$d / %2$d casillas</string>
+    <string name="path_board">Tablero de %1$d por %1$d</string>
+    <string name="path_reset">Reiniciar</string>
+    <string name="path_solved">¡Completado!</string>
+    <string name="path_must_end">El camino debe terminar en el número %1$d. Retrocede y prueba otra ruta.</string>
+
+    <string name="sliding_title">Puzle Deslizante</string>
+    <string name="sliding_description">Desliza las fichas numeradas hasta ordenarlas en la cuadrícula, dejando el hueco en la última casilla.</string>
+    <string name="sliding_move_tile">Mover ficha</string>
+    <string name="sliding_solved">¡Resuelto!</string>
+    <string name="time_value">Tiempo: %1$s</string>
+    <plurals name="moves_value">
+        <item quantity="one">%1$d movimiento</item>
+        <item quantity="many">%1$d movimientos</item>
+        <item quantity="other">%1$d movimientos</item>
+    </plurals>
+</resources>
