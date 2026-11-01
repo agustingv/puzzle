@@ -72,4 +72,11 @@ class HangmanGameTest {
         assertEquals(HangmanLetterState.INCORRECT, game.letterState('x'))
         assertEquals(HangmanLetterState.UNUSED, game.letterState('s'))
     }
+
+    @Test
+    fun `json round trip keeps accents and enye`() {
+        val played = HangmanGame("ñandú").play("ñxu")
+
+        assertEquals(played, HangmanGame.fromJson(played.toJson()))
+    }
 }

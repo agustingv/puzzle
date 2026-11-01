@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.agustingv.puzzles.R
+import com.agustingv.puzzles.data.RecordResult
 import com.agustingv.puzzles.ui.theme.Border
 import com.agustingv.puzzles.ui.theme.Ink
 import com.agustingv.puzzles.ui.theme.InkSoft
@@ -163,12 +164,25 @@ private fun RowScope.Key(
 
 /** End-of-game message and replay button, shared by every game. */
 @Composable
-fun GameResult(message: String, onPlayAgain: () -> Unit) {
+fun GameResult(message: String, onPlayAgain: () -> Unit, record: RecordResult? = null) {
     Text(
         text = message,
         style = MaterialTheme.typography.titleLarge,
         fontWeight = FontWeight.Bold,
         textAlign = TextAlign.Center,
     )
+    if (record != null) {
+        Text(
+            text = when {
+                record.isNewBest -> stringResource(R.string.record_new_best, formatTime(record.seconds))
+                record.rank != null ->
+                    stringResource(R.string.record_ranked, record.rank, formatTime(record.best))
+                else -> stringResource(R.string.record_best, formatTime(record.best))
+            },
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+        )
+    }
     Button(onClick = onPlayAgain) { Text(stringResource(R.string.play_again)) }
 }

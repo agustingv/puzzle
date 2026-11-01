@@ -94,4 +94,12 @@ class RaceGameTest {
             assertNotEquals("palabra", scrambled)
         }
     }
+
+    @Test
+    fun `json round trip keeps the whole state`() {
+        val played = race("ágil", "año", "mesa").submit("agil").wait(RaceGame.TIME_LIMIT).wait(3)
+
+        assertEquals(played, RaceGame.fromJson(played.toJson()))
+        assertEquals(RaceGame.TIME_LIMIT - 3, RaceGame.fromJson(played.toJson()).secondsLeft)
+    }
 }

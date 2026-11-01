@@ -83,4 +83,11 @@ class SlidingPuzzleGameTest {
             (inversions + blankRowFromBottom) % 2 == 1
         }
     }
+
+    @Test
+    fun `json round trip keeps the whole state`() {
+        val played = SlidingPuzzleGame.generate(Difficulty.HARD, Random(5)).let { g -> g.move((g.tiles.indexOf(0) + 1) % 25) }
+
+        assertEquals(played, SlidingPuzzleGame.fromJson(played.toJson()))
+    }
 }

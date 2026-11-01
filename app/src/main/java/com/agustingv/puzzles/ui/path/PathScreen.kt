@@ -48,19 +48,20 @@ import com.agustingv.puzzles.ui.theme.Pink
 
 @Composable
 fun PathScreen(viewModel: PathViewModel, onExit: () -> Unit) {
-    GameClock(onTick = viewModel::tick)
+    GameClock(onTick = viewModel.session::tick)
 
-    val game = viewModel.game
+    val game = viewModel.session.game ?: return
 
     GameScaffold(
         title = stringResource(R.string.path_title),
-        elapsedSeconds = viewModel.elapsedSeconds,
+        elapsedSeconds = viewModel.session.elapsedSeconds,
         status = stringResource(R.string.path_progress, game.path.size, game.totalCells),
         onExit = onExit,
         actions = {
             when {
                 game.isComplete -> GameResult(
                     message = stringResource(R.string.path_solved),
+                    record = viewModel.session.lastRecord,
                     onPlayAgain = { viewModel.newGame(game.difficulty) },
                 )
                 else -> {

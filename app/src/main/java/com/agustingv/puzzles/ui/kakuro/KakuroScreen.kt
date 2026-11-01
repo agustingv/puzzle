@@ -41,10 +41,10 @@ import com.agustingv.puzzles.ui.theme.Purple
 
 @Composable
 fun KakuroScreen(viewModel: KakuroViewModel, onExit: () -> Unit) {
-    GameClock(onTick = viewModel::tick)
+    GameClock(onTick = viewModel.session::tick)
 
     val title = stringResource(R.string.kakuro_title)
-    val game = viewModel.game
+    val game = viewModel.session.game
 
     if (game == null) {
         GameLoading(title, onExit)
@@ -53,13 +53,14 @@ fun KakuroScreen(viewModel: KakuroViewModel, onExit: () -> Unit) {
 
     GameScaffold(
         title = title,
-        elapsedSeconds = viewModel.elapsedSeconds,
+        elapsedSeconds = viewModel.session.elapsedSeconds,
         status = stringResource(R.string.grid_filled, game.filledCount, game.activeCells),
         onExit = onExit,
         actions = {
             if (game.isComplete) {
                 GameResult(
                     message = stringResource(R.string.kakuro_won),
+                    record = viewModel.session.lastRecord,
                     onPlayAgain = { viewModel.newGame(game.difficulty) },
                 )
             } else {

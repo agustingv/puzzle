@@ -1,6 +1,8 @@
 package com.agustingv.puzzles.game.sliding
 
 import com.agustingv.puzzles.game.Difficulty
+import org.json.JSONArray
+import org.json.JSONObject
 import kotlin.math.abs
 import kotlin.random.Random
 
@@ -34,8 +36,25 @@ data class SlidingPuzzleGame(
     private fun areAdjacent(a: Int, b: Int): Boolean =
         abs(a / size - b / size) + abs(a % size - b % size) == 1
 
+    fun toJson(): String = JSONObject()
+        .put("tiles", JSONArray(tiles))
+        .put("difficulty", difficulty.name)
+        .put("moves", moves)
+        .toString()
+
     companion object {
         private const val SHUFFLE_MULTIPLIER = 40
+
+        fun fromJson(json: String): SlidingPuzzleGame {
+            val root = JSONObject(json)
+            val tiles = root.getJSONArray("tiles")
+
+            return SlidingPuzzleGame(
+                tiles = List(tiles.length()) { tiles.getInt(it) },
+                difficulty = Difficulty.valueOf(root.getString("difficulty")),
+                moves = root.getInt("moves"),
+            )
+        }
 
         fun sizeFor(difficulty: Difficulty): Int = when (difficulty) {
             Difficulty.EASY -> 3

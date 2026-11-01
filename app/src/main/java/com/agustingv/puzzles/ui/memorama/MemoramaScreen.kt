@@ -36,19 +36,20 @@ private val CardGap = 6.dp
 
 @Composable
 fun MemoramaScreen(viewModel: MemoramaViewModel, onExit: () -> Unit) {
-    GameClock(onTick = viewModel::tick)
+    GameClock(onTick = viewModel.session::tick)
 
-    val game = viewModel.game ?: return
+    val game = viewModel.session.game ?: return
 
     GameScaffold(
         title = stringResource(R.string.memorama_title),
-        elapsedSeconds = viewModel.elapsedSeconds,
+        elapsedSeconds = viewModel.session.elapsedSeconds,
         status = stringResource(R.string.memorama_status, game.matchedPairs, game.pairs, game.moves),
         onExit = onExit,
         actions = {
             if (game.isWon) {
                 GameResult(
                     message = stringResource(R.string.memorama_won, game.pairs),
+                    record = viewModel.session.lastRecord,
                     onPlayAgain = { viewModel.newGame(game.difficulty) },
                 )
             }

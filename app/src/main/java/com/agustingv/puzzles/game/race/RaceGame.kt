@@ -1,6 +1,8 @@
 package com.agustingv.puzzles.game.race
 
 import com.agustingv.puzzles.game.foldAccents
+import org.json.JSONArray
+import org.json.JSONObject
 import kotlin.random.Random
 
 data class RaceRound(val word: String, val scrambled: String)
@@ -42,11 +44,33 @@ data class RaceGame(
 
     private fun advance(result: RaceResult) = copy(results = results + result, secondsLeft = TIME_LIMIT)
 
+    fun toJson(): String = JSONObject()
+        .put("words", JSONArray(rounds.map { it.word }))
+        .put("scrambled", JSONArray(rounds.map { it.scrambled }))
+        .put("results", JSONArray(results.map { it.name }))
+        .put("secondsLeft", secondsLeft)
+        .toString()
+
     companion object {
         const val TOTAL_ROUNDS = 10
         const val TIME_LIMIT = 20
 
         private const val SCRAMBLE_ATTEMPTS = 20
+
+        fun fromJson(json: String): RaceGame {
+            val root = JSONObject(json)
+
+            fun strings(key: String): List<String> {
+                val array = root.getJSONArray(key)
+                return List(array.length()) { array.getString(it) }
+            }
+
+            return RaceGame(
+                rounds = strings("words").zip(strings("scrambled"), ::RaceRound),
+                results = strings("results").map(RaceResult::valueOf),
+                secondsLeft = root.getInt("secondsLeft"),
+            )
+        }
 
         fun generate(pool: List<String>, random: Random = Random.Default): RaceGame =
             RaceGame(pool.shuffled(random).take(TOTAL_ROUNDS).map { RaceRound(it, scramble(it, random)) })

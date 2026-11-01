@@ -40,10 +40,10 @@ import com.agustingv.puzzles.ui.theme.Purple
 
 @Composable
 fun SudokuScreen(viewModel: SudokuViewModel, onExit: () -> Unit) {
-    GameClock(onTick = viewModel::tick)
+    GameClock(onTick = viewModel.session::tick)
 
     val title = stringResource(R.string.sudoku_title)
-    val game = viewModel.game
+    val game = viewModel.session.game
 
     if (game == null) {
         GameLoading(title, onExit)
@@ -52,13 +52,14 @@ fun SudokuScreen(viewModel: SudokuViewModel, onExit: () -> Unit) {
 
     GameScaffold(
         title = title,
-        elapsedSeconds = viewModel.elapsedSeconds,
+        elapsedSeconds = viewModel.session.elapsedSeconds,
         status = stringResource(R.string.grid_filled, game.filledCount, 81),
         onExit = onExit,
         actions = {
             if (game.isComplete) {
                 GameResult(
                     message = stringResource(R.string.sudoku_won),
+                    record = viewModel.session.lastRecord,
                     onPlayAgain = { viewModel.newGame(game.difficulty) },
                 )
             } else {

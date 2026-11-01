@@ -64,15 +64,15 @@ private val LandscapeKeyHeight = 32.dp
 
 @Composable
 fun CrosswordScreen(viewModel: CrosswordViewModel, onExit: () -> Unit) {
-    GameClock(onTick = viewModel::tick)
+    GameClock(onTick = viewModel.session::tick)
 
-    val game = viewModel.game ?: return
+    val game = viewModel.session.game ?: return
     var showClues by rememberSaveable { mutableStateOf(false) }
     var confirmFinish by rememberSaveable { mutableStateOf(false) }
 
     GameScaffold(
         title = stringResource(R.string.crossword_title),
-        elapsedSeconds = viewModel.elapsedSeconds,
+        elapsedSeconds = viewModel.session.elapsedSeconds,
         status = stringResource(R.string.grid_solved, game.solved.size, game.words.size),
         onExit = onExit,
         actions = {
@@ -83,6 +83,7 @@ fun CrosswordScreen(viewModel: CrosswordViewModel, onExit: () -> Unit) {
                     } else {
                         stringResource(R.string.crossword_lost, game.solved.size, game.words.size)
                     },
+                    record = viewModel.session.lastRecord,
                     onPlayAgain = { viewModel.newGame(game.difficulty) },
                 )
                 ClueList(game, onSelect = {})

@@ -38,13 +38,13 @@ private val MaxLetterSize = 48.dp
 
 @Composable
 fun HangmanScreen(viewModel: HangmanViewModel, onExit: () -> Unit) {
-    GameClock(onTick = viewModel::tick)
+    GameClock(onTick = viewModel.session::tick)
 
-    val game = viewModel.game
+    val game = viewModel.session.game ?: return
 
     GameScaffold(
         title = stringResource(R.string.hangman_title),
-        elapsedSeconds = viewModel.elapsedSeconds,
+        elapsedSeconds = viewModel.session.elapsedSeconds,
         status = stringResource(R.string.hangman_misses, game.wrongCount, HangmanGame.MAX_WRONG),
         onExit = onExit,
         actions = {
@@ -55,6 +55,7 @@ fun HangmanScreen(viewModel: HangmanViewModel, onExit: () -> Unit) {
                     } else {
                         stringResource(R.string.game_lost_word, game.word)
                     },
+                    record = viewModel.session.lastRecord,
                     onPlayAgain = { viewModel.newGame(game.word.length) },
                 )
             } else {

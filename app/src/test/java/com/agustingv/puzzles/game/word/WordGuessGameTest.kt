@@ -102,4 +102,11 @@ class WordGuessGameTest {
             }
         }
     }
+
+    @Test
+    fun `json round trip keeps accents and enye`() {
+        val played = WordGuessGame("añoró").guess("xxñxx").guess("agilé")
+
+        assertEquals(played, WordGuessGame.fromJson(played.toJson()))
+    }
 }

@@ -1,6 +1,8 @@
 package com.agustingv.puzzles.game.word
 
 import com.agustingv.puzzles.game.foldAccents
+import org.json.JSONArray
+import org.json.JSONObject
 
 enum class LetterState { CORRECT, PRESENT, ABSENT }
 
@@ -58,8 +60,17 @@ data class WordGuessGame(val word: String, val guesses: List<String> = emptyList
         return best
     }
 
+    fun toJson(): String = JSONObject().put("word", word).put("guesses", JSONArray(guesses)).toString()
+
     companion object {
         const val MAX_ATTEMPTS = 6
+
+        fun fromJson(json: String): WordGuessGame {
+            val root = JSONObject(json)
+            val guesses = root.getJSONArray("guesses")
+
+            return WordGuessGame(root.getString("word"), List(guesses.length()) { guesses.getString(it) })
+        }
 
         private fun fold(text: String) = foldAccents(text)
     }

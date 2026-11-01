@@ -40,12 +40,12 @@ private val MaxLetterSize = 48.dp
 fun RaceScreen(viewModel: RaceViewModel, onExit: () -> Unit) {
     GameClock(onTick = viewModel::tick)
 
-    val game = viewModel.game
+    val game = viewModel.session.game ?: return
     val total = game.rounds.size
 
     GameScaffold(
         title = stringResource(R.string.race_title),
-        elapsedSeconds = viewModel.elapsedSeconds,
+        elapsedSeconds = viewModel.session.elapsedSeconds,
         status = if (game.isFinished) {
             stringResource(R.string.race_score, game.correctCount, total)
         } else {
@@ -58,6 +58,7 @@ fun RaceScreen(viewModel: RaceViewModel, onExit: () -> Unit) {
                     message = stringResource(
                         if (game.isWon) R.string.race_finished_perfect else R.string.race_finished,
                     ),
+                    record = viewModel.session.lastRecord,
                     onPlayAgain = { viewModel.newGame(game.length) },
                 )
             } else {

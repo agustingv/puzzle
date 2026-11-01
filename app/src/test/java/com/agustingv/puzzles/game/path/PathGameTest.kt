@@ -113,4 +113,12 @@ class PathGameTest {
         val sizes = Difficulty.entries.map { PathGame.generate(it, Random(1)).size }
         assertEquals(listOf(5, 6, 7, 8), sizes)
     }
+
+    @Test
+    fun `json round trip keeps the whole state`() {
+        val (puzzle, solution) = PathGame.generateWithSolution(Difficulty.HARD, Random(5))
+        val played = solution.take(10).fold(puzzle) { g, c -> g.extend(c) }
+
+        assertEquals(played, PathGame.fromJson(played.toJson()))
+    }
 }

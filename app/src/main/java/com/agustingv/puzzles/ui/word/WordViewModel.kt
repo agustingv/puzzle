@@ -2,37 +2,39 @@ package com.agustingv.puzzles.ui.word
 
 import android.app.Application
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.SavedStateHandle
+import com.agustingv.puzzles.data.AppStorage
+import com.agustingv.puzzles.data.GameRules
+import com.agustingv.puzzles.data.GameSession
 import com.agustingv.puzzles.game.word.WordGuessGame
-import com.agustingv.puzzles.game.word.WordList
 import com.agustingv.puzzles.ui.common.BundledWords
 
-class WordViewModel(application: Application, private val saved: SavedStateHandle) :
-    AndroidViewModel(application) {
+class WordViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val words = BundledWords.get(application)
+    val session = GameSession(
+        AppStorage.of(application),
+        GameRules(
+            id = "word",
+            encode = WordGuessGame::toJson,
+            decode = WordGuessGame::fromJson,
+            isOver = WordGuessGame::isOver,
+            isWon = WordGuessGame::isWon,
+            variantOf = { it.length.toString() },
+        ),
+    )
 
-    var game by mutableStateOf(restore() ?: pickGame(WordList.LENGTHS.first()))
-        private set
-
-    var typed by mutableStateOf(saved[KEY_TYPED] ?: "")
-        private set
-
-    var elapsedSeconds by mutableIntStateOf(saved[KEY_ELAPSED] ?: 0)
+    var typed by mutableStateOf(session.loadExtra().orEmpty())
         private set
 
     fun newGame(length: Int) {
-        update(pickGame(length))
-        updateTyped("")
-        elapsedSeconds = 0
-        saved[KEY_ELAPSED] = 0
+        session.start(WordGuessGame(BundledWords.get(getApplication()).getValue(length).random()))
+        typed = ""
     }
 
     fun type(letter: Char) {
+        val game = session.game ?: return
         if (!game.isOver && typed.length < game.length) updateTyped(typed + letter)
     }
 
@@ -41,39 +43,15 @@ class WordViewModel(application: Application, private val saved: SavedStateHandl
     }
 
     fun submit() {
+        val game = session.game ?: return
         if (game.isOver || typed.length != game.length) return
-        update(game.guess(typed))
+
+        session.update(game.guess(typed))
         updateTyped("")
-    }
-
-    fun tick() {
-        if (game.isOver) return
-        elapsedSeconds++
-        saved[KEY_ELAPSED] = elapsedSeconds
-    }
-
-    private fun pickGame(length: Int) = WordGuessGame(words.getValue(length).random())
-
-    private fun update(next: WordGuessGame) {
-        game = next
-        saved[KEY_WORD] = next.word
-        saved[KEY_GUESSES] = ArrayList(next.guesses)
     }
 
     private fun updateTyped(value: String) {
         typed = value
-        saved[KEY_TYPED] = value
-    }
-
-    private fun restore(): WordGuessGame? {
-        val word = saved.get<String>(KEY_WORD) ?: return null
-        return WordGuessGame(word, saved.get<ArrayList<String>>(KEY_GUESSES).orEmpty())
-    }
-
-    private companion object {
-        const val KEY_WORD = "word"
-        const val KEY_GUESSES = "guesses"
-        const val KEY_TYPED = "typed"
-        const val KEY_ELAPSED = "elapsed"
+        session.saveExtra(value)
     }
 }

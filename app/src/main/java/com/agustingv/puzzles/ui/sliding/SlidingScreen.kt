@@ -39,19 +39,20 @@ private val TileGap = 6.dp
 
 @Composable
 fun SlidingScreen(viewModel: SlidingViewModel, onExit: () -> Unit) {
-    GameClock(onTick = viewModel::tick)
+    GameClock(onTick = viewModel.session::tick)
 
-    val game = viewModel.game
+    val game = viewModel.session.game ?: return
 
     GameScaffold(
         title = stringResource(R.string.sliding_title),
-        elapsedSeconds = viewModel.elapsedSeconds,
+        elapsedSeconds = viewModel.session.elapsedSeconds,
         status = pluralStringResource(R.plurals.moves_value, game.moves, game.moves),
         onExit = onExit,
         actions = {
             if (game.isSolved) {
                 GameResult(
                     message = stringResource(R.string.sliding_solved),
+                    record = viewModel.session.lastRecord,
                     onPlayAgain = { viewModel.newGame(game.difficulty) },
                 )
             }

@@ -1,6 +1,8 @@
 package com.agustingv.puzzles.game.path
 
 import com.agustingv.puzzles.game.Difficulty
+import org.json.JSONArray
+import org.json.JSONObject
 import kotlin.math.abs
 import kotlin.random.Random
 
@@ -66,9 +68,33 @@ data class PathGame(
         return visited == (1..checkpoints.size).toList() && checkpoints[path.last()] == checkpoints.size
     }
 
+    fun toJson(): String = JSONObject()
+        .put("size", size)
+        .put("difficulty", difficulty.name)
+        .put("checkpointCells", JSONArray(checkpoints.keys.toList()))
+        .put("checkpointNumbers", JSONArray(checkpoints.values.toList()))
+        .put("path", JSONArray(path))
+        .toString()
+
     companion object {
         private const val STEP_BUDGET = 30_000
         private const val MAX_ATTEMPTS = 200
+
+        fun fromJson(json: String): PathGame {
+            val root = JSONObject(json)
+
+            fun ints(key: String): List<Int> {
+                val array = root.getJSONArray(key)
+                return List(array.length()) { array.getInt(it) }
+            }
+
+            return PathGame(
+                size = root.getInt("size"),
+                difficulty = Difficulty.valueOf(root.getString("difficulty")),
+                checkpoints = ints("checkpointCells").zip(ints("checkpointNumbers")).toMap(),
+                path = ints("path"),
+            )
+        }
 
         private data class Settings(val size: Int, val checkpoints: Int)
 

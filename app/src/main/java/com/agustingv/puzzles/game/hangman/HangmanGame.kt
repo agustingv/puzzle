@@ -1,6 +1,7 @@
 package com.agustingv.puzzles.game.hangman
 
 import com.agustingv.puzzles.game.foldAccents
+import org.json.JSONObject
 
 enum class HangmanLetterState { UNUSED, CORRECT, INCORRECT }
 
@@ -26,7 +27,14 @@ data class HangmanGame(val word: String, val guessed: List<Char> = emptyList()) 
         else -> HangmanLetterState.INCORRECT
     }
 
+    fun toJson(): String = JSONObject().put("word", word).put("guessed", guessed.joinToString("")).toString()
+
     companion object {
         const val MAX_WRONG = 6
+
+        fun fromJson(json: String): HangmanGame {
+            val root = JSONObject(json)
+            return HangmanGame(root.getString("word"), root.getString("guessed").toList())
+        }
     }
 }

@@ -48,13 +48,13 @@ private const val ZOOM_FROM_SIZE = 15
 
 @Composable
 fun WordSearchScreen(viewModel: WordSearchViewModel, onExit: () -> Unit) {
-    GameClock(onTick = viewModel::tick)
+    GameClock(onTick = viewModel.session::tick)
 
-    val game = viewModel.game ?: return
+    val game = viewModel.session.game ?: return
 
     GameScaffold(
         title = stringResource(R.string.wordsearch_title),
-        elapsedSeconds = viewModel.elapsedSeconds,
+        elapsedSeconds = viewModel.session.elapsedSeconds,
         status = stringResource(R.string.grid_found, game.foundCount, game.words.size),
         onExit = onExit,
         actions = {
@@ -70,6 +70,7 @@ fun WordSearchScreen(viewModel: WordSearchViewModel, onExit: () -> Unit) {
             if (game.isComplete) {
                 GameResult(
                     message = stringResource(R.string.wordsearch_won, game.words.size),
+                    record = viewModel.session.lastRecord,
                     onPlayAgain = { viewModel.newGame(game.difficulty) },
                 )
             }

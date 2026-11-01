@@ -124,4 +124,4 @@ fun GameClock(onTick: () -> Unit) {
     }
 }
 
-private fun formatTime(seconds: Int): String = "%d:%02d".format(seconds / 60, seconds % 60)
+fun formatTime(seconds: Int): String = "%d:%02d".format(seconds / 60, seconds % 60)

@@ -28,14 +28,14 @@ private val CellGap = 4.dp
 
 @Composable
 fun WordScreen(viewModel: WordViewModel, onExit: () -> Unit) {
-    GameClock(onTick = viewModel::tick)
+    GameClock(onTick = viewModel.session::tick)
 
-    val game = viewModel.game
+    val game = viewModel.session.game ?: return
     val max = WordGuessGame.MAX_ATTEMPTS
 
     GameScaffold(
         title = stringResource(R.string.word_title),
-        elapsedSeconds = viewModel.elapsedSeconds,
+        elapsedSeconds = viewModel.session.elapsedSeconds,
         status = stringResource(
             R.string.word_attempt,
             if (game.isOver) game.guesses.size else game.guesses.size + 1,
@@ -50,6 +50,7 @@ fun WordScreen(viewModel: WordViewModel, onExit: () -> Unit) {
                     } else {
                         stringResource(R.string.game_lost_word, game.word)
                     },
+                    record = viewModel.session.lastRecord,
                     onPlayAgain = { viewModel.newGame(game.length) },
                 )
             } else {
