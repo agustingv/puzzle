@@ -2,10 +2,17 @@ package com.agustingv.puzzles.ui.menu
 
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import com.agustingv.puzzles.R
 import com.agustingv.puzzles.game.Difficulty
 import com.agustingv.puzzles.game.word.WordList
+import com.agustingv.puzzles.ui.theme.Accent
+import com.agustingv.puzzles.ui.theme.Danger
+import com.agustingv.puzzles.ui.theme.Pink
+import com.agustingv.puzzles.ui.theme.Purple
+import com.agustingv.puzzles.ui.theme.Teal
+import com.agustingv.puzzles.ui.theme.Warn
 
 private val BY_DIFFICULTY = Difficulty.entries.map { it.name }
 private val BY_LENGTH = WordList.LENGTHS.map { it.toString() }
@@ -13,7 +20,7 @@ private val BY_LENGTH = WordList.LENGTHS.map { it.toString() }
 /**
  * Every game, in menu order. [id] names its saved game and records. Icons are kept to old emoji:
  * minSdk 24 has no glyph for newer ones like 🟩, 🪢 or 🧠. [variants] are a game's difficulties or
- * word lengths.
+ * word lengths. [gradient] is its colour pair, the same one each game has on the web.
  */
 enum class GameInfo(
     val id: String,
@@ -21,17 +28,18 @@ enum class GameInfo(
     @param:StringRes val title: Int,
     @param:StringRes val description: Int,
     val variants: List<String>,
+    val gradient: List<Color>,
 ) {
-    RACE("race", "🏁", R.string.race_title, R.string.race_description, BY_LENGTH),
-    HANGMAN("hangman", "🎯", R.string.hangman_title, R.string.hangman_description, BY_LENGTH),
-    WORD("word", "🔠", R.string.word_title, R.string.word_description, BY_LENGTH),
-    WORD_SEARCH("wordsearch", "🔍", R.string.wordsearch_title, R.string.wordsearch_description, BY_DIFFICULTY),
-    CROSSWORD("crossword", "🧩", R.string.crossword_title, R.string.crossword_description, BY_DIFFICULTY),
-    SUDOKU("sudoku", "🔢", R.string.sudoku_title, R.string.sudoku_description, BY_DIFFICULTY),
-    PATH("path", "🔗", R.string.path_title, R.string.path_description, BY_DIFFICULTY),
-    KAKURO("kakuro", "➕", R.string.kakuro_title, R.string.kakuro_description, BY_DIFFICULTY),
-    MEMORAMA("memorama", "🃏", R.string.memorama_title, R.string.memorama_description, BY_DIFFICULTY),
-    SLIDING("sliding", "🔀", R.string.sliding_title, R.string.sliding_description, BY_DIFFICULTY),
+    RACE("race", "🏁", R.string.race_title, R.string.race_description, BY_LENGTH, listOf(Pink, Purple)),
+    HANGMAN("hangman", "🎯", R.string.hangman_title, R.string.hangman_description, BY_LENGTH, listOf(Warn, Danger)),
+    WORD("word", "🔠", R.string.word_title, R.string.word_description, BY_LENGTH, listOf(Accent, Teal)),
+    WORD_SEARCH("wordsearch", "🔍", R.string.wordsearch_title, R.string.wordsearch_description, BY_DIFFICULTY, listOf(Purple, Pink)),
+    CROSSWORD("crossword", "🧩", R.string.crossword_title, R.string.crossword_description, BY_DIFFICULTY, listOf(Warn, Purple)),
+    SUDOKU("sudoku", "🔢", R.string.sudoku_title, R.string.sudoku_description, BY_DIFFICULTY, listOf(Accent, Pink)),
+    PATH("path", "🔗", R.string.path_title, R.string.path_description, BY_DIFFICULTY, listOf(Pink, Accent)),
+    KAKURO("kakuro", "➕", R.string.kakuro_title, R.string.kakuro_description, BY_DIFFICULTY, listOf(Purple, Accent)),
+    MEMORAMA("memorama", "🃏", R.string.memorama_title, R.string.memorama_description, BY_DIFFICULTY, listOf(Purple, Warn)),
+    SLIDING("sliding", "🔀", R.string.sliding_title, R.string.sliding_description, BY_DIFFICULTY, listOf(Danger, Accent)),
 }
 
 val GameInfo.usesWordLengths: Boolean get() = variants === BY_LENGTH

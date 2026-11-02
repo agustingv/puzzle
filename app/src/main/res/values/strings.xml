@@ -31,8 +31,8 @@
     <string name="saved_game">Partida en curso: %1$s · %2$s</string>
     <string name="variant_letters">%1$d letras</string>
 
-    <string name="records_link">🏆 Récords</string>
-    <string name="records_title">Récords: %1$s</string>
+    <string name="game_in_progress">En curso</string>
+    <string name="hall_of_fame">🏆 Hall of Fame</string>
     <string name="records_empty">Sin tiempos todavía</string>
     <string name="record_new_best">🏆 ¡Nuevo récord! %1$s</string>
     <string name="record_ranked">Puesto %1$d entre tus tiempos · Tu mejor tiempo: %2$s</string>

@@ -23,6 +23,8 @@ val Pink = Color(0xFFEA4C89)
 val Purple = Color(0xFF6C5CE7)
 val Accent = Color(0xFF17C793)
 val Warn = Color(0xFFFFA63E)
+val Danger = Color(0xFFFF5470)
+val Teal = Color(0xFF2DD4BF)
 
 /** Fill of used-up letters, with white text. Not [InkSoft], which turns light in dark theme. */
 val Absent = Color(0xFF6B6B7F)

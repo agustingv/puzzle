@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.agustingv.puzzles.data.AppStorage
 import com.agustingv.puzzles.data.Records
+import com.agustingv.puzzles.data.SavedGame
 import com.agustingv.puzzles.game.Difficulty
 import com.agustingv.puzzles.ui.crossword.CrosswordScreen
 import com.agustingv.puzzles.ui.crossword.CrosswordViewModel
@@ -28,9 +29,9 @@ import com.agustingv.puzzles.ui.kakuro.KakuroViewModel
 import com.agustingv.puzzles.ui.memorama.MemoramaScreen
 import com.agustingv.puzzles.ui.memorama.MemoramaViewModel
 import com.agustingv.puzzles.ui.menu.GameInfo
-import com.agustingv.puzzles.ui.menu.MenuScreen
+import com.agustingv.puzzles.ui.menu.GameDetailScreen
+import com.agustingv.puzzles.ui.menu.HomeScreen
 import com.agustingv.puzzles.ui.menu.PrivacyScreen
-import com.agustingv.puzzles.ui.menu.RecordsScreen
 import com.agustingv.puzzles.ui.path.PathScreen
 import com.agustingv.puzzles.ui.path.PathViewModel
 import com.agustingv.puzzles.ui.race.RaceScreen
@@ -64,8 +65,9 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun PuzzlesApp() {
-    var playing by rememberSaveable { mutableStateOf<GameInfo?>(null) }
-    var recordsOf by rememberSaveable { mutableStateOf<GameInfo?>(null) }
+    // Home, then a game's page, then playing it: leaving each one goes back to the previous.
+    var opened by rememberSaveable { mutableStateOf<GameInfo?>(null) }
+    var playing by rememberSaveable { mutableStateOf(false) }
     var showPrivacy by rememberSaveable { mutableStateOf(false) }
 
     val race: RaceViewModel = viewModel()
@@ -80,59 +82,67 @@ private fun PuzzlesApp() {
     val sliding: SlidingViewModel = viewModel()
 
     val context = LocalContext.current
-    val records = remember { Records(AppStorage.of(context)) }
-    val toMenu = { playing = null }
-    val game = playing
-    val recordsGame = recordsOf
+    val storage = remember { AppStorage.of(context) }
+    val records = remember { Records(storage) }
+    val stopPlaying = { playing = false }
+    val game = opened
+
+    fun savedGame(info: GameInfo): SavedGame? = when (info) {
+        GameInfo.RACE -> race.session.saved
+        GameInfo.HANGMAN -> hangman.session.saved
+        GameInfo.WORD -> word.session.saved
+        GameInfo.WORD_SEARCH -> wordSearch.session.saved
+        GameInfo.CROSSWORD -> crossword.session.saved
+        GameInfo.SUDOKU -> sudoku.session.saved
+        GameInfo.PATH -> path.session.saved
+        GameInfo.KAKURO -> kakuro.session.saved
+        GameInfo.MEMORAMA -> memorama.session.saved
+        GameInfo.SLIDING -> sliding.session.saved
+    }
+
+    fun startGame(info: GameInfo, variant: String) {
+        when (info) {
+            GameInfo.RACE -> race.newGame(variant.toInt())
+            GameInfo.HANGMAN -> hangman.newGame(variant.toInt())
+            GameInfo.WORD -> word.newGame(variant.toInt())
+            GameInfo.WORD_SEARCH -> wordSearch.newGame(Difficulty.valueOf(variant))
+            GameInfo.CROSSWORD -> crossword.newGame(Difficulty.valueOf(variant))
+            GameInfo.SUDOKU -> sudoku.newGame(Difficulty.valueOf(variant))
+            GameInfo.PATH -> path.newGame(Difficulty.valueOf(variant))
+            GameInfo.KAKURO -> kakuro.newGame(Difficulty.valueOf(variant))
+            GameInfo.MEMORAMA -> memorama.newGame(Difficulty.valueOf(variant))
+            GameInfo.SLIDING -> sliding.newGame(Difficulty.valueOf(variant))
+        }
+        playing = true
+    }
 
     when {
         showPrivacy -> PrivacyScreen(onExit = { showPrivacy = false })
-        recordsGame != null -> RecordsScreen(recordsGame, records, onExit = { recordsOf = null })
-        game == null -> MenuScreen(
-            saved = { info ->
-                when (info) {
-                    GameInfo.RACE -> race.session.saved
-                    GameInfo.HANGMAN -> hangman.session.saved
-                    GameInfo.WORD -> word.session.saved
-                    GameInfo.WORD_SEARCH -> wordSearch.session.saved
-                    GameInfo.CROSSWORD -> crossword.session.saved
-                    GameInfo.SUDOKU -> sudoku.session.saved
-                    GameInfo.PATH -> path.session.saved
-                    GameInfo.KAKURO -> kakuro.session.saved
-                    GameInfo.MEMORAMA -> memorama.session.saved
-                    GameInfo.SLIDING -> sliding.session.saved
-                }
-            },
-            onNewGame = { info, variant ->
-                when (info) {
-                    GameInfo.RACE -> race.newGame(variant.toInt())
-                    GameInfo.HANGMAN -> hangman.newGame(variant.toInt())
-                    GameInfo.WORD -> word.newGame(variant.toInt())
-                    GameInfo.WORD_SEARCH -> wordSearch.newGame(Difficulty.valueOf(variant))
-                    GameInfo.CROSSWORD -> crossword.newGame(Difficulty.valueOf(variant))
-                    GameInfo.SUDOKU -> sudoku.newGame(Difficulty.valueOf(variant))
-                    GameInfo.PATH -> path.newGame(Difficulty.valueOf(variant))
-                    GameInfo.KAKURO -> kakuro.newGame(Difficulty.valueOf(variant))
-                    GameInfo.MEMORAMA -> memorama.newGame(Difficulty.valueOf(variant))
-                    GameInfo.SLIDING -> sliding.newGame(Difficulty.valueOf(variant))
-                }
-                playing = info
-            },
-            onContinue = { playing = it },
-            onRecords = { recordsOf = it },
+        game == null -> HomeScreen(
+            saved = ::savedGame,
+            onOpen = { opened = it },
             onPrivacy = { showPrivacy = true },
         )
+        !playing -> GameDetailScreen(
+            info = game,
+            saved = savedGame(game),
+            records = records,
+            storage = storage,
+            onPlay = { variant -> startGame(game, variant) },
+            onContinue = { playing = true },
+            onBack = { opened = null },
+        )
         else -> when (game) {
-            GameInfo.RACE -> RaceScreen(race, toMenu)
-            GameInfo.HANGMAN -> HangmanScreen(hangman, toMenu)
-            GameInfo.WORD -> WordScreen(word, toMenu)
-            GameInfo.WORD_SEARCH -> WordSearchScreen(wordSearch, toMenu)
-            GameInfo.CROSSWORD -> CrosswordScreen(crossword, toMenu)
-            GameInfo.SUDOKU -> SudokuScreen(sudoku, toMenu)
-            GameInfo.PATH -> PathScreen(path, toMenu)
-            GameInfo.KAKURO -> KakuroScreen(kakuro, toMenu)
-            GameInfo.MEMORAMA -> MemoramaScreen(memorama, toMenu)
-            GameInfo.SLIDING -> SlidingScreen(sliding, toMenu)
+            GameInfo.RACE -> RaceScreen(race, stopPlaying)
+            GameInfo.HANGMAN -> HangmanScreen(hangman, stopPlaying)
+            GameInfo.WORD -> WordScreen(word, stopPlaying)
+            GameInfo.WORD_SEARCH -> WordSearchScreen(wordSearch, stopPlaying)
+            GameInfo.CROSSWORD -> CrosswordScreen(crossword, stopPlaying)
+            GameInfo.SUDOKU -> SudokuScreen(sudoku, stopPlaying)
+            GameInfo.PATH -> PathScreen(path, stopPlaying)
+            GameInfo.KAKURO -> KakuroScreen(kakuro, stopPlaying)
+            GameInfo.MEMORAMA -> MemoramaScreen(memorama, stopPlaying)
+            GameInfo.SLIDING -> SlidingScreen(sliding, stopPlaying)
         }
     }
 }
