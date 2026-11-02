@@ -85,7 +85,6 @@ fun GameLoading(title: String, onExit: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
             .safeDrawingPadding()
             .padding(16.dp),
     ) {

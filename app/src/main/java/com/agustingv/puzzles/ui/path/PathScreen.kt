@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.systemGestureExclusion
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -38,12 +37,14 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.agustingv.puzzles.R
 import com.agustingv.puzzles.game.path.PathGame
+import com.agustingv.puzzles.ui.common.GameActionButton
 import com.agustingv.puzzles.ui.common.GameClock
 import com.agustingv.puzzles.ui.common.GameResult
 import com.agustingv.puzzles.ui.common.GameScaffold
 import com.agustingv.puzzles.ui.theme.Accent
+import com.agustingv.puzzles.ui.theme.Blocked
 import com.agustingv.puzzles.ui.theme.Border
-import com.agustingv.puzzles.ui.theme.Ink
+import com.agustingv.puzzles.ui.theme.Card
 import com.agustingv.puzzles.ui.theme.Pink
 
 @Composable
@@ -71,9 +72,7 @@ fun PathScreen(viewModel: PathViewModel, onExit: () -> Unit) {
                             textAlign = TextAlign.Center,
                         )
                     }
-                    OutlinedButton(onClick = viewModel::reset) {
-                        Text(stringResource(R.string.path_reset))
-                    }
+                    GameActionButton(stringResource(R.string.path_reset), viewModel::reset)
                 }
             }
         },
@@ -90,6 +89,7 @@ private fun Board(game: PathGame, side: Dp, onPress: (Int) -> Unit, onDrag: (Int
     val press by rememberUpdatedState(onPress)
     val drag by rememberUpdatedState(onDrag)
     val lineColor = if (game.isComplete) Accent else Pink
+    val cellColor = Border
     val description = stringResource(R.string.path_board, size)
 
     fun cellAt(position: Offset): Int? {
@@ -102,7 +102,7 @@ private fun Board(game: PathGame, side: Dp, onPress: (Int) -> Unit, onDrag: (Int
         modifier = Modifier
             .size(side)
             .clip(RoundedCornerShape(12.dp))
-            .background(Color.White)
+            .background(Card)
             .semantics { contentDescription = description }
             // A drag starting near the screen edge is for the board, not the system's back gesture.
             .systemGestureExclusion()
@@ -142,7 +142,7 @@ private fun Board(game: PathGame, side: Dp, onPress: (Int) -> Unit, onDrag: (Int
             for (row in 0 until size) {
                 for (col in 0 until size) {
                     drawRect(
-                        color = Border,
+                        color = cellColor,
                         topLeft = Offset(col * cellPx + gap, row * cellPx + gap),
                         size = Size(cellPx - 2 * gap, cellPx - 2 * gap),
                     )
@@ -181,7 +181,7 @@ private fun Board(game: PathGame, side: Dp, onPress: (Int) -> Unit, onDrag: (Int
                         y = cell * (position / size) + (cell - badge) / 2,
                     )
                     .size(badge)
-                    .background(Ink, CircleShape),
+                    .background(Blocked, CircleShape),
             ) {
                 Text(text = number.toString(), color = Color.White, fontWeight = FontWeight.Bold)
             }

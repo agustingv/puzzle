@@ -15,7 +15,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -34,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import com.agustingv.puzzles.R
 import com.agustingv.puzzles.data.RecordResult
 import com.agustingv.puzzles.ui.theme.Border
+import com.agustingv.puzzles.ui.theme.Card
 import com.agustingv.puzzles.ui.theme.Ink
 import com.agustingv.puzzles.ui.theme.InkSoft
 
@@ -58,7 +61,7 @@ fun LetterBox(
         modifier = Modifier
             .size(size)
             .clip(shape)
-            .background(fill ?: Color.White)
+            .background(fill ?: Card)
             .border(2.dp, if (emphasized) InkSoft else Border, shape)
             .clearAndSetSemantics { contentDescription = description },
     ) {
@@ -159,6 +162,17 @@ private fun RowScope.Key(
                 else -> InkSoft.copy(alpha = 0.5f)
             },
         )
+    }
+}
+
+/** Secondary action during a game. Opaque, because the background's tree shows behind it. */
+@Composable
+fun GameActionButton(label: String, onClick: () -> Unit) {
+    OutlinedButton(
+        onClick = onClick,
+        colors = ButtonDefaults.outlinedButtonColors(containerColor = Card, contentColor = Ink),
+    ) {
+        Text(label)
     }
 }
 

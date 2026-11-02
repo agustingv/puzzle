@@ -40,6 +40,7 @@ import com.agustingv.puzzles.ui.common.GameScaffold
 import com.agustingv.puzzles.ui.common.ZoomableBoard
 import com.agustingv.puzzles.ui.theme.Accent
 import com.agustingv.puzzles.ui.theme.Border
+import com.agustingv.puzzles.ui.theme.Card
 import com.agustingv.puzzles.ui.theme.Ink
 import com.agustingv.puzzles.ui.theme.InkSoft
 import com.agustingv.puzzles.ui.theme.Pink
@@ -100,7 +101,7 @@ private fun Board(game: WordSearchGame, viewModel: WordSearchViewModel, side: Dp
         val cell = boardSide / size
         val fontSize = with(LocalDensity.current) { (cell * 0.55f).toSp() }
 
-        Box(modifier = Modifier.size(boardSide).background(Color.White)) {
+        Box(modifier = Modifier.size(boardSide).background(Card)) {
             Canvas(modifier = Modifier.fillMaxSize()) {
                 game.words.filter { it.found }.forEach { word ->
                     capsule(word.cells.first(), word.cells.last(), size, Accent.copy(alpha = 0.4f))

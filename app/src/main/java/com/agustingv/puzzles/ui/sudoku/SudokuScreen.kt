@@ -2,13 +2,13 @@ package com.agustingv.puzzles.ui.sudoku
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -25,18 +25,20 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.agustingv.puzzles.R
 import com.agustingv.puzzles.game.sudoku.SudokuGame
+import com.agustingv.puzzles.ui.common.GameActionButton
 import com.agustingv.puzzles.ui.common.GameClock
 import com.agustingv.puzzles.ui.common.GameLoading
 import com.agustingv.puzzles.ui.common.GameResult
 import com.agustingv.puzzles.ui.common.GameScaffold
 import com.agustingv.puzzles.ui.common.NumberPad
+import com.agustingv.puzzles.ui.theme.Alert
 import com.agustingv.puzzles.ui.theme.Border
+import com.agustingv.puzzles.ui.theme.Card
 import com.agustingv.puzzles.ui.theme.Accent
 import com.agustingv.puzzles.ui.theme.Ink
 import com.agustingv.puzzles.ui.theme.InkSoft
 import com.agustingv.puzzles.ui.theme.Pink
-import com.agustingv.puzzles.ui.theme.PinkDark
-import com.agustingv.puzzles.ui.theme.Purple
+import com.agustingv.puzzles.ui.theme.PlayerDigit
 
 @Composable
 fun SudokuScreen(viewModel: SudokuViewModel, onExit: () -> Unit) {
@@ -63,7 +65,7 @@ fun SudokuScreen(viewModel: SudokuViewModel, onExit: () -> Unit) {
                     onPlayAgain = { viewModel.newGame(game.difficulty) },
                 )
             } else {
-                OutlinedButton(onClick = viewModel::check) { Text(stringResource(R.string.key_submit)) }
+                GameActionButton(stringResource(R.string.key_submit), viewModel::check)
                 NumberPad(onDigit = viewModel::type, onClear = viewModel::clear)
             }
         },
@@ -74,8 +76,10 @@ fun SudokuScreen(viewModel: SudokuViewModel, onExit: () -> Unit) {
 @Composable
 private fun Board(game: SudokuGame, side: Dp, onSelect: (Int) -> Unit) {
     val cell = side / 9
+    val strong = Ink
+    val fine = InkSoft
 
-    Box(modifier = Modifier.size(side).background(Color.White)) {
+    Box(modifier = Modifier.size(side).background(Card)) {
         Column {
             for (row in 0 until 9) {
                 Row {
@@ -93,7 +97,7 @@ private fun Board(game: SudokuGame, side: Dp, onSelect: (Int) -> Unit) {
             for (i in 0..9) {
                 val thick = i % 3 == 0
                 val width = if (thick) 2.dp.toPx() else 0.5.dp.toPx()
-                val color = if (thick) Ink else InkSoft
+                val color = if (thick) strong else fine
                 drawLine(color, Offset(i * step, 0f), Offset(i * step, size.height), width)
                 drawLine(color, Offset(0f, i * step), Offset(size.width, i * step), width)
             }
@@ -133,12 +137,13 @@ private fun Cell(game: SudokuGame, index: Int, row: Int, col: Int, side: Dp, onC
             .background(
                 when {
                     game.isComplete -> Accent.copy(alpha = 0.2f)
-                    selected -> Pink.copy(alpha = 0.5f)
+                    selected -> Pink.copy(alpha = 0.22f)
                     wrong -> Pink.copy(alpha = 0.25f)
                     related -> Border
-                    else -> Color.White
+                    else -> Card
                 },
             )
+            .border(if (selected) 2.dp else 0.dp, if (selected) Pink else Color.Transparent)
             .clickable(enabled = !given && !game.isComplete, onClick = onClick)
             .clearAndSetSemantics {
                 contentDescription = description
@@ -151,9 +156,9 @@ private fun Cell(game: SudokuGame, index: Int, row: Int, col: Int, side: Dp, onC
                 fontSize = fontSize,
                 fontWeight = if (given) FontWeight.Bold else FontWeight.Normal,
                 color = when {
-                    wrong -> PinkDark
+                    wrong -> Alert
                     given -> Ink
-                    else -> Purple
+                    else -> PlayerDigit
                 },
             )
         }

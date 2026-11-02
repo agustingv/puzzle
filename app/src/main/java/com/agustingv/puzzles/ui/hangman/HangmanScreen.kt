@@ -28,9 +28,9 @@ import com.agustingv.puzzles.ui.common.GameResult
 import com.agustingv.puzzles.ui.common.GameScaffold
 import com.agustingv.puzzles.ui.common.LetterBox
 import com.agustingv.puzzles.ui.common.LetterKeyboard
+import com.agustingv.puzzles.ui.theme.Absent
 import com.agustingv.puzzles.ui.theme.Accent
 import com.agustingv.puzzles.ui.theme.Ink
-import com.agustingv.puzzles.ui.theme.InkSoft
 import com.agustingv.puzzles.ui.theme.Pink
 
 private val LetterGap = 4.dp
@@ -65,7 +65,7 @@ fun HangmanScreen(viewModel: HangmanViewModel, onExit: () -> Unit) {
                         when (game.letterState(it)) {
                             HangmanLetterState.UNUSED -> null
                             HangmanLetterState.CORRECT -> Accent
-                            HangmanLetterState.INCORRECT -> InkSoft
+                            HangmanLetterState.INCORRECT -> Absent
                         }
                     },
                     keyEnabled = { game.letterState(it) == HangmanLetterState.UNUSED },
@@ -80,6 +80,7 @@ fun HangmanScreen(viewModel: HangmanViewModel, onExit: () -> Unit) {
 private fun Board(game: HangmanGame, side: Dp) {
     val letter = min(side / game.word.length, MaxLetterSize) - LetterGap
     val description = stringResource(R.string.hangman_drawing, game.wrongCount, HangmanGame.MAX_WRONG)
+    val ink = Ink
 
     Column(
         modifier = Modifier.width(side),
@@ -94,7 +95,7 @@ private fun Board(game: HangmanGame, side: Dp) {
                 .size(width = drawingHeight * (VIEW_WIDTH / VIEW_HEIGHT), height = drawingHeight)
                 .semantics { contentDescription = description },
         ) {
-            drawGallows(game.wrongCount)
+            drawGallows(game.wrongCount, ink)
         }
 
         Row(horizontalArrangement = Arrangement.spacedBy(LetterGap)) {
@@ -107,7 +108,7 @@ private const val VIEW_WIDTH = 200f
 private const val VIEW_HEIGHT = 250f
 
 /** Same drawing and coordinates as the web version's 200x250 SVG. */
-private fun DrawScope.drawGallows(misses: Int) {
+private fun DrawScope.drawGallows(misses: Int, ink: Color) {
     val scale = size.height / VIEW_HEIGHT
 
     fun line(color: Color, x1: Int, y1: Int, x2: Int, y2: Int) = drawLine(
@@ -118,10 +119,10 @@ private fun DrawScope.drawGallows(misses: Int) {
         cap = StrokeCap.Round,
     )
 
-    line(Ink, 20, 230, 100, 230)
-    line(Ink, 40, 230, 40, 20)
-    line(Ink, 40, 20, 140, 20)
-    line(Ink, 140, 20, 140, 40)
+    line(ink, 20, 230, 100, 230)
+    line(ink, 40, 230, 40, 20)
+    line(ink, 40, 20, 140, 20)
+    line(ink, 140, 20, 140, 40)
 
     if (misses >= 1) {
         drawCircle(Pink, radius = 15 * scale, center = Offset(140 * scale, 55 * scale), style = Stroke(5 * scale))

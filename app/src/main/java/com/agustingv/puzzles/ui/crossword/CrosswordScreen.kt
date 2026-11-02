@@ -17,7 +17,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -44,6 +43,7 @@ import com.agustingv.puzzles.game.crossword.ClueState
 import com.agustingv.puzzles.game.crossword.CrosswordDirection
 import com.agustingv.puzzles.game.crossword.CrosswordGame
 import com.agustingv.puzzles.ui.common.BoardZoomState
+import com.agustingv.puzzles.ui.common.GameActionButton
 import com.agustingv.puzzles.ui.common.GameClock
 import com.agustingv.puzzles.ui.common.GameResult
 import com.agustingv.puzzles.ui.common.GameScaffold
@@ -51,11 +51,13 @@ import com.agustingv.puzzles.ui.common.LetterKeyboard
 import com.agustingv.puzzles.ui.common.SubmitKeys
 import com.agustingv.puzzles.ui.common.ZoomableBoard
 import com.agustingv.puzzles.ui.theme.Accent
+import com.agustingv.puzzles.ui.theme.Alert
+import com.agustingv.puzzles.ui.theme.Blocked
 import com.agustingv.puzzles.ui.theme.Border
+import com.agustingv.puzzles.ui.theme.Card
 import com.agustingv.puzzles.ui.theme.Ink
 import com.agustingv.puzzles.ui.theme.InkSoft
 import com.agustingv.puzzles.ui.theme.Pink
-import com.agustingv.puzzles.ui.theme.PinkDark
 
 private const val ZOOM_FROM_SIZE = 15
 private val ClueListMaxHeight = 220.dp
@@ -97,12 +99,11 @@ fun CrosswordScreen(viewModel: CrosswordViewModel, onExit: () -> Unit) {
                     onMove = viewModel::moveWord,
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = { showClues = !showClues }) {
-                        Text(stringResource(if (showClues) R.string.crossword_keyboard else R.string.crossword_clues))
-                    }
-                    OutlinedButton(onClick = { confirmFinish = true }) {
-                        Text(stringResource(R.string.crossword_finish))
-                    }
+                    GameActionButton(
+                        label = stringResource(if (showClues) R.string.crossword_keyboard else R.string.crossword_clues),
+                        onClick = { showClues = !showClues },
+                    )
+                    GameActionButton(stringResource(R.string.crossword_finish), { confirmFinish = true })
                 }
                 if (showClues) {
                     ClueList(game, onSelect = {
@@ -174,7 +175,7 @@ private fun Board(game: CrosswordGame, side: Dp, onTap: (Int) -> Unit) {
     ) { boardSide ->
         val cellSide = boardSide / size
 
-        Column(modifier = Modifier.size(boardSide).background(Ink)) {
+        Column(modifier = Modifier.size(boardSide).background(Blocked)) {
             for (row in 0 until size) {
                 Row {
                     for (col in 0 until size) {
@@ -189,7 +190,7 @@ private fun Board(game: CrosswordGame, side: Dp, onTap: (Int) -> Unit) {
                                     !game.isOver && cell == game.cursorCell -> Pink.copy(alpha = 0.55f)
                                     !game.isOver && cell in selected -> Pink.copy(alpha = 0.2f)
                                     cell in solvedCells -> Accent.copy(alpha = 0.35f)
-                                    else -> Color.White
+                                    else -> Card
                                 },
                                 side = cellSide,
                                 description = stringResource(
@@ -221,7 +222,7 @@ private fun Cell(letter: Char?, number: Int?, background: Color, side: Dp, descr
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .size(side)
-            .background(Color.White)
+            .background(Card)
             .background(background)
             .border(0.5.dp, InkSoft)
             .clearAndSetSemantics { contentDescription = description },
@@ -291,7 +292,7 @@ private fun CurrentClue(game: CrosswordGame, minHeight: Dp, onMove: (Int) -> Uni
                 Text(
                     text = stringResource(R.string.crossword_wrong),
                     style = MaterialTheme.typography.labelMedium,
-                    color = PinkDark,
+                    color = Alert,
                 )
             }
         }
@@ -328,7 +329,7 @@ private fun ClueList(game: CrosswordGame, onSelect: (Int) -> Unit) {
                         text = "${word.number}. $text$suffix",
                         color = when (state) {
                             ClueState.SOLVED -> InkSoft
-                            ClueState.WRONG -> PinkDark
+                            ClueState.WRONG -> Alert
                             ClueState.PENDING -> Ink
                         },
                         modifier = Modifier

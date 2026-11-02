@@ -30,6 +30,7 @@ import com.agustingv.puzzles.ui.common.GameScaffold
 import com.agustingv.puzzles.ui.common.LetterBox
 import com.agustingv.puzzles.ui.common.LetterKeyboard
 import com.agustingv.puzzles.ui.common.SubmitKeys
+import com.agustingv.puzzles.ui.theme.Absent
 import com.agustingv.puzzles.ui.theme.Accent
 import com.agustingv.puzzles.ui.theme.InkSoft
 
@@ -109,7 +110,7 @@ private fun Round(game: RaceGame, round: RaceRound, typed: String, wrong: Boolea
         }
 
         Row(horizontalArrangement = Arrangement.spacedBy(LetterGap)) {
-            round.scrambled.forEach { LetterBox(letter = it, size = letter, fill = InkSoft) }
+            round.scrambled.forEach { LetterBox(letter = it, size = letter, fill = Absent) }
         }
 
         Row(horizontalArrangement = Arrangement.spacedBy(LetterGap)) {

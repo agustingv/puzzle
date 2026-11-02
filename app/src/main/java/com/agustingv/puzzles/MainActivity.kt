@@ -4,12 +4,16 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.agustingv.puzzles.data.AppStorage
@@ -35,6 +39,8 @@ import com.agustingv.puzzles.ui.sliding.SlidingScreen
 import com.agustingv.puzzles.ui.sliding.SlidingViewModel
 import com.agustingv.puzzles.ui.sudoku.SudokuScreen
 import com.agustingv.puzzles.ui.sudoku.SudokuViewModel
+import com.agustingv.puzzles.ui.theme.FractalBackground
+import com.agustingv.puzzles.ui.theme.Paper
 import com.agustingv.puzzles.ui.theme.PuzzlesTheme
 import com.agustingv.puzzles.ui.word.WordScreen
 import com.agustingv.puzzles.ui.word.WordViewModel
@@ -46,7 +52,12 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContent {
-            PuzzlesTheme { PuzzlesApp() }
+            PuzzlesTheme {
+                Box(modifier = Modifier.fillMaxSize().background(Paper)) {
+                    FractalBackground()
+                    PuzzlesApp()
+                }
+            }
         }
     }
 }

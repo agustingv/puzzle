@@ -10,13 +10,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -27,17 +27,19 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.agustingv.puzzles.R
 import com.agustingv.puzzles.game.kakuro.KakuroGame
+import com.agustingv.puzzles.ui.common.GameActionButton
 import com.agustingv.puzzles.ui.common.GameClock
 import com.agustingv.puzzles.ui.common.GameLoading
 import com.agustingv.puzzles.ui.common.GameResult
 import com.agustingv.puzzles.ui.common.GameScaffold
 import com.agustingv.puzzles.ui.common.NumberPad
 import com.agustingv.puzzles.ui.theme.Accent
-import com.agustingv.puzzles.ui.theme.Ink
+import com.agustingv.puzzles.ui.theme.Alert
+import com.agustingv.puzzles.ui.theme.Blocked
+import com.agustingv.puzzles.ui.theme.Card
 import com.agustingv.puzzles.ui.theme.InkSoft
 import com.agustingv.puzzles.ui.theme.Pink
-import com.agustingv.puzzles.ui.theme.PinkDark
-import com.agustingv.puzzles.ui.theme.Purple
+import com.agustingv.puzzles.ui.theme.PlayerDigit
 
 @Composable
 fun KakuroScreen(viewModel: KakuroViewModel, onExit: () -> Unit) {
@@ -64,7 +66,7 @@ fun KakuroScreen(viewModel: KakuroViewModel, onExit: () -> Unit) {
                     onPlayAgain = { viewModel.newGame(game.difficulty) },
                 )
             } else {
-                OutlinedButton(onClick = viewModel::check) { Text(stringResource(R.string.key_submit)) }
+                GameActionButton(stringResource(R.string.key_submit), viewModel::check)
                 NumberPad(onDigit = viewModel::type, onClear = viewModel::clear)
             }
         },
@@ -76,7 +78,7 @@ fun KakuroScreen(viewModel: KakuroViewModel, onExit: () -> Unit) {
 private fun Board(game: KakuroGame, side: Dp, onSelect: (Int) -> Unit) {
     val cell = side / game.size
 
-    Column(modifier = Modifier.size(side).background(Ink)) {
+    Column(modifier = Modifier.size(side).background(Blocked)) {
         for (row in 0 until game.size) {
             Row {
                 for (col in 0 until game.size) {
@@ -103,15 +105,17 @@ private fun ClueCell(across: Int?, down: Int?, row: Int, col: Int, side: Dp) {
         else -> ""
     }
 
+    val lineColor = InkSoft
+
     Box(
         modifier = Modifier
             .size(side)
-            .border(0.5.dp, InkSoft)
+            .border(0.5.dp, lineColor)
             .clearAndSetSemantics { contentDescription = description },
     ) {
         if (across != null || down != null) {
             Canvas(modifier = Modifier.fillMaxSize()) {
-                drawLine(InkSoft, Offset.Zero, Offset(size.width, size.height), 1.dp.toPx())
+                drawLine(lineColor, Offset.Zero, Offset(size.width, size.height), 1.dp.toPx())
             }
         }
         across?.let {
@@ -158,13 +162,13 @@ private fun DigitCell(game: KakuroGame, index: Int, row: Int, col: Int, side: Dp
             .size(side)
             .background(
                 when {
-                    game.isComplete -> Accent.copy(alpha = 0.35f).compositeOverWhite()
-                    selected -> Pink.copy(alpha = 0.5f).compositeOverWhite()
-                    wrong -> Pink.copy(alpha = 0.25f).compositeOverWhite()
-                    else -> Color.White
+                    game.isComplete -> Accent.copy(alpha = 0.35f).compositeOver(Card)
+                    selected -> Pink.copy(alpha = 0.22f).compositeOver(Card)
+                    wrong -> Pink.copy(alpha = 0.25f).compositeOver(Card)
+                    else -> Card
                 },
             )
-            .border(0.5.dp, InkSoft)
+            .border(if (selected) 2.dp else 0.5.dp, if (selected) Pink else InkSoft)
             .clickable(enabled = !game.isComplete, onClick = onClick)
             .clearAndSetSemantics {
                 contentDescription = description
@@ -176,15 +180,8 @@ private fun DigitCell(game: KakuroGame, index: Int, row: Int, col: Int, side: Dp
                 text = value.toString(),
                 fontSize = fontSize,
                 fontWeight = FontWeight.Bold,
-                color = if (wrong) PinkDark else Purple,
+                color = if (wrong) Alert else PlayerDigit,
             )
         }
     }
 }
-
-/** The board's background is dark, so translucent highlights must be flattened onto white first. */
-private fun Color.compositeOverWhite(): Color = Color(
-    red = red * alpha + (1 - alpha),
-    green = green * alpha + (1 - alpha),
-    blue = blue * alpha + (1 - alpha),
-)

@@ -20,8 +20,8 @@ import com.agustingv.puzzles.ui.common.GameScaffold
 import com.agustingv.puzzles.ui.common.LetterBox
 import com.agustingv.puzzles.ui.common.LetterKeyboard
 import com.agustingv.puzzles.ui.common.SubmitKeys
+import com.agustingv.puzzles.ui.theme.Absent
 import com.agustingv.puzzles.ui.theme.Accent
-import com.agustingv.puzzles.ui.theme.InkSoft
 import com.agustingv.puzzles.ui.theme.Warn
 
 private val CellGap = 4.dp
@@ -117,5 +117,5 @@ private val LetterState.color: Color
     get() = when (this) {
         LetterState.CORRECT -> Accent
         LetterState.PRESENT -> Warn
-        LetterState.ABSENT -> InkSoft
+        LetterState.ABSENT -> Absent
     }
