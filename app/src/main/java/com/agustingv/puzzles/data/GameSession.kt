@@ -37,6 +37,7 @@ data class SavedGame(val variant: String, val elapsedSeconds: Int)
 class GameSession<G : Any>(private val store: KeyValueStore, private val rules: GameRules<G>) {
 
     private val records = Records(store)
+    private val secret = SecretProgress(store)
 
     /** Null until the first game, or while one is being generated. */
     var game by mutableStateOf(load())
@@ -47,6 +48,10 @@ class GameSession<G : Any>(private val store: KeyValueStore, private val rules: 
 
     /** The record just filed. Not saved: after a restart the result simply shows no ranking. */
     var lastRecord by mutableStateOf<RecordResult?>(null)
+        private set
+
+    /** What this win revealed of the secret message. Not saved: the message's own screen keeps it. */
+    var lastClue by mutableStateOf<SecretClue?>(null)
         private set
 
     /** Not saved: a game restored after a restart has nothing new to celebrate. */
@@ -85,6 +90,7 @@ class GameSession<G : Any>(private val store: KeyValueStore, private val rules: 
         val wasWon = previous != null && rules.isWon(previous)
         if (rules.isWon(next) && !wasWon) {
             lastRecord = records.add(rules.id, rules.variantOf(next), elapsedSeconds)
+            lastClue = secret.recordWin(rules.id)
         }
 
         if (previous != null) {
@@ -118,6 +124,7 @@ class GameSession<G : Any>(private val store: KeyValueStore, private val rules: 
     private fun prepareNew() {
         game = null
         lastRecord = null
+        lastClue = null
         elapsedSeconds = 0
         store.remove(key(GAME))
         store.remove(key(EXTRA))

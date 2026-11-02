@@ -11,7 +11,7 @@
     <string name="privacy_collect_title">Datos que recopila la app</string>
     <string name="privacy_collect">Ninguno. No hay cuentas ni registro, no hay publicidad ni analítica, y la app no incluye servicios de terceros que traten datos. Ni siquiera tiene permiso para conectarse a Internet.</string>
     <string name="privacy_device_title">Datos guardados en tu móvil</string>
-    <string name="privacy_device">La app guarda en el almacenamiento privado de tu móvil las partidas en curso y tus mejores tiempos. Solo sirven para que puedas continuar jugando y ver tus récords, y nunca llegan al desarrollador.</string>
+    <string name="privacy_device">La app guarda en el almacenamiento privado de tu móvil las partidas en curso, tus mejores tiempos, tus ajustes de sonido y las pistas que hayas encontrado. Solo sirven para que puedas continuar jugando y ver tus récords, y nunca llegan al desarrollador.</string>
     <string name="privacy_backup_title">Copias de seguridad de Android</string>
     <string name="privacy_backup">Si tienes activada la copia de seguridad de Android, el sistema puede incluir esas partidas y récords en la copia de tu cuenta de Google y restaurarlos en otro móvil. Eso lo gestiona Google según tus ajustes y su política de privacidad; el desarrollador no tiene acceso. Puedes desactivarla en los ajustes de Android.</string>
     <string name="privacy_delete_title">Cómo borrar tus datos</string>
@@ -29,6 +29,14 @@
     <string name="end_game_title">¿Terminar la partida?</string>
     <string name="end_game_text">Se perderá el progreso de esta partida.</string>
     <string name="keep_playing">Seguir jugando</string>
+    <string name="secret_title">Mensaje secreto</string>
+    <string name="secret_intro">Cada juego esconde una letra verde. Puestas en orden, forman un mensaje.</string>
+    <string name="secret_found">Pistas: %1$d de %2$d</string>
+    <string name="secret_guess">El mensaje</string>
+    <string name="secret_wrong">Ese no es el mensaje.</string>
+    <string name="secret_check">Comprobar</string>
+    <string name="secret_close">Cerrar</string>
+    <string name="secret_clue">🔑 Pista secreta: la %1$s verde de %2$s es la letra %3$d de %4$d de un mensaje. Para descifrarlo, toca la casilla discontinua de PUZZLES.</string>
     <string name="settings_title">Ajustes</string>
     <string name="settings_sound">Sonido</string>
     <string name="settings_volume">Volumen</string>

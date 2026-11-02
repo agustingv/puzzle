@@ -1,7 +1,6 @@
 package com.agustingv.puzzles.ui.common
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class TileTitleTest {
@@ -30,29 +29,5 @@ class TileTitleTest {
         val titles = listOf("Sudoku", "Puzle Deslizante", "Crucigrama")
 
         assertEquals(lineWidth("Deslizante"), widestTitle(titles), 0.001f)
-    }
-
-    private val games = listOf(
-        "Carrera", "Ahorcado", "Adivina la Palabra", "Sopa de Letras", "Crucigrama", "Sudoku",
-        "Jardín", "Camino", "Kakuro", "Memorama", "Puzle Deslizante",
-    )
-
-    @Test
-    fun `the lit letter is a letter of the title, and never the last one`() {
-        for (title in games) {
-            val letters = title.count { it != ' ' }
-            assertTrue(title, litLetter(title) in 0 until letters - 1)
-        }
-    }
-
-    @Test
-    fun `a title keeps its lit letter, and the games do not all share one`() {
-        assertEquals(litLetter("Sudoku"), litLetter("Sudoku"))
-        assertTrue(games.map(::litLetter).toSet().size >= 4)
-    }
-
-    @Test
-    fun `a one letter title lights that letter`() {
-        assertEquals(0, litLetter("A"))
     }
 }

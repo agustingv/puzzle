@@ -85,6 +85,11 @@ fun GameScaffold(
         )
     }
 
+    val actionsWithClue: @Composable ColumnScope.() -> Unit = {
+        session.lastClue?.let { SecretClueNote(it) }
+        actions()
+    }
+
     BoxWithConstraints(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
         if (maxWidth > maxHeight) {
             // Top bar and actions on the left, the board at full height on the right.
@@ -99,7 +104,7 @@ fun GameScaffold(
                         modifier = Modifier.fillMaxWidth().padding(16.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(12.dp),
-                        content = actions,
+                        content = actionsWithClue,
                     )
                 }
                 Box(
@@ -126,7 +131,7 @@ fun GameScaffold(
                     modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(12.dp),
-                    content = actions,
+                    content = actionsWithClue,
                 )
             }
         }

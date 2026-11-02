@@ -1,6 +1,8 @@
 package com.agustingv.puzzles.ui.common
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,12 +12,15 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -30,13 +35,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.min
 import com.agustingv.puzzles.R
+import com.agustingv.puzzles.data.SecretClue
+import com.agustingv.puzzles.data.SecretMessage
 import com.agustingv.puzzles.ui.theme.Accent
 import com.agustingv.puzzles.ui.theme.AccentDark
 import com.agustingv.puzzles.ui.theme.Card
@@ -84,20 +93,16 @@ internal fun lineWidth(line: String): Float =
 /** How many tiles wide the widest of these titles is: all cards share one tile size. */
 internal fun widestTitle(titles: List<String>): Float = titles.flatMap(::titleLines).maxOf(::lineWidth)
 
-/**
- * Which letter of a title is lit up, counting only letters. It looks picked at random, but comes from
- * the title itself, so a game keeps its letter on every screen and every launch. Never the last
- * letter, which has its own style.
- */
-internal fun litLetter(title: String): Int {
-    val choices = title.count { it != ' ' } - 1
-    return if (choices < 1) 0 else title.hashCode().mod(choices)
-}
-
 private enum class TileStyle { RAISED, ON_CARD, LIT, PENDING }
 
 @Composable
-private fun LetterTile(letter: Char, size: Dp, style: TileStyle, letterRatio: Float) {
+private fun LetterTile(
+    letter: Char,
+    size: Dp,
+    style: TileStyle,
+    letterRatio: Float,
+    modifier: Modifier = Modifier,
+) {
     val shape = RoundedCornerShape(size * 0.18f)
     val cardBorder = InkSoft.copy(alpha = 0.25f)
     val pendingBorder = InkSoft.copy(alpha = 0.35f)
@@ -126,7 +131,7 @@ private fun LetterTile(letter: Char, size: Dp, style: TileStyle, letterRatio: Fl
         }
     }
 
-    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(size).then(look)) {
+    Box(contentAlignment = Alignment.Center, modifier = modifier.size(size).then(look)) {
         Text(
             text = letter.toString(),
             fontSize = fontSize,
@@ -147,7 +152,16 @@ private fun LetterTile(letter: Char, size: Dp, style: TileStyle, letterRatio: Fl
 
 /** Lines of tiles, as in the app's title: the [lit] letter stands out and the last one is still to be placed. */
 @Composable
-private fun TileLines(lines: List<String>, lit: Int, size: Dp, gap: Dp, plain: TileStyle, letterRatio: Float) {
+private fun TileLines(
+    lines: List<String>,
+    lit: Int,
+    size: Dp,
+    gap: Dp,
+    plain: TileStyle,
+    letterRatio: Float,
+    last: TileStyle = TileStyle.PENDING,
+    lastModifier: Modifier = Modifier,
+) {
     val lastLetter = lines.sumOf { line -> line.count { it != ' ' } } - 1
     var index = 0
 
@@ -163,10 +177,11 @@ private fun TileLines(lines: List<String>, lit: Int, size: Dp, gap: Dp, plain: T
                     } else {
                         val style = when (index) {
                             lit -> TileStyle.LIT
-                            lastLetter -> TileStyle.PENDING
+                            lastLetter -> last
                             else -> plain
                         }
-                        LetterTile(character, size, style, letterRatio)
+                        val tile = if (index == lastLetter) lastModifier else Modifier
+                        LetterTile(character, size, style, letterRatio, tile)
                         index++
                     }
                 }
@@ -175,10 +190,14 @@ private fun TileLines(lines: List<String>, lit: Int, size: Dp, gap: Dp, plain: T
     }
 }
 
-/** The app's name as a row of letter tiles. */
+/**
+ * The app's name as a row of letter tiles. Its last tile is the piece still to be placed: tapping it
+ * leads to the secret message, with no visible hint that it can be tapped, and [solved] fills it in.
+ */
 @Composable
-internal fun AppTitle(modifier: Modifier = Modifier) {
+internal fun AppTitle(solved: Boolean, onLastTile: () -> Unit, modifier: Modifier = Modifier) {
     val name = stringResource(R.string.app_name)
+    val solveLabel = stringResource(R.string.secret_title)
 
     BoxWithConstraints(
         contentAlignment = Alignment.Center,
@@ -187,12 +206,35 @@ internal fun AppTitle(modifier: Modifier = Modifier) {
             .clearAndSetSemantics {
                 contentDescription = name
                 heading()
+                if (!solved) {
+                    onClick(label = solveLabel) {
+                        onLastTile()
+                        true
+                    }
+                }
             },
     ) {
         val gaps = AppTitleTileGap * (name.length - 1)
         val tile = min(AppTitleTileSize, (maxWidth - gaps) / name.length)
 
-        TileLines(listOf(name), APP_TITLE_LIT_LETTER, tile, AppTitleTileGap, TileStyle.RAISED, APP_TITLE_LETTER_RATIO)
+        TileLines(
+            lines = listOf(name),
+            lit = APP_TITLE_LIT_LETTER,
+            size = tile,
+            gap = AppTitleTileGap,
+            plain = TileStyle.RAISED,
+            letterRatio = APP_TITLE_LETTER_RATIO,
+            last = if (solved) TileStyle.LIT else TileStyle.PENDING,
+            lastModifier = if (solved) {
+                Modifier
+            } else {
+                Modifier.clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onLastTile,
+                )
+            },
+        )
     }
 }
 
@@ -214,7 +256,7 @@ internal fun CardTitle(title: String, widest: Float, modifier: Modifier = Modifi
             contentAlignment = Alignment.Center,
             modifier = Modifier.height(tile * CARD_TITLE_MAX_LINES + gap),
         ) {
-            TileLines(titleLines(title), litLetter(title), tile, gap, TileStyle.ON_CARD, SMALL_TILE_LETTER_RATIO)
+            TileLines(titleLines(title), SecretMessage.letterIndexOf(title), tile, gap, TileStyle.ON_CARD, SMALL_TILE_LETTER_RATIO)
         }
     }
 }
@@ -236,6 +278,48 @@ internal fun BarTitle(title: String, modifier: Modifier = Modifier) {
         val largest = if (lines.size > 1) BarTitleMaxTileOnTwoLines else BarTitleMaxTile
         val tile = min(largest, maxWidth / lines.maxOf(::lineWidth))
 
-        TileLines(lines, litLetter(title), tile, tile * TILE_GAP, TileStyle.RAISED, SMALL_TILE_LETTER_RATIO)
+        TileLines(lines, SecretMessage.letterIndexOf(title), tile, tile * TILE_GAP, TileStyle.RAISED, SMALL_TILE_LETTER_RATIO)
     }
+}
+
+/** The message as far as it is known: each clue found in its place, and a tile to place for the rest. */
+@Composable
+fun SecretBoard(found: List<SecretClue>) {
+    val cells = SecretMessage.clues.size
+
+    BoxWithConstraints(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        val tile = min(CardTitleMaxTile, maxWidth / (cells + (cells - 1) * TILE_GAP))
+
+        Row(horizontalArrangement = Arrangement.spacedBy(tile * TILE_GAP)) {
+            for (clue in SecretMessage.clues) {
+                val known = clue in found
+                LetterTile(
+                    letter = if (known) clue.letter else ' ',
+                    size = tile,
+                    style = if (known) TileStyle.LIT else TileStyle.PENDING,
+                    letterRatio = SMALL_TILE_LETTER_RATIO,
+                )
+            }
+        }
+    }
+}
+
+/** What a first win reveals, under the game that was just won. */
+@Composable
+fun SecretClueNote(clue: SecretClue) {
+    val shape = RoundedCornerShape(12.dp)
+
+    Text(
+        text = stringResource(R.string.secret_clue, clue.letter.toString(), clue.title, clue.position, SecretMessage.clues.size),
+        style = MaterialTheme.typography.bodySmall,
+        textAlign = TextAlign.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Card, shape)
+            .border(1.dp, Accent, shape)
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+    )
 }

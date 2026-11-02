@@ -51,6 +51,8 @@ fun HomeScreen(
     saved: (GameInfo) -> SavedGame?,
     onOpen: (GameInfo) -> Unit,
     onPrivacy: () -> Unit,
+    secretSolved: Boolean,
+    onSecret: () -> Unit,
 ) {
     val widest = widestTitle(GameInfo.entries.map { stringResource(it.title) })
 
@@ -66,7 +68,7 @@ fun HomeScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(top = 8.dp, bottom = 12.dp),
             ) {
-                AppTitle(modifier = Modifier.weight(1f))
+                AppTitle(secretSolved, onSecret, Modifier.weight(1f))
                 SettingsButton(modifier = Modifier.padding(start = 4.dp))
             }
         }
@@ -136,6 +138,8 @@ private fun HomePreview() {
             saved = { if (it == GameInfo.HANGMAN) SavedGame("5", 83) else null },
             onOpen = {},
             onPrivacy = {},
+            secretSolved = false,
+            onSecret = {},
         )
     }
 }

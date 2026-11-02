@@ -11,18 +11,24 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.agustingv.puzzles.data.AppStorage
+import com.agustingv.puzzles.data.GameEvent
 import com.agustingv.puzzles.data.Records
 import com.agustingv.puzzles.data.SavedGame
+import com.agustingv.puzzles.data.SecretProgress
 import com.agustingv.puzzles.game.Difficulty
+import com.agustingv.puzzles.ui.common.Confetti
 import com.agustingv.puzzles.ui.common.GameSounds
 import com.agustingv.puzzles.ui.common.LocalOpenSettings
 import com.agustingv.puzzles.ui.crossword.CrosswordScreen
@@ -39,6 +45,7 @@ import com.agustingv.puzzles.ui.menu.GameInfo
 import com.agustingv.puzzles.ui.menu.GameDetailScreen
 import com.agustingv.puzzles.ui.menu.HomeScreen
 import com.agustingv.puzzles.ui.menu.PrivacyScreen
+import com.agustingv.puzzles.ui.menu.SecretDialog
 import com.agustingv.puzzles.ui.menu.SettingsScreen
 import com.agustingv.puzzles.ui.path.PathScreen
 import com.agustingv.puzzles.ui.path.PathViewModel
@@ -51,6 +58,7 @@ import com.agustingv.puzzles.ui.sudoku.SudokuViewModel
 import com.agustingv.puzzles.ui.theme.FractalBackground
 import com.agustingv.puzzles.ui.theme.Paper
 import com.agustingv.puzzles.ui.theme.PuzzlesTheme
+import com.agustingv.puzzles.ui.theme.animationsEnabled
 import com.agustingv.puzzles.ui.word.WordScreen
 import com.agustingv.puzzles.ui.word.WordViewModel
 import com.agustingv.puzzles.ui.wordsearch.WordSearchScreen
@@ -81,6 +89,8 @@ private fun PuzzlesApp() {
     var playing by rememberSaveable { mutableStateOf(false) }
     var showPrivacy by rememberSaveable { mutableStateOf(false) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
+    var showSecret by rememberSaveable { mutableStateOf(false) }
+    var secretBursts by remember { mutableIntStateOf(0) }
     val screens = rememberSaveableStateHolder()
 
     val race: RaceViewModel = viewModel()
@@ -99,6 +109,10 @@ private fun PuzzlesApp() {
     val storage = remember { AppStorage.of(context) }
     val records = remember { Records(storage) }
     val sounds = remember { GameSounds.of(context) }
+    val secret = remember { SecretProgress(storage) }
+    var secretSolved by remember { mutableStateOf(secret.solved) }
+    val haptics = LocalHapticFeedback.current
+    val animate = remember { animationsEnabled(context) }
     val game = opened
 
     fun savedGame(info: GameInfo): SavedGame? = when (info) {
@@ -144,6 +158,21 @@ private fun PuzzlesApp() {
         return
     }
 
+    fun guessSecret(guess: String): Boolean {
+        val right = secret.solve(guess)
+        if (right) {
+            showSecret = false
+            secretSolved = true
+            sounds.play(GameEvent.WIN)
+            haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+            if (animate) secretBursts++
+        } else {
+            sounds.play(GameEvent.MISS)
+            haptics.performHapticFeedback(HapticFeedbackType.Reject)
+        }
+        return right
+    }
+
     screens.SaveableStateProvider("screens") {
         CompositionLocalProvider(LocalOpenSettings provides { showSettings = true }) {
             when {
@@ -155,6 +184,8 @@ private fun PuzzlesApp() {
                         playing = savedGame(it) != null
                     },
                     onPrivacy = { showPrivacy = true },
+                    secretSolved = secretSolved,
+                    onSecret = { showSecret = true },
                 )
                 !playing -> GameDetailScreen(
                     info = game,
@@ -177,6 +208,15 @@ private fun PuzzlesApp() {
                     GameInfo.SLIDING -> SlidingScreen(sliding, ::stopPlaying)
                 }
             }
+
+            if (showSecret) {
+                SecretDialog(
+                    found = secret.found,
+                    onGuess = ::guessSecret,
+                    onDismiss = { showSecret = false },
+                )
+            }
+            Confetti(secretBursts)
         }
     }
 }
