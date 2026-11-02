@@ -31,13 +31,15 @@ class GameFeedbackTest {
             played += hapticFeedbackType
         }
     }
+    private val heard = mutableListOf<GameEvent>()
+    private val sounds = SoundPlayer { heard += it; true }
     private val visuals = FeedbackVisuals()
     private var feedback by mutableStateOf<GameFeedback?>(null)
 
     private fun show() {
         rule.setContent {
             CompositionLocalProvider(LocalHapticFeedback provides haptics) {
-                GameFeedbackEffect(feedback, visuals)
+                GameFeedbackEffect(feedback, visuals, sounds)
             }
         }
     }
@@ -47,6 +49,15 @@ class GameFeedbackTest {
         rule.waitForIdle()
         rule.mainClock.advanceTimeBy(1000)
         rule.waitForIdle()
+    }
+
+    @Test
+    fun eachEventPlaysItsSoundOnce() {
+        show()
+
+        GameEvent.entries.forEachIndexed { id, event -> send(event, id) }
+
+        assertEquals(GameEvent.entries, heard)
     }
 
     @Test
@@ -124,7 +135,7 @@ class GameFeedbackTest {
         val restoration = StateRestorationTester(rule)
         restoration.setContent {
             CompositionLocalProvider(LocalHapticFeedback provides haptics) {
-                GameFeedbackEffect(feedback, visuals)
+                GameFeedbackEffect(feedback, visuals, sounds)
             }
         }
 

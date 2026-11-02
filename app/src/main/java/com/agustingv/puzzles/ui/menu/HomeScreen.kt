@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -64,6 +65,8 @@ fun HomeScreen(
     saved: (GameInfo) -> SavedGame?,
     onOpen: (GameInfo) -> Unit,
     onPrivacy: () -> Unit,
+    soundOn: Boolean,
+    onToggleSound: () -> Unit,
 ) {
     LazyVerticalGrid(
         columns = GridCells.Adaptive(MinCardWidth),
@@ -81,7 +84,14 @@ fun HomeScreen(
         }
 
         item(span = { GridItemSpan(maxLineSpan) }) {
-            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                TextButton(onClick = onToggleSound) {
+                    Text(
+                        text = if (soundOn) "🔊" else "🔇",
+                        modifier = Modifier.padding(end = 6.dp).clearAndSetSemantics {},
+                    )
+                    Text(stringResource(if (soundOn) R.string.sound_on else R.string.sound_off))
+                }
                 TextButton(onClick = onPrivacy) { Text(stringResource(R.string.privacy_title)) }
             }
         }
@@ -220,6 +230,8 @@ private fun HomePreview() {
             saved = { if (it == GameInfo.HANGMAN) SavedGame("5", 83) else null },
             onOpen = {},
             onPrivacy = {},
+            soundOn = true,
+            onToggleSound = {},
         )
     }
 }

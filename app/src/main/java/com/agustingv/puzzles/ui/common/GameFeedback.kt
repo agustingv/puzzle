@@ -56,12 +56,17 @@ class FeedbackVisuals {
 }
 
 /**
- * Turns a session's events into vibration and motion. An event is handled once: rotating the screen
- * recreates this effect without replaying the last one. Vibration uses the system's haptics, which
- * need no permission and follow the user's setting; motion follows the system's animation setting.
+ * Turns a session's events into sound, vibration and motion. An event is handled once: rotating the
+ * screen recreates this effect without replaying the last one. Vibration uses the system's haptics,
+ * which need no permission and follow the user's setting; motion follows the system's animation
+ * setting; sound has its own switch on the home screen.
  */
 @Composable
-fun GameFeedbackEffect(feedback: GameFeedback?, visuals: FeedbackVisuals) {
+fun GameFeedbackEffect(
+    feedback: GameFeedback?,
+    visuals: FeedbackVisuals,
+    sounds: SoundPlayer = GameSounds.of(LocalContext.current),
+) {
     val haptics = LocalHapticFeedback.current
     val context = LocalContext.current
     val animate = remember(context) { animationsEnabled(context) }
@@ -74,6 +79,7 @@ fun GameFeedbackEffect(feedback: GameFeedback?, visuals: FeedbackVisuals) {
 
         if (animate && feedback.event == GameEvent.WIN) visuals.confettiBursts++
 
+        sounds.play(feedback.event)
         vibrate(haptics, feedback.event)
 
         if (animate && feedback.event == GameEvent.MISS) {

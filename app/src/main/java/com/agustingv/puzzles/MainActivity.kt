@@ -1,5 +1,6 @@
 package com.agustingv.puzzles
 
+import android.media.AudioManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -20,6 +21,7 @@ import com.agustingv.puzzles.data.AppStorage
 import com.agustingv.puzzles.data.Records
 import com.agustingv.puzzles.data.SavedGame
 import com.agustingv.puzzles.game.Difficulty
+import com.agustingv.puzzles.ui.common.GameSounds
 import com.agustingv.puzzles.ui.crossword.CrosswordScreen
 import com.agustingv.puzzles.ui.crossword.CrosswordViewModel
 import com.agustingv.puzzles.ui.garden.GardenScreen
@@ -54,6 +56,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        // The volume keys adjust the game's sounds, not the ringer, even between one sound and the next.
+        volumeControlStream = AudioManager.STREAM_MUSIC
         setContent {
             PuzzlesTheme {
                 Box(modifier = Modifier.fillMaxSize().background(Paper)) {
@@ -88,6 +92,7 @@ private fun PuzzlesApp() {
     val context = LocalContext.current
     val storage = remember { AppStorage.of(context) }
     val records = remember { Records(storage) }
+    val sounds = remember { GameSounds.of(context) }
     val game = opened
 
     fun savedGame(info: GameInfo): SavedGame? = when (info) {
@@ -135,6 +140,8 @@ private fun PuzzlesApp() {
                 playing = savedGame(it) != null
             },
             onPrivacy = { showPrivacy = true },
+            soundOn = sounds.enabled,
+            onToggleSound = sounds::toggle,
         )
         !playing -> GameDetailScreen(
             info = game,
