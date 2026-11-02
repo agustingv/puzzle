@@ -21,6 +21,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -61,6 +63,8 @@ fun NumberPad(onDigit: (Int) -> Unit, onClear: () -> Unit) {
 
 @Composable
 private fun RowScope.PadKey(label: String, description: String, onClick: () -> Unit) {
+    val haptics = LocalHapticFeedback.current
+
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
@@ -68,7 +72,10 @@ private fun RowScope.PadKey(label: String, description: String, onClick: () -> U
             .fillMaxHeight()
             .clip(RoundedCornerShape(6.dp))
             .background(Border)
-            .clickable(role = Role.Button, onClick = onClick)
+            .clickable(role = Role.Button) {
+                haptics.performHapticFeedback(HapticFeedbackType.KeyboardTap)
+                onClick()
+            }
             .clearAndSetSemantics { contentDescription = description },
     ) {
         Text(text = label, fontWeight = FontWeight.Bold, color = Ink, style = MaterialTheme.typography.titleLarge)

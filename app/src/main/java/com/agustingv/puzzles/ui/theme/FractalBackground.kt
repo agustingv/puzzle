@@ -1,5 +1,6 @@
 package com.agustingv.puzzles.ui.theme
 
+import android.content.Context
 import android.provider.Settings
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
@@ -36,6 +37,10 @@ private const val MIN_LENGTH_DP = 2
 
 private const val FRAME_MILLIS = 66L
 
+/** False when the system's animations are off, as some people need for motion sensitivity. */
+fun animationsEnabled(context: Context): Boolean =
+    Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) != 0f
+
 /**
  * The web version's swaying fractal tree. The sway takes almost a minute, so 15 frames per second
  * look as smooth as 60 and save a phone's battery. It stops in the background and stays still when
@@ -46,9 +51,7 @@ fun FractalBackground(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val alpha = FractalAlpha
-    val animate = remember(context) {
-        Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) != 0f
-    }
+    val animate = remember(context) { animationsEnabled(context) }
 
     // Read only while drawing, so that each frame redraws this canvas and recomposes nothing.
     var timeMillis by remember { mutableLongStateOf(0L) }

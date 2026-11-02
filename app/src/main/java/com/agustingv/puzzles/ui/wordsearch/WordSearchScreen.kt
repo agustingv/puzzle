@@ -55,7 +55,7 @@ fun WordSearchScreen(viewModel: WordSearchViewModel, onExit: () -> Unit) {
 
     GameScaffold(
         title = stringResource(R.string.wordsearch_title),
-        elapsedSeconds = viewModel.session.elapsedSeconds,
+        session = viewModel.session,
         status = stringResource(R.string.grid_found, game.foundCount, game.words.size),
         onExit = onExit,
         actions = {

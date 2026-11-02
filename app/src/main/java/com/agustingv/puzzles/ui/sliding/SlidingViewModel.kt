@@ -3,6 +3,7 @@ package com.agustingv.puzzles.ui.sliding
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import com.agustingv.puzzles.data.AppStorage
+import com.agustingv.puzzles.data.GameEvent
 import com.agustingv.puzzles.data.GameRules
 import com.agustingv.puzzles.data.GameSession
 import com.agustingv.puzzles.game.Difficulty
@@ -19,6 +20,7 @@ class SlidingViewModel(application: Application) : AndroidViewModel(application)
             isOver = SlidingPuzzleGame::isSolved,
             isWon = SlidingPuzzleGame::isSolved,
             variantOf = { it.difficulty.name },
+            eventFor = { previous, next -> GameEvent.TICK.takeIf { next.moves > previous.moves } },
         ),
     )
 

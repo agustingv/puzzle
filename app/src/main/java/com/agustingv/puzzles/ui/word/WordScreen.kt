@@ -35,7 +35,7 @@ fun WordScreen(viewModel: WordViewModel, onExit: () -> Unit) {
 
     GameScaffold(
         title = stringResource(R.string.word_title),
-        elapsedSeconds = viewModel.session.elapsedSeconds,
+        session = viewModel.session,
         status = stringResource(
             R.string.word_attempt,
             if (game.isOver) game.guesses.size else game.guesses.size + 1,

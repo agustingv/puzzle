@@ -74,7 +74,7 @@ fun CrosswordScreen(viewModel: CrosswordViewModel, onExit: () -> Unit) {
 
     GameScaffold(
         title = stringResource(R.string.crossword_title),
-        elapsedSeconds = viewModel.session.elapsedSeconds,
+        session = viewModel.session,
         status = stringResource(R.string.grid_solved, game.solved.size, game.words.size),
         onExit = onExit,
         actions = {

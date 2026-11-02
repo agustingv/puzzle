@@ -18,15 +18,18 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
+import com.agustingv.puzzles.data.GameSession
 import kotlinx.coroutines.delay
 
 private val MaxBoardSide = 480.dp
@@ -41,7 +44,7 @@ private val MaxBoardSide = 480.dp
 @Composable
 fun GameScaffold(
     title: String,
-    elapsedSeconds: Int,
+    session: GameSession<*>,
     status: String,
     onExit: () -> Unit,
     actions: @Composable ColumnScope.() -> Unit,
@@ -49,12 +52,18 @@ fun GameScaffold(
 ) {
     BackHandler(onBack = onExit)
 
+    val visuals = remember { FeedbackVisuals() }
+    GameFeedbackEffect(session.feedback, visuals)
+
+    // Inside a layer: the shake moves pixels only, so it never disturbs layout or a drag in progress.
+    val shaking = Modifier.graphicsLayer { translationX = visuals.shakeX }
+
     val topBar: @Composable () -> Unit = {
         ScreenTopBar(
             title = title,
             subtitle = status,
             onBack = onExit,
-            trailing = { TimerPill(elapsedSeconds, Modifier.padding(start = 8.dp, end = 12.dp)) },
+            trailing = { TimerPill(session.elapsedSeconds, Modifier.padding(start = 8.dp, end = 12.dp)) },
         )
     }
 
@@ -79,7 +88,7 @@ fun GameScaffold(
                     modifier = Modifier.fillMaxHeight().padding(end = 16.dp),
                     contentAlignment = Alignment.Center,
                 ) {
-                    board(side)
+                    Box(modifier = shaking) { board(side) }
                 }
             }
         } else {
@@ -92,7 +101,8 @@ fun GameScaffold(
                     modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                     contentAlignment = Alignment.Center,
                 ) {
-                    board(min(min(maxWidth, maxHeight), MaxBoardSide))
+                    val side = min(min(maxWidth, maxHeight), MaxBoardSide)
+                    Box(modifier = shaking) { board(side) }
                 }
                 Column(
                     modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
@@ -103,6 +113,8 @@ fun GameScaffold(
             }
         }
     }
+
+    Confetti(visuals.confettiBursts)
 }
 
 /** Ticks once per second, only while the screen is resumed: backgrounding pauses the clock. */

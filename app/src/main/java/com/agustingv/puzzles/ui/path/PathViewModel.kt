@@ -3,6 +3,7 @@ package com.agustingv.puzzles.ui.path
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import com.agustingv.puzzles.data.AppStorage
+import com.agustingv.puzzles.data.GameEvent
 import com.agustingv.puzzles.data.GameRules
 import com.agustingv.puzzles.data.GameSession
 import com.agustingv.puzzles.game.Difficulty
@@ -19,6 +20,13 @@ class PathViewModel(application: Application) : AndroidViewModel(application) {
             isOver = PathGame::isComplete,
             isWon = PathGame::isComplete,
             variantOf = { it.difficulty.name },
+            eventFor = { previous, next ->
+                when {
+                    next.path.size <= previous.path.size -> null
+                    next.path.last() in next.checkpoints -> GameEvent.HIT
+                    else -> GameEvent.TICK
+                }
+            },
         ),
     )
 

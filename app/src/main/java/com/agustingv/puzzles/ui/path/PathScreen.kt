@@ -55,7 +55,7 @@ fun PathScreen(viewModel: PathViewModel, onExit: () -> Unit) {
 
     GameScaffold(
         title = stringResource(R.string.path_title),
-        elapsedSeconds = viewModel.session.elapsedSeconds,
+        session = viewModel.session,
         status = stringResource(R.string.path_progress, game.path.size, game.totalCells),
         onExit = onExit,
         actions = {

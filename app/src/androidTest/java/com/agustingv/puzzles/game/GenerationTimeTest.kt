@@ -2,6 +2,7 @@ package com.agustingv.puzzles.game
 
 import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.agustingv.puzzles.game.garden.GardenGame
 import com.agustingv.puzzles.game.kakuro.KakuroGame
 import com.agustingv.puzzles.game.sudoku.SudokuGame
 import org.junit.Assert.assertTrue
@@ -32,6 +33,9 @@ class GenerationTimeTest {
 
     @Test
     fun kakuroGeneratesInTime() = measure("kakuro") { KakuroGame.generate(it) }
+
+    @Test
+    fun gardenGeneratesInTime() = measure("garden") { GardenGame.generate(it) }
 
     private companion object {
         const val ROUNDS = 60

@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import com.agustingv.puzzles.data.AppStorage
+import com.agustingv.puzzles.data.GameEvent
 import com.agustingv.puzzles.data.GameRules
 import com.agustingv.puzzles.data.GameSession
 import com.agustingv.puzzles.game.Difficulty
@@ -23,6 +24,7 @@ class WordSearchViewModel(application: Application) : AndroidViewModel(applicati
             isOver = WordSearchGame::isComplete,
             isWon = WordSearchGame::isComplete,
             variantOf = { it.difficulty.name },
+            eventFor = { previous, next -> GameEvent.HIT.takeIf { next.foundCount > previous.foundCount } },
         ),
     )
 
@@ -49,6 +51,7 @@ class WordSearchViewModel(application: Application) : AndroidViewModel(applicati
         lastSelectionMissed = current.pendingStart != null && current.pendingStart != cell &&
             next.foundCount == current.foundCount
         session.update(next)
+        if (lastSelectionMissed) session.signal(GameEvent.MISS)
     }
 
     fun startDrag(cell: Int) {
@@ -73,6 +76,7 @@ class WordSearchViewModel(application: Application) : AndroidViewModel(applicati
         val next = current.select(start, end)
         lastSelectionMissed = start != end && next.foundCount == current.foundCount
         session.update(next)
+        if (lastSelectionMissed) session.signal(GameEvent.MISS)
     }
 
     fun cancelDrag() {

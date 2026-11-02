@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import com.agustingv.puzzles.data.AppStorage
+import com.agustingv.puzzles.data.GameEvent
 import com.agustingv.puzzles.data.GameRules
 import com.agustingv.puzzles.data.GameSession
 import com.agustingv.puzzles.game.word.WordGuessGame
@@ -22,6 +23,7 @@ class WordViewModel(application: Application) : AndroidViewModel(application) {
             isOver = WordGuessGame::isOver,
             isWon = WordGuessGame::isWon,
             variantOf = { it.length.toString() },
+            eventFor = { previous, next -> GameEvent.TICK.takeIf { next.guesses.size > previous.guesses.size } },
         ),
     )
 

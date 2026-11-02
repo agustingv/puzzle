@@ -26,6 +26,15 @@ val Warn = Color(0xFFFFA63E)
 val Danger = Color(0xFFFF5470)
 val Teal = Color(0xFF2DD4BF)
 
+/** One colour per flower bed. Pastel in both themes: [BedDim] darkens them on the dark one. */
+val GardenBeds = listOf(
+    Color(0xFFA8E6CF), Color(0xFFA9D6F5), Color(0xFFCDB4F6), Color(0xFFF9B8CF), Color(0xFFFFD0A6),
+    Color(0xFF8FD9D1), Color(0xFFE5D3B3), Color(0xFFCFE89A), Color(0xFFF7A89A),
+)
+
+/** Marks and lines drawn on a bed, which is light in both themes. */
+val GardenInk = Color(0xFF1C1C28)
+
 /** Fill of used-up letters, with white text. Not [InkSoft], which turns light in dark theme. */
 val Absent = Color(0xFF6B6B7F)
 
@@ -49,6 +58,7 @@ internal data class PuzzleColors(
     val onSecondary: Color,
     val selection: Color,
     val fractalAlpha: Float,
+    val bedDim: Float,
 )
 
 internal val LightColors = PuzzleColors(
@@ -66,6 +76,7 @@ internal val LightColors = PuzzleColors(
     onSecondary = Color.White,
     selection = Pink.copy(alpha = 0.18f),
     fractalAlpha = 0.1f,
+    bedDim = 0f,
 )
 
 internal val DarkColors = PuzzleColors(
@@ -83,6 +94,7 @@ internal val DarkColors = PuzzleColors(
     onSecondary = Color(0xFF17123F),
     selection = Pink.copy(alpha = 0.32f),
     fractalAlpha = 0.18f,
+    bedDim = 0.2f,
 )
 
 private val LocalColors = staticCompositionLocalOf { LightColors }
@@ -103,6 +115,8 @@ val PlayerDigit: Color
     @Composable @ReadOnlyComposable get() = LocalColors.current.playerDigit
 val Alert: Color
     @Composable @ReadOnlyComposable get() = LocalColors.current.alert
+val BedDim: Float
+    @Composable @ReadOnlyComposable get() = LocalColors.current.bedDim
 val FractalAlpha: Float
     @Composable @ReadOnlyComposable get() = LocalColors.current.fractalAlpha
 

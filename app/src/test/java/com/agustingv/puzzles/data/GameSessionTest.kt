@@ -187,7 +187,70 @@ class GameSessionTest {
         first.start("again")
         assertNull(session().loadExtra())
     }
+
+    private fun eventsSession() = GameSession(
+        store,
+        GameRules<String>(
+            id = "test",
+            encode = { it },
+            decode = { it },
+            isOver = { it == "won" || it == "lost" },
+            isWon = { it == "won" },
+            variantOf = { "EASY" },
+            eventFor = { previous, next -> GameEvent.HIT.takeIf { next.length > previous.length } },
+        ),
+    )
+
+    @Test
+    fun `a move reports what the game's rules say it means`() {
+        val session = eventsSession()
+        session.start("a")
+        assertNull("starting a game is not an event", session.feedback)
+
+        session.update("ab")
+        assertEquals(GameEvent.HIT, session.feedback?.event)
+
+        val before = session.feedback
+        session.update("cd")
+        assertEquals("nothing new to report", before, session.feedback)
+    }
+
+    @Test
+    fun `winning and losing take priority over the move's own event`() {
+        val winner = eventsSession()
+        winner.start("a")
+        winner.update("won")
+        assertEquals(GameEvent.WIN, winner.feedback?.event)
+
+        val loser = eventsSession()
+        loser.start("a")
+        loser.update("lost")
+        assertEquals(GameEvent.LOSE, loser.feedback?.event)
+    }
+
+    @Test
+    fun `equal events in a row can be told apart`() {
+        val session = eventsSession()
+        session.start("a")
+        session.signal(GameEvent.MISS)
+        val first = session.feedback
+
+        session.signal(GameEvent.MISS)
+
+        assertEquals(GameEvent.MISS, session.feedback?.event)
+        assertFalse(first == session.feedback)
+    }
+
+    @Test
+    fun `reopening a finished game celebrates nothing`() {
+        val first = eventsSession()
+        first.start("a")
+        first.update("won")
+
+        assertNull(eventsSession().feedback)
+    }
 }
+
 
 class RecordsTest {
 

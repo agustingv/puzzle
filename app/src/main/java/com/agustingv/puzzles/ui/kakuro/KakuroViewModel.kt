@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.agustingv.puzzles.data.AppStorage
+import com.agustingv.puzzles.data.GameEvent
 import com.agustingv.puzzles.data.GameRules
 import com.agustingv.puzzles.data.GameSession
 import com.agustingv.puzzles.game.Difficulty
@@ -24,6 +25,7 @@ class KakuroViewModel(application: Application) : AndroidViewModel(application) 
             isOver = KakuroGame::isComplete,
             isWon = KakuroGame::isComplete,
             variantOf = { it.difficulty.name },
+            eventFor = { previous, next -> GameEvent.MISS.takeIf { (next.markedWrong - previous.markedWrong).isNotEmpty() } },
         ),
     )
 

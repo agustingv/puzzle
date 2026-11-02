@@ -46,7 +46,7 @@ fun RaceScreen(viewModel: RaceViewModel, onExit: () -> Unit) {
 
     GameScaffold(
         title = stringResource(R.string.race_title),
-        elapsedSeconds = viewModel.session.elapsedSeconds,
+        session = viewModel.session,
         status = if (game.isFinished) {
             stringResource(R.string.race_score, game.correctCount, total)
         } else {

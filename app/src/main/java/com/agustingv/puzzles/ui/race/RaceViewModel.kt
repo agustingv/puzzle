@@ -6,9 +6,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import com.agustingv.puzzles.data.AppStorage
+import com.agustingv.puzzles.data.GameEvent
 import com.agustingv.puzzles.data.GameRules
 import com.agustingv.puzzles.data.GameSession
 import com.agustingv.puzzles.game.race.RaceGame
+import com.agustingv.puzzles.game.race.RaceResult
 import com.agustingv.puzzles.ui.common.BundledWords
 
 class RaceViewModel(application: Application) : AndroidViewModel(application) {
@@ -22,6 +24,13 @@ class RaceViewModel(application: Application) : AndroidViewModel(application) {
             isOver = RaceGame::isFinished,
             isWon = RaceGame::isWon,
             variantOf = { it.length.toString() },
+            eventFor = { previous, next ->
+                when {
+                    next.index == previous.index -> null
+                    next.results.last() == RaceResult.CORRECT -> GameEvent.HIT
+                    else -> GameEvent.MISS
+                }
+            },
         ),
     )
 
@@ -55,6 +64,7 @@ class RaceViewModel(application: Application) : AndroidViewModel(application) {
 
         lastAnswerWrong = next === game
         session.update(next)
+        if (lastAnswerWrong) session.signal(GameEvent.MISS)
         updateTyped("")
     }
 

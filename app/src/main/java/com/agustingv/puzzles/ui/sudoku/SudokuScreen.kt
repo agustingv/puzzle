@@ -54,7 +54,7 @@ fun SudokuScreen(viewModel: SudokuViewModel, onExit: () -> Unit) {
 
     GameScaffold(
         title = title,
-        elapsedSeconds = viewModel.session.elapsedSeconds,
+        session = viewModel.session,
         status = stringResource(R.string.grid_filled, game.filledCount, 81),
         onExit = onExit,
         actions = {

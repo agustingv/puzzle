@@ -55,7 +55,7 @@ fun KakuroScreen(viewModel: KakuroViewModel, onExit: () -> Unit) {
 
     GameScaffold(
         title = title,
-        elapsedSeconds = viewModel.session.elapsedSeconds,
+        session = viewModel.session,
         status = stringResource(R.string.grid_filled, game.filledCount, game.activeCells),
         onExit = onExit,
         actions = {

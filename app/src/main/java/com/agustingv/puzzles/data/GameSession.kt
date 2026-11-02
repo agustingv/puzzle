@@ -15,7 +15,15 @@ class GameRules<G : Any>(
     val isWon: (G) -> Boolean,
     /** The difficulty or word length: what its records are filed under. */
     val variantOf: (G) -> String,
+    /** What a move meant, for the player's feedback. Winning and losing are told apart already. */
+    val eventFor: (previous: G, next: G) -> GameEvent? = { _, _ -> null },
 )
+
+/** Something worth feeling or seeing in the game. */
+enum class GameEvent { TICK, HIT, MISS, WIN, LOSE }
+
+/** The latest event. Its [id] tells two equal events apart, so that each one is handled. */
+data class GameFeedback(val event: GameEvent, val id: Int)
 
 /** An unfinished game, as the menu offers it. */
 data class SavedGame(val variant: String, val elapsedSeconds: Int)
@@ -40,6 +48,12 @@ class GameSession<G : Any>(private val store: KeyValueStore, private val rules: 
     /** The record just filed. Not saved: after a restart the result simply shows no ranking. */
     var lastRecord by mutableStateOf<RecordResult?>(null)
         private set
+
+    /** Not saved: a game restored after a restart has nothing new to celebrate. */
+    var feedback by mutableStateOf<GameFeedback?>(null)
+        private set
+
+    private var nextFeedbackId = 0
 
     /** What a generation in progress was asked for, so a killed process can finish the job. */
     val pendingVariant: String? get() = store.get(key(PENDING))
@@ -69,6 +83,20 @@ class GameSession<G : Any>(private val store: KeyValueStore, private val rules: 
         if (rules.isWon(next) && !wasWon) {
             lastRecord = records.add(rules.id, rules.variantOf(next), elapsedSeconds)
         }
+
+        if (previous != null) {
+            val event = when {
+                rules.isWon(next) && !wasWon -> GameEvent.WIN
+                rules.isOver(next) && !rules.isOver(previous) -> GameEvent.LOSE
+                else -> rules.eventFor(previous, next)
+            }
+            event?.let(::signal)
+        }
+    }
+
+    /** For an event that leaves the game as it was, such as a wrong answer. */
+    fun signal(event: GameEvent) {
+        feedback = GameFeedback(event, nextFeedbackId++)
     }
 
     fun tick() {

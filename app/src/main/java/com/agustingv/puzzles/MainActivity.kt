@@ -22,6 +22,8 @@ import com.agustingv.puzzles.data.SavedGame
 import com.agustingv.puzzles.game.Difficulty
 import com.agustingv.puzzles.ui.crossword.CrosswordScreen
 import com.agustingv.puzzles.ui.crossword.CrosswordViewModel
+import com.agustingv.puzzles.ui.garden.GardenScreen
+import com.agustingv.puzzles.ui.garden.GardenViewModel
 import com.agustingv.puzzles.ui.hangman.HangmanScreen
 import com.agustingv.puzzles.ui.hangman.HangmanViewModel
 import com.agustingv.puzzles.ui.kakuro.KakuroScreen
@@ -76,6 +78,7 @@ private fun PuzzlesApp() {
     val wordSearch: WordSearchViewModel = viewModel()
     val crossword: CrosswordViewModel = viewModel()
     val sudoku: SudokuViewModel = viewModel()
+    val garden: GardenViewModel = viewModel()
     val path: PathViewModel = viewModel()
     val kakuro: KakuroViewModel = viewModel()
     val memorama: MemoramaViewModel = viewModel()
@@ -94,6 +97,7 @@ private fun PuzzlesApp() {
         GameInfo.WORD_SEARCH -> wordSearch.session.saved
         GameInfo.CROSSWORD -> crossword.session.saved
         GameInfo.SUDOKU -> sudoku.session.saved
+        GameInfo.GARDEN -> garden.session.saved
         GameInfo.PATH -> path.session.saved
         GameInfo.KAKURO -> kakuro.session.saved
         GameInfo.MEMORAMA -> memorama.session.saved
@@ -108,6 +112,7 @@ private fun PuzzlesApp() {
             GameInfo.WORD_SEARCH -> wordSearch.newGame(Difficulty.valueOf(variant))
             GameInfo.CROSSWORD -> crossword.newGame(Difficulty.valueOf(variant))
             GameInfo.SUDOKU -> sudoku.newGame(Difficulty.valueOf(variant))
+            GameInfo.GARDEN -> garden.newGame(Difficulty.valueOf(variant))
             GameInfo.PATH -> path.newGame(Difficulty.valueOf(variant))
             GameInfo.KAKURO -> kakuro.newGame(Difficulty.valueOf(variant))
             GameInfo.MEMORAMA -> memorama.newGame(Difficulty.valueOf(variant))
@@ -139,6 +144,7 @@ private fun PuzzlesApp() {
             GameInfo.WORD_SEARCH -> WordSearchScreen(wordSearch, stopPlaying)
             GameInfo.CROSSWORD -> CrosswordScreen(crossword, stopPlaying)
             GameInfo.SUDOKU -> SudokuScreen(sudoku, stopPlaying)
+            GameInfo.GARDEN -> GardenScreen(garden, stopPlaying)
             GameInfo.PATH -> PathScreen(path, stopPlaying)
             GameInfo.KAKURO -> KakuroScreen(kakuro, stopPlaying)
             GameInfo.MEMORAMA -> MemoramaScreen(memorama, stopPlaying)

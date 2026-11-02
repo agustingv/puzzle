@@ -2,6 +2,7 @@ package com.agustingv.puzzles.ui.theme
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -40,6 +41,11 @@ class ThemeContrastTest {
         assertContrast("$name digit on the selected cell", c.playerDigit, selectedCell, 3f)
         assertContrast("$name wrong digit on the selected cell", c.alert, selectedCell, 3f)
         assertContrast("$name fixed digit on a tinted cell", c.ink, selectedCell)
+
+        for (bed in GardenBeds) {
+            val dimmed = lerp(bed, Color.Black, c.bedDim)
+            assertContrast("$name garden marks on $bed", GardenInk, dimmed)
+        }
     }
 
     @Test

@@ -45,7 +45,7 @@ fun SlidingScreen(viewModel: SlidingViewModel, onExit: () -> Unit) {
 
     GameScaffold(
         title = stringResource(R.string.sliding_title),
-        elapsedSeconds = viewModel.session.elapsedSeconds,
+        session = viewModel.session,
         status = pluralStringResource(R.plurals.moves_value, game.moves, game.moves),
         onExit = onExit,
         actions = {

@@ -44,7 +44,7 @@ fun HangmanScreen(viewModel: HangmanViewModel, onExit: () -> Unit) {
 
     GameScaffold(
         title = stringResource(R.string.hangman_title),
-        elapsedSeconds = viewModel.session.elapsedSeconds,
+        session = viewModel.session,
         status = stringResource(R.string.hangman_misses, game.wrongCount, HangmanGame.MAX_WRONG),
         onExit = onExit,
         actions = {

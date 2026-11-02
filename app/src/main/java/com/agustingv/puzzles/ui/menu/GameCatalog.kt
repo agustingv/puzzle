@@ -36,6 +36,7 @@ enum class GameInfo(
     WORD_SEARCH("wordsearch", "🔍", R.string.wordsearch_title, R.string.wordsearch_description, BY_DIFFICULTY, listOf(Purple, Pink)),
     CROSSWORD("crossword", "🧩", R.string.crossword_title, R.string.crossword_description, BY_DIFFICULTY, listOf(Warn, Purple)),
     SUDOKU("sudoku", "🔢", R.string.sudoku_title, R.string.sudoku_description, BY_DIFFICULTY, listOf(Accent, Pink)),
+    GARDEN("garden", "🌻", R.string.garden_title, R.string.garden_description, BY_DIFFICULTY, listOf(Accent, Warn)),
     PATH("path", "🔗", R.string.path_title, R.string.path_description, BY_DIFFICULTY, listOf(Pink, Accent)),
     KAKURO("kakuro", "➕", R.string.kakuro_title, R.string.kakuro_description, BY_DIFFICULTY, listOf(Purple, Accent)),
     MEMORAMA("memorama", "🃏", R.string.memorama_title, R.string.memorama_description, BY_DIFFICULTY, listOf(Purple, Warn)),

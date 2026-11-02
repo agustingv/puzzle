@@ -87,6 +87,15 @@
     <string name="memorama_card_up">Carta %1$d: %2$s</string>
     <string name="memorama_card_matched">Carta %1$d: %2$s, emparejada</string>
 
+    <string name="garden_title">Jardín</string>
+    <string name="garden_description">Planta una flor en cada parterre. Cada fila y columna lleva una sola, y ninguna flor puede tocar a otra, ni siquiera en diagonal. Toca una casilla para descartarla y otra vez para plantar; arrastra para descartar varias.</string>
+    <string name="garden_status">Flores: %1$d / %2$d</string>
+    <string name="garden_won">¡Jardín completo!</string>
+    <string name="garden_cell_empty">Fila %1$d, columna %2$d, parterre %3$d: vacía</string>
+    <string name="garden_cell_mark">Fila %1$d, columna %2$d, parterre %3$d: descartada</string>
+    <string name="garden_cell_flower">Fila %1$d, columna %2$d, parterre %3$d: flor</string>
+    <string name="garden_cell_clash">Fila %1$d, columna %2$d, parterre %3$d: flor en conflicto</string>
+
     <string name="sudoku_title">Sudoku</string>
     <string name="sudoku_description">El clásico 9x9: completa cada fila, columna y caja de 3x3 con los números del 1 al 9, sin repetir.</string>
     <string name="sudoku_won">¡Completado!</string>

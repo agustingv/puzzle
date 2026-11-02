@@ -1,5 +1,11 @@
 package com.agustingv.puzzles.ui.common
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -21,10 +27,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -144,6 +155,8 @@ private fun RowScope.Key(
     enabled: Boolean = true,
     weight: Float = 1f,
 ) {
+    val haptics = LocalHapticFeedback.current
+
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
@@ -151,7 +164,10 @@ private fun RowScope.Key(
             .fillMaxHeight()
             .clip(RoundedCornerShape(6.dp))
             .background(fill ?: Border)
-            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+            .clickable(enabled = enabled, role = Role.Button) {
+                haptics.performHapticFeedback(HapticFeedbackType.KeyboardTap)
+                onClick()
+            }
             .clearAndSetSemantics { contentDescription = description },
     ) {
         Text(
@@ -181,41 +197,54 @@ fun GameActionButton(label: String, onClick: () -> Unit) {
 @Composable
 fun GameResult(message: String, onPlayAgain: () -> Unit, record: RecordResult? = null) {
     val shape = RoundedCornerShape(20.dp)
+    val appearing = remember { MutableTransitionState(false).apply { targetState = true } }
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(shape)
-            .background(Card)
-            .border(1.dp, MaterialTheme.colorScheme.outline, shape)
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+    AnimatedVisibility(
+        visibleState = appearing,
+        enter = fadeIn() + slideInVertically(spring(dampingRatio = 0.7f, stiffness = 300f)) { it / 2 },
     ) {
-        Text(
-            text = message,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-        )
-        if (record != null) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(shape)
+                .background(Card)
+                .border(1.dp, MaterialTheme.colorScheme.outline, shape)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             Text(
-                text = when {
-                    record.isNewBest -> stringResource(R.string.record_new_best, formatTime(record.seconds))
-                    record.rank != null ->
-                        stringResource(R.string.record_ranked, record.rank, formatTime(record.best))
-                    else -> stringResource(R.string.record_best, formatTime(record.best))
-                },
-                color = MaterialTheme.colorScheme.primary,
+                text = message,
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
             )
-        }
-        Button(
-            onClick = onPlayAgain,
-            modifier = Modifier.fillMaxWidth().padding(top = 4.dp).height(52.dp),
-        ) {
-            Text(stringResource(R.string.play_again), style = MaterialTheme.typography.titleMedium)
+            if (record != null) {
+                val pop = remember { Animatable(if (record.isNewBest) 0.6f else 1f) }
+                LaunchedEffect(Unit) { pop.animateTo(1f, spring(dampingRatio = 0.4f, stiffness = 300f)) }
+
+                Text(
+                    modifier = Modifier.graphicsLayer {
+                        scaleX = pop.value
+                        scaleY = pop.value
+                    },
+                    text = when {
+                        record.isNewBest -> stringResource(R.string.record_new_best, formatTime(record.seconds))
+                        record.rank != null ->
+                            stringResource(R.string.record_ranked, record.rank, formatTime(record.best))
+                        else -> stringResource(R.string.record_best, formatTime(record.best))
+                    },
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                )
+            }
+            Button(
+                onClick = onPlayAgain,
+                modifier = Modifier.fillMaxWidth().padding(top = 4.dp).height(52.dp),
+            ) {
+                Text(stringResource(R.string.play_again), style = MaterialTheme.typography.titleMedium)
+            }
         }
     }
 }
