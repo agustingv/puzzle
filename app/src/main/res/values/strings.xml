@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">Puzzles</string>
-    <string name="menu_subtitle">Juegos de números y letras para procrastinar</string>
     <string name="play">Jugar</string>
     <string name="play_again">Jugar otra vez</string>
     <string name="back">Volver</string>
