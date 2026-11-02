@@ -4,6 +4,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -30,6 +31,14 @@ class ScreenTopBarTest {
         rule.onNodeWithContentDescription("Ajustes").performClick()
 
         assertEquals(1, opened)
+    }
+
+    @Test
+    fun aTitleInTilesIsReadWhole() {
+        rule.setContent { ScreenTopBar(title = "Puzle Deslizante", onBack = {}, titleInTiles = true) }
+
+        rule.onNodeWithContentDescription("Puzle Deslizante").assertExists()
+        rule.onAllNodesWithText("P").assertCountEquals(0)
     }
 
     @Test

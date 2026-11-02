@@ -1,4 +1,4 @@
-package com.agustingv.puzzles.ui.menu
+package com.agustingv.puzzles.ui.common
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -48,8 +48,16 @@ private val AppTitleTileSize = 44.dp
 private val AppTitleTileGap = 8.dp
 private const val APP_TITLE_LETTER_RATIO = 0.44f
 
+/** The U, as on the web. */
+private const val APP_TITLE_LIT_LETTER = 1
+
 private val CardTitleMaxTile = 20.dp
-private const val CARD_TITLE_LETTER_RATIO = 0.6f
+private const val SMALL_TILE_LETTER_RATIO = 0.6f
+
+private val BarTitleMaxTile = 26.dp
+
+/** Two lines of these still fit the height of the top bar. */
+private val BarTitleMaxTileOnTwoLines = 20.dp
 
 /** Space between tiles, as a share of a tile. */
 private const val TILE_GAP = 0.18f
@@ -75,6 +83,16 @@ internal fun lineWidth(line: String): Float =
 
 /** How many tiles wide the widest of these titles is: all cards share one tile size. */
 internal fun widestTitle(titles: List<String>): Float = titles.flatMap(::titleLines).maxOf(::lineWidth)
+
+/**
+ * Which letter of a title is lit up, counting only letters. It looks picked at random, but comes from
+ * the title itself, so a game keeps its letter on every screen and every launch. Never the last
+ * letter, which has its own style.
+ */
+internal fun litLetter(title: String): Int {
+    val choices = title.count { it != ' ' } - 1
+    return if (choices < 1) 0 else title.hashCode().mod(choices)
+}
 
 private enum class TileStyle { RAISED, ON_CARD, LIT, PENDING }
 
@@ -127,9 +145,9 @@ private fun LetterTile(letter: Char, size: Dp, style: TileStyle, letterRatio: Fl
     }
 }
 
-/** Lines of tiles, as in the app's title: the second letter lit up and the last one still to be placed. */
+/** Lines of tiles, as in the app's title: the [lit] letter stands out and the last one is still to be placed. */
 @Composable
-private fun TileLines(lines: List<String>, size: Dp, gap: Dp, plain: TileStyle, letterRatio: Float) {
+private fun TileLines(lines: List<String>, lit: Int, size: Dp, gap: Dp, plain: TileStyle, letterRatio: Float) {
     val lastLetter = lines.sumOf { line -> line.count { it != ' ' } } - 1
     var index = 0
 
@@ -144,7 +162,7 @@ private fun TileLines(lines: List<String>, size: Dp, gap: Dp, plain: TileStyle, 
                         Spacer(modifier = Modifier.width(size * WORD_GAP))
                     } else {
                         val style = when (index) {
-                            1 -> TileStyle.LIT
+                            lit -> TileStyle.LIT
                             lastLetter -> TileStyle.PENDING
                             else -> plain
                         }
@@ -174,7 +192,7 @@ internal fun AppTitle(modifier: Modifier = Modifier) {
         val gaps = AppTitleTileGap * (name.length - 1)
         val tile = min(AppTitleTileSize, (maxWidth - gaps) / name.length)
 
-        TileLines(listOf(name), tile, AppTitleTileGap, TileStyle.RAISED, APP_TITLE_LETTER_RATIO)
+        TileLines(listOf(name), APP_TITLE_LIT_LETTER, tile, AppTitleTileGap, TileStyle.RAISED, APP_TITLE_LETTER_RATIO)
     }
 }
 
@@ -196,7 +214,28 @@ internal fun CardTitle(title: String, widest: Float, modifier: Modifier = Modifi
             contentAlignment = Alignment.Center,
             modifier = Modifier.height(tile * CARD_TITLE_MAX_LINES + gap),
         ) {
-            TileLines(titleLines(title), tile, gap, TileStyle.ON_CARD, CARD_TITLE_LETTER_RATIO)
+            TileLines(titleLines(title), litLetter(title), tile, gap, TileStyle.ON_CARD, SMALL_TILE_LETTER_RATIO)
         }
+    }
+}
+
+/**
+ * A title in the top bar. Only one is on screen at a time, so each takes the largest tiles that it
+ * has room for, instead of sharing a size like the cards do.
+ */
+@Composable
+internal fun BarTitle(title: String, modifier: Modifier = Modifier) {
+    BoxWithConstraints(
+        contentAlignment = Alignment.Center,
+        modifier = modifier.clearAndSetSemantics {
+            contentDescription = title
+            heading()
+        },
+    ) {
+        val lines = titleLines(title)
+        val largest = if (lines.size > 1) BarTitleMaxTileOnTwoLines else BarTitleMaxTile
+        val tile = min(largest, maxWidth / lines.maxOf(::lineWidth))
+
+        TileLines(lines, litLetter(title), tile, tile * TILE_GAP, TileStyle.RAISED, SMALL_TILE_LETTER_RATIO)
     }
 }

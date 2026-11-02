@@ -74,6 +74,7 @@ fun GameScaffold(
         ScreenTopBar(
             title = title,
             subtitle = status,
+            titleInTiles = true,
             onBack = onExit,
             trailing = { TimerPill(session.elapsedSeconds, Modifier.padding(horizontal = 4.dp)) },
             subtitleAction = {

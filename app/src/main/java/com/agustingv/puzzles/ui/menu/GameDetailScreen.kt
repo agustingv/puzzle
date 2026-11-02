@@ -71,7 +71,7 @@ fun GameDetailScreen(
     }
 
     Column(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
-        ScreenTopBar(title = stringResource(info.title), onBack = onBack)
+        ScreenTopBar(title = stringResource(info.title), onBack = onBack, titleInTiles = true)
 
         val intro: @Composable () -> Unit = {
             Box(

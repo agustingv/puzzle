@@ -57,6 +57,7 @@ fun ScreenTopBar(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
     subtitle: String? = null,
+    titleInTiles: Boolean = false,
     subtitleAction: @Composable RowScope.() -> Unit = {},
     trailing: @Composable RowScope.() -> Unit = {},
 ) {
@@ -72,14 +73,18 @@ fun ScreenTopBar(
             ) {
                 Text("←", style = MaterialTheme.typography.titleLarge)
             }
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f),
-            )
+            if (titleInTiles) {
+                BarTitle(title, Modifier.weight(1f))
+            } else {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
+                )
+            }
             trailing()
             SettingsButton(modifier = Modifier.padding(end = 4.dp))
         }

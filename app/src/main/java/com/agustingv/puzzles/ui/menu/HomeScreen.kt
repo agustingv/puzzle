@@ -36,7 +36,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.agustingv.puzzles.R
 import com.agustingv.puzzles.data.SavedGame
+import com.agustingv.puzzles.ui.common.AppTitle
+import com.agustingv.puzzles.ui.common.CardTitle
 import com.agustingv.puzzles.ui.common.SettingsButton
+import com.agustingv.puzzles.ui.common.widestTitle
 import com.agustingv.puzzles.ui.theme.Card as CardColor
 import com.agustingv.puzzles.ui.theme.PuzzlesTheme
 
