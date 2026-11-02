@@ -8,37 +8,33 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
-import com.agustingv.puzzles.R
 import kotlinx.coroutines.delay
 
 private val MaxBoardSide = 480.dp
 
 /**
- * Screen shared by every game: header and stats, a square board area and an actions area.
- * Portrait stacks them; landscape puts the board on the right at full height. [board] receives
+ * Screen shared by every game: a top bar with title, status and clock, a square board area and an
+ * actions area. Portrait stacks them, with the board centred in the space left between the bar and
+ * the actions; landscape puts the board on the right at full height. [board] receives
  * the side of the largest square available, and nothing here scrolls in portrait, so boards
  * driven by drag gestures never compete with a scroll container.
  */
@@ -53,55 +49,57 @@ fun GameScaffold(
 ) {
     BackHandler(onBack = onExit)
 
-    val info: @Composable () -> Unit = {
-        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.weight(1f),
-            )
-            TextButton(onClick = onExit) { Text(stringResource(R.string.exit)) }
-        }
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(stringResource(R.string.time_value, formatTime(elapsedSeconds)))
-            Text(status)
-        }
+    val topBar: @Composable () -> Unit = {
+        ScreenTopBar(
+            title = title,
+            subtitle = status,
+            onBack = onExit,
+            trailing = { TimerPill(elapsedSeconds, Modifier.padding(start = 8.dp, end = 12.dp)) },
+        )
     }
 
-    BoxWithConstraints(
-        modifier = Modifier
-            .fillMaxSize()
-            .safeDrawingPadding()
-            .padding(16.dp),
-    ) {
+    BoxWithConstraints(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
         if (maxWidth > maxHeight) {
-            val side = min(maxHeight, maxWidth * 0.6f)
-            Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+            // Top bar and actions on the left, the board at full height on the right.
+            val side = min(maxHeight - 24.dp, maxWidth * 0.6f)
+            Row(modifier = Modifier.fillMaxSize()) {
                 Column(
                     modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    info()
-                    actions()
+                    topBar()
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        content = actions,
+                    )
                 }
-                board(side)
+                Box(
+                    modifier = Modifier.fillMaxHeight().padding(end = 16.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    board(side)
+                }
             }
         } else {
             Column(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                info()
+                topBar()
                 BoxWithConstraints(
-                    modifier = Modifier.weight(1f).fillMaxWidth(),
-                    contentAlignment = Alignment.TopCenter,
+                    modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                    contentAlignment = Alignment.Center,
                 ) {
                     board(min(min(maxWidth, maxHeight), MaxBoardSide))
                 }
-                actions()
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    content = actions,
+                )
             }
         }
     }

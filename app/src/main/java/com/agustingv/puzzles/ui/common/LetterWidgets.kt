@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -179,24 +180,42 @@ fun GameActionButton(label: String, onClick: () -> Unit) {
 /** End-of-game message and replay button, shared by every game. */
 @Composable
 fun GameResult(message: String, onPlayAgain: () -> Unit, record: RecordResult? = null) {
-    Text(
-        text = message,
-        style = MaterialTheme.typography.titleLarge,
-        fontWeight = FontWeight.Bold,
-        textAlign = TextAlign.Center,
-    )
-    if (record != null) {
+    val shape = RoundedCornerShape(20.dp)
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(Card)
+            .border(1.dp, MaterialTheme.colorScheme.outline, shape)
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         Text(
-            text = when {
-                record.isNewBest -> stringResource(R.string.record_new_best, formatTime(record.seconds))
-                record.rank != null ->
-                    stringResource(R.string.record_ranked, record.rank, formatTime(record.best))
-                else -> stringResource(R.string.record_best, formatTime(record.best))
-            },
-            color = MaterialTheme.colorScheme.primary,
+            text = message,
+            style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
         )
+        if (record != null) {
+            Text(
+                text = when {
+                    record.isNewBest -> stringResource(R.string.record_new_best, formatTime(record.seconds))
+                    record.rank != null ->
+                        stringResource(R.string.record_ranked, record.rank, formatTime(record.best))
+                    else -> stringResource(R.string.record_best, formatTime(record.best))
+                },
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+            )
+        }
+        Button(
+            onClick = onPlayAgain,
+            modifier = Modifier.fillMaxWidth().padding(top = 4.dp).height(52.dp),
+        ) {
+            Text(stringResource(R.string.play_again), style = MaterialTheme.typography.titleMedium)
+        }
     }
-    Button(onClick = onPlayAgain) { Text(stringResource(R.string.play_again)) }
 }

@@ -25,7 +25,6 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,7 +37,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -47,6 +45,7 @@ import com.agustingv.puzzles.R
 import com.agustingv.puzzles.data.KeyValueStore
 import com.agustingv.puzzles.data.Records
 import com.agustingv.puzzles.data.SavedGame
+import com.agustingv.puzzles.ui.common.ScreenTopBar
 import com.agustingv.puzzles.ui.common.formatTime
 import com.agustingv.puzzles.ui.theme.Card
 import com.agustingv.puzzles.ui.theme.Ink
@@ -79,25 +78,7 @@ fun GameDetailScreen(
     }
 
     Column(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            val backLabel = stringResource(R.string.back)
-            TextButton(
-                onClick = onBack,
-                modifier = Modifier.clearAndSetSemantics { contentDescription = backLabel },
-            ) {
-                Text("←", style = MaterialTheme.typography.titleLarge)
-            }
-            Text(
-                text = stringResource(info.title),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
+        ScreenTopBar(title = stringResource(info.title), onBack = onBack)
 
         val intro: @Composable () -> Unit = {
             Box(
