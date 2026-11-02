@@ -9,10 +9,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -22,6 +24,7 @@ import com.agustingv.puzzles.data.Records
 import com.agustingv.puzzles.data.SavedGame
 import com.agustingv.puzzles.game.Difficulty
 import com.agustingv.puzzles.ui.common.GameSounds
+import com.agustingv.puzzles.ui.common.LocalOpenSettings
 import com.agustingv.puzzles.ui.crossword.CrosswordScreen
 import com.agustingv.puzzles.ui.crossword.CrosswordViewModel
 import com.agustingv.puzzles.ui.garden.GardenScreen
@@ -36,6 +39,7 @@ import com.agustingv.puzzles.ui.menu.GameInfo
 import com.agustingv.puzzles.ui.menu.GameDetailScreen
 import com.agustingv.puzzles.ui.menu.HomeScreen
 import com.agustingv.puzzles.ui.menu.PrivacyScreen
+import com.agustingv.puzzles.ui.menu.SettingsScreen
 import com.agustingv.puzzles.ui.path.PathScreen
 import com.agustingv.puzzles.ui.path.PathViewModel
 import com.agustingv.puzzles.ui.race.RaceScreen
@@ -76,6 +80,8 @@ private fun PuzzlesApp() {
     var opened by rememberSaveable { mutableStateOf<GameInfo?>(null) }
     var playing by rememberSaveable { mutableStateOf(false) }
     var showPrivacy by rememberSaveable { mutableStateOf(false) }
+    var showSettings by rememberSaveable { mutableStateOf(false) }
+    val screens = rememberSaveableStateHolder()
 
     val race: RaceViewModel = viewModel()
     val hangman: HangmanViewModel = viewModel()
@@ -131,37 +137,46 @@ private fun PuzzlesApp() {
         playing = true
     }
 
-    when {
-        showPrivacy -> PrivacyScreen(onExit = { showPrivacy = false })
-        game == null -> HomeScreen(
-            saved = ::savedGame,
-            onOpen = {
-                opened = it
-                playing = savedGame(it) != null
-            },
-            onPrivacy = { showPrivacy = true },
-            soundOn = sounds.enabled,
-            onToggleSound = sounds::toggle,
-        )
-        !playing -> GameDetailScreen(
-            info = game,
-            records = records,
-            storage = storage,
-            onPlay = { variant -> startGame(game, variant) },
-            onBack = { opened = null },
-        )
-        else -> when (game) {
-            GameInfo.RACE -> RaceScreen(race, ::stopPlaying)
-            GameInfo.HANGMAN -> HangmanScreen(hangman, ::stopPlaying)
-            GameInfo.WORD -> WordScreen(word, ::stopPlaying)
-            GameInfo.WORD_SEARCH -> WordSearchScreen(wordSearch, ::stopPlaying)
-            GameInfo.CROSSWORD -> CrosswordScreen(crossword, ::stopPlaying)
-            GameInfo.SUDOKU -> SudokuScreen(sudoku, ::stopPlaying)
-            GameInfo.GARDEN -> GardenScreen(garden, ::stopPlaying)
-            GameInfo.PATH -> PathScreen(path, ::stopPlaying)
-            GameInfo.KAKURO -> KakuroScreen(kakuro, ::stopPlaying)
-            GameInfo.MEMORAMA -> MemoramaScreen(memorama, ::stopPlaying)
-            GameInfo.SLIDING -> SlidingScreen(sliding, ::stopPlaying)
+    // The settings replace whatever is on screen, which stops its clocks. That screen comes back as
+    // it was, because its state stays in the holder while it is gone.
+    if (showSettings) {
+        SettingsScreen(sounds, onExit = { showSettings = false })
+        return
+    }
+
+    screens.SaveableStateProvider("screens") {
+        CompositionLocalProvider(LocalOpenSettings provides { showSettings = true }) {
+            when {
+                showPrivacy -> PrivacyScreen(onExit = { showPrivacy = false })
+                game == null -> HomeScreen(
+                    saved = ::savedGame,
+                    onOpen = {
+                        opened = it
+                        playing = savedGame(it) != null
+                    },
+                    onPrivacy = { showPrivacy = true },
+                )
+                !playing -> GameDetailScreen(
+                    info = game,
+                    records = records,
+                    storage = storage,
+                    onPlay = { variant -> startGame(game, variant) },
+                    onBack = { opened = null },
+                )
+                else -> when (game) {
+                    GameInfo.RACE -> RaceScreen(race, ::stopPlaying)
+                    GameInfo.HANGMAN -> HangmanScreen(hangman, ::stopPlaying)
+                    GameInfo.WORD -> WordScreen(word, ::stopPlaying)
+                    GameInfo.WORD_SEARCH -> WordSearchScreen(wordSearch, ::stopPlaying)
+                    GameInfo.CROSSWORD -> CrosswordScreen(crossword, ::stopPlaying)
+                    GameInfo.SUDOKU -> SudokuScreen(sudoku, ::stopPlaying)
+                    GameInfo.GARDEN -> GardenScreen(garden, ::stopPlaying)
+                    GameInfo.PATH -> PathScreen(path, ::stopPlaying)
+                    GameInfo.KAKURO -> KakuroScreen(kakuro, ::stopPlaying)
+                    GameInfo.MEMORAMA -> MemoramaScreen(memorama, ::stopPlaying)
+                    GameInfo.SLIDING -> SlidingScreen(sliding, ::stopPlaying)
+                }
+            }
         }
     }
 }

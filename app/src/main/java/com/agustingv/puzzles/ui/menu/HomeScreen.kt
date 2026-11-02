@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -48,6 +47,7 @@ import androidx.compose.ui.unit.min
 import androidx.compose.ui.unit.sp
 import com.agustingv.puzzles.R
 import com.agustingv.puzzles.data.SavedGame
+import com.agustingv.puzzles.ui.common.SettingsButton
 import com.agustingv.puzzles.ui.theme.Accent
 import com.agustingv.puzzles.ui.theme.AccentDark
 import com.agustingv.puzzles.ui.theme.Card as CardColor
@@ -65,8 +65,6 @@ fun HomeScreen(
     saved: (GameInfo) -> SavedGame?,
     onOpen: (GameInfo) -> Unit,
     onPrivacy: () -> Unit,
-    soundOn: Boolean,
-    onToggleSound: () -> Unit,
 ) {
     LazyVerticalGrid(
         columns = GridCells.Adaptive(MinCardWidth),
@@ -76,7 +74,13 @@ fun HomeScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item(span = { GridItemSpan(maxLineSpan) }) {
-            AppTitle(modifier = Modifier.padding(top = 8.dp, bottom = 12.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(top = 8.dp, bottom = 12.dp),
+            ) {
+                AppTitle(modifier = Modifier.weight(1f))
+                SettingsButton(modifier = Modifier.padding(start = 4.dp))
+            }
         }
 
         items(GameInfo.entries, key = { it.id }) { info ->
@@ -84,14 +88,7 @@ fun HomeScreen(
         }
 
         item(span = { GridItemSpan(maxLineSpan) }) {
-            FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                TextButton(onClick = onToggleSound) {
-                    Text(
-                        text = if (soundOn) "🔊" else "🔇",
-                        modifier = Modifier.padding(end = 6.dp).clearAndSetSemantics {},
-                    )
-                    Text(stringResource(if (soundOn) R.string.sound_on else R.string.sound_off))
-                }
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 TextButton(onClick = onPrivacy) { Text(stringResource(R.string.privacy_title)) }
             }
         }
@@ -230,8 +227,6 @@ private fun HomePreview() {
             saved = { if (it == GameInfo.HANGMAN) SavedGame("5", 83) else null },
             onOpen = {},
             onPrivacy = {},
-            soundOn = true,
-            onToggleSound = {},
         )
     }
 }

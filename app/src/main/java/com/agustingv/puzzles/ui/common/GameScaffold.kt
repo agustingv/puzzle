@@ -75,8 +75,8 @@ fun GameScaffold(
             title = title,
             subtitle = status,
             onBack = onExit,
-            trailing = {
-                TimerPill(session.elapsedSeconds, Modifier.padding(start = 8.dp, end = if (running) 0.dp else 12.dp))
+            trailing = { TimerPill(session.elapsedSeconds, Modifier.padding(horizontal = 4.dp)) },
+            subtitleAction = {
                 if (running) {
                     TextButton(onClick = { confirmDiscard = true }) { Text(stringResource(R.string.end_game)) }
                 }

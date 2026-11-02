@@ -59,7 +59,7 @@ class FeedbackVisuals {
  * Turns a session's events into sound, vibration and motion. An event is handled once: rotating the
  * screen recreates this effect without replaying the last one. Vibration uses the system's haptics,
  * which need no permission and follow the user's setting; motion follows the system's animation
- * setting; sound has its own switch on the home screen.
+ * setting; sound follows the app's own settings.
  */
 @Composable
 fun GameFeedbackEffect(

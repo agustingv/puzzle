@@ -29,8 +29,11 @@
     <string name="end_game_title">¿Terminar la partida?</string>
     <string name="end_game_text">Se perderá el progreso de esta partida.</string>
     <string name="keep_playing">Seguir jugando</string>
-    <string name="sound_on">Sonido: sí</string>
-    <string name="sound_off">Sonido: no</string>
+    <string name="settings_title">Ajustes</string>
+    <string name="settings_sound">Sonido</string>
+    <string name="settings_volume">Volumen</string>
+    <string name="settings_volume_value">%1$d %%</string>
+    <string name="settings_volume_hint">Es una parte del volumen multimedia del móvil: si este está bajo, sonará bajo.</string>
     <string name="game_in_progress">En curso</string>
     <string name="hall_of_fame">🏆 Hall of Fame</string>
     <string name="records_empty">Sin tiempos todavía</string>

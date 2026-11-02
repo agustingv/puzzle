@@ -6,6 +6,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.agustingv.puzzles.data.GameEvent
 import com.agustingv.puzzles.data.KeyValueStore
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -51,6 +52,30 @@ class GameSoundsTest {
         for (event in GameEvent.entries) {
             assertTrue("$event", startsWithin(sounds, event))
         }
+    }
+
+    @Test
+    fun theVolumeIsKeptAndStaysInRange() {
+        val sounds = sounds()
+        assertEquals(1f, sounds.volume)
+
+        sounds.changeVolume(0.4f)
+        assertEquals(0.4f, sounds().volume)
+
+        sounds.changeVolume(3f)
+        assertEquals(1f, sounds.volume)
+        sounds.changeVolume(-1f)
+        assertEquals(0f, sounds.volume)
+    }
+
+    @Test
+    fun aBadSavedVolumeIsStillUsable() {
+        for (saved in listOf("nonsense", "7", "-2")) {
+            store.values["sound-volume"] = saved
+            assertTrue(saved, sounds().volume in 0f..1f)
+        }
+        store.values["sound-volume"] = "nonsense"
+        assertEquals(1f, sounds().volume)
     }
 
     @Test
