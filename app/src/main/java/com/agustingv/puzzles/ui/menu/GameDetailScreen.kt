@@ -17,10 +17,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -44,11 +42,9 @@ import androidx.compose.ui.unit.sp
 import com.agustingv.puzzles.R
 import com.agustingv.puzzles.data.KeyValueStore
 import com.agustingv.puzzles.data.Records
-import com.agustingv.puzzles.data.SavedGame
 import com.agustingv.puzzles.ui.common.ScreenTopBar
 import com.agustingv.puzzles.ui.common.formatTime
 import com.agustingv.puzzles.ui.theme.Card
-import com.agustingv.puzzles.ui.theme.Ink
 
 private const val LAST_VARIANT_KEY = "last-variant"
 
@@ -56,20 +52,17 @@ private const val LAST_VARIANT_KEY = "last-variant"
 @Composable
 fun GameDetailScreen(
     info: GameInfo,
-    saved: SavedGame?,
     records: Records,
     storage: KeyValueStore,
     onPlay: (variant: String) -> Unit,
-    onContinue: () -> Unit,
     onBack: () -> Unit,
 ) {
     BackHandler(onBack = onBack)
 
-    // Opens on the level in progress, else the last one played, so a repeat game takes one tap.
+    // Opens on the last level played, so a repeat game takes one tap.
     val lastKey = "$LAST_VARIANT_KEY/${info.id}"
     var selected by rememberSaveable(info) {
-        val initial = saved?.variant ?: storage.get(lastKey)
-        mutableStateOf(initial?.takeIf { it in info.variants } ?: info.variants.first())
+        mutableStateOf(storage.get(lastKey)?.takeIf { it in info.variants } ?: info.variants.first())
     }
 
     fun play() {
@@ -130,35 +123,11 @@ fun GameDetailScreen(
             }
         }
 
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+        Button(
+            onClick = ::play,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp).height(52.dp),
         ) {
-            if (saved == null) {
-                Button(onClick = ::play, modifier = Modifier.fillMaxWidth().height(52.dp)) {
-                    Text(stringResource(R.string.play), style = MaterialTheme.typography.titleMedium)
-                }
-            } else {
-                Text(
-                    text = stringResource(
-                        R.string.saved_game,
-                        variantLabel(saved.variant),
-                        formatTime(saved.elapsedSeconds),
-                    ),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(
-                        onClick = ::play,
-                        colors = ButtonDefaults.outlinedButtonColors(containerColor = Card, contentColor = Ink),
-                        modifier = Modifier.weight(1f).height(52.dp),
-                    ) { Text(stringResource(R.string.new_game)) }
-                    Button(onClick = onContinue, modifier = Modifier.weight(1f).height(52.dp)) {
-                        Text(stringResource(R.string.continue_game))
-                    }
-                }
-            }
+            Text(stringResource(R.string.play), style = MaterialTheme.typography.titleMedium)
         }
     }
 }

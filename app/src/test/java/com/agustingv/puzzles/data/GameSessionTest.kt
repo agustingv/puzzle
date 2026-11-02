@@ -155,6 +155,27 @@ class GameSessionTest {
     }
 
     @Test
+    fun `a discarded game is gone for good and files no record`() {
+        val session = session()
+        session.start("playing")
+        session.tick()
+        session.saveExtra("abc")
+
+        session.discard()
+
+        assertNull(session.game)
+        assertNull(session.saved)
+        assertEquals(0, session.elapsedSeconds)
+
+        val reopened = session()
+        assertNull(reopened.game)
+        assertNull(reopened.saved)
+        assertEquals(0, reopened.elapsedSeconds)
+        assertNull(reopened.loadExtra())
+        assertTrue(records.top("test", "EASY").isEmpty())
+    }
+
+    @Test
     fun `corrupt saved data starts clean instead of crashing`() {
         store.values["game/test/state"] = "corrupt"
 

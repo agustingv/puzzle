@@ -50,12 +50,6 @@ val GameInfo.usesWordLengths: Boolean get() = variants === BY_LENGTH
 fun variantShortLabel(variant: String): String =
     variant.toDifficultyOrNull()?.let { stringResource(it.labelRes) } ?: variant
 
-/** Label that stands on its own: "Fácil" or "5 letras". */
-@Composable
-fun variantLabel(variant: String): String =
-    variant.toDifficultyOrNull()?.let { stringResource(it.labelRes) }
-        ?: stringResource(R.string.variant_letters, variant.toInt())
-
 private fun String.toDifficultyOrNull() = Difficulty.entries.firstOrNull { it.name == this }
 
 @get:StringRes

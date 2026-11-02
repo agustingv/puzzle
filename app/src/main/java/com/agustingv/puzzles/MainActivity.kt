@@ -67,7 +67,8 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun PuzzlesApp() {
-    // Home, then a game's page, then playing it: leaving each one goes back to the previous.
+    // Home, then a game's page, then playing it. A game in progress skips its page both ways: its
+    // card goes straight to it and leaving it goes home. Its page comes back once no game is running.
     var opened by rememberSaveable { mutableStateOf<GameInfo?>(null) }
     var playing by rememberSaveable { mutableStateOf(false) }
     var showPrivacy by rememberSaveable { mutableStateOf(false) }
@@ -87,7 +88,6 @@ private fun PuzzlesApp() {
     val context = LocalContext.current
     val storage = remember { AppStorage.of(context) }
     val records = remember { Records(storage) }
-    val stopPlaying = { playing = false }
     val game = opened
 
     fun savedGame(info: GameInfo): SavedGame? = when (info) {
@@ -102,6 +102,11 @@ private fun PuzzlesApp() {
         GameInfo.KAKURO -> kakuro.session.saved
         GameInfo.MEMORAMA -> memorama.session.saved
         GameInfo.SLIDING -> sliding.session.saved
+    }
+
+    fun stopPlaying() {
+        if (game?.let(::savedGame) != null) opened = null
+        playing = false
     }
 
     fun startGame(info: GameInfo, variant: String) {
@@ -125,30 +130,31 @@ private fun PuzzlesApp() {
         showPrivacy -> PrivacyScreen(onExit = { showPrivacy = false })
         game == null -> HomeScreen(
             saved = ::savedGame,
-            onOpen = { opened = it },
+            onOpen = {
+                opened = it
+                playing = savedGame(it) != null
+            },
             onPrivacy = { showPrivacy = true },
         )
         !playing -> GameDetailScreen(
             info = game,
-            saved = savedGame(game),
             records = records,
             storage = storage,
             onPlay = { variant -> startGame(game, variant) },
-            onContinue = { playing = true },
             onBack = { opened = null },
         )
         else -> when (game) {
-            GameInfo.RACE -> RaceScreen(race, stopPlaying)
-            GameInfo.HANGMAN -> HangmanScreen(hangman, stopPlaying)
-            GameInfo.WORD -> WordScreen(word, stopPlaying)
-            GameInfo.WORD_SEARCH -> WordSearchScreen(wordSearch, stopPlaying)
-            GameInfo.CROSSWORD -> CrosswordScreen(crossword, stopPlaying)
-            GameInfo.SUDOKU -> SudokuScreen(sudoku, stopPlaying)
-            GameInfo.GARDEN -> GardenScreen(garden, stopPlaying)
-            GameInfo.PATH -> PathScreen(path, stopPlaying)
-            GameInfo.KAKURO -> KakuroScreen(kakuro, stopPlaying)
-            GameInfo.MEMORAMA -> MemoramaScreen(memorama, stopPlaying)
-            GameInfo.SLIDING -> SlidingScreen(sliding, stopPlaying)
+            GameInfo.RACE -> RaceScreen(race, ::stopPlaying)
+            GameInfo.HANGMAN -> HangmanScreen(hangman, ::stopPlaying)
+            GameInfo.WORD -> WordScreen(word, ::stopPlaying)
+            GameInfo.WORD_SEARCH -> WordSearchScreen(wordSearch, ::stopPlaying)
+            GameInfo.CROSSWORD -> CrosswordScreen(crossword, ::stopPlaying)
+            GameInfo.SUDOKU -> SudokuScreen(sudoku, ::stopPlaying)
+            GameInfo.GARDEN -> GardenScreen(garden, ::stopPlaying)
+            GameInfo.PATH -> PathScreen(path, ::stopPlaying)
+            GameInfo.KAKURO -> KakuroScreen(kakuro, ::stopPlaying)
+            GameInfo.MEMORAMA -> MemoramaScreen(memorama, ::stopPlaying)
+            GameInfo.SLIDING -> SlidingScreen(sliding, ::stopPlaying)
         }
     }
 }

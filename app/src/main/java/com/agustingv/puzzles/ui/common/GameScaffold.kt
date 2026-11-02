@@ -15,20 +15,28 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
+import com.agustingv.puzzles.R
 import com.agustingv.puzzles.data.GameSession
 import kotlinx.coroutines.delay
 
@@ -58,12 +66,21 @@ fun GameScaffold(
     // Inside a layer: the shake moves pixels only, so it never disturbs layout or a drag in progress.
     val shaking = Modifier.graphicsLayer { translationX = visuals.shakeX }
 
+    var confirmDiscard by rememberSaveable { mutableStateOf(false) }
+
     val topBar: @Composable () -> Unit = {
+        val running = session.saved != null
+
         ScreenTopBar(
             title = title,
             subtitle = status,
             onBack = onExit,
-            trailing = { TimerPill(session.elapsedSeconds, Modifier.padding(start = 8.dp, end = 12.dp)) },
+            trailing = {
+                TimerPill(session.elapsedSeconds, Modifier.padding(start = 8.dp, end = if (running) 0.dp else 12.dp))
+                if (running) {
+                    TextButton(onClick = { confirmDiscard = true }) { Text(stringResource(R.string.end_game)) }
+                }
+            },
         )
     }
 
@@ -115,6 +132,24 @@ fun GameScaffold(
     }
 
     Confetti(visuals.confettiBursts)
+
+    if (confirmDiscard) {
+        AlertDialog(
+            onDismissRequest = { confirmDiscard = false },
+            title = { Text(stringResource(R.string.end_game_title)) },
+            text = { Text(stringResource(R.string.end_game_text)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmDiscard = false
+                    session.discard()
+                    onExit()
+                }) { Text(stringResource(R.string.end_game)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmDiscard = false }) { Text(stringResource(R.string.keep_playing)) }
+            },
+        )
+    }
 }
 
 /** Ticks once per second, only while the screen is resumed: backgrounding pauses the clock. */

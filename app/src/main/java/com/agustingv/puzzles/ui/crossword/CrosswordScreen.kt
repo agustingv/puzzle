@@ -139,7 +139,7 @@ fun CrosswordScreen(viewModel: CrosswordViewModel, onExit: () -> Unit) {
                 }) { Text(stringResource(R.string.crossword_finish)) }
             },
             dismissButton = {
-                TextButton(onClick = { confirmFinish = false }) { Text(stringResource(R.string.crossword_continue)) }
+                TextButton(onClick = { confirmFinish = false }) { Text(stringResource(R.string.keep_playing)) }
             },
         )
     }

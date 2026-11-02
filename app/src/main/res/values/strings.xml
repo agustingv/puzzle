@@ -25,11 +25,11 @@
     <string name="privacy_changes">Si la app cambia su manera de tratar los datos, se actualizará esta política y su fecha.</string>
     <string name="privacy_contact_title">Contacto</string>
     <string name="privacy_contact">Desarrollador: Agustín García. Correo: contacto@agustin-garcia.es</string>
-    <string name="new_game">Nueva partida</string>
-    <string name="continue_game">Continuar</string>
-    <string name="saved_game">Partida en curso: %1$s · %2$s</string>
-    <string name="variant_letters">%1$d letras</string>
 
+    <string name="end_game">Terminar</string>
+    <string name="end_game_title">¿Terminar la partida?</string>
+    <string name="end_game_text">Se perderá el progreso de esta partida.</string>
+    <string name="keep_playing">Seguir jugando</string>
     <string name="game_in_progress">En curso</string>
     <string name="hall_of_fame">🏆 Hall of Fame</string>
     <string name="records_empty">Sin tiempos todavía</string>
@@ -124,7 +124,6 @@
     <string name="crossword_finish">Finalizar</string>
     <string name="crossword_finish_title">¿Finalizar el crucigrama?</string>
     <string name="crossword_finish_text">Las palabras sin resolver contarán como falladas.</string>
-    <string name="crossword_continue">Seguir jugando</string>
     <string name="crossword_wrong">incorrecta</string>
     <string name="crossword_previous">Palabra anterior</string>
     <string name="crossword_next">Palabra siguiente</string>

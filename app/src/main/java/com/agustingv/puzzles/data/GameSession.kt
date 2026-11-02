@@ -73,6 +73,9 @@ class GameSession<G : Any>(private val store: KeyValueStore, private val rules: 
         store.put(key(PENDING), variant)
     }
 
+    /** Drops the running game for good, with nothing filed: as if it had never been started. */
+    fun discard() = prepareNew()
+
     fun update(next: G) {
         val previous = game
         game = next
