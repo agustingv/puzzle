@@ -42,7 +42,7 @@ object AvatarCatalog {
         AvatarPiece("arena", "Arena"), AvatarPiece("lima", "Lima"), AvatarPiece("coral", "Coral"),
     )
 
-    /** A few to start with; the prizes are to be won once there is a way to win them. */
+    /** A few to start with, and the prizes, won by playing (AvatarPrizes). */
     val accessories = listOf(
         AvatarPiece("lazo", "Lazo", "🎀"), AvatarPiece("flor", "Flor", "🌸"),
         AvatarPiece("estrella", "Estrella", "⭐"),
@@ -92,25 +92,5 @@ data class Avatar(val animal: AvatarPiece, val color: AvatarPiece, val accessory
                 ?: AvatarCatalog.animals[((seed / 7) % AvatarCatalog.animals.size).toInt()]
             return Avatar(animal, AvatarCatalog.colors[(seed % AvatarCatalog.colors.size).toInt()])
         }
-    }
-}
-
-/**
- * The prize pieces this phone has won. Nothing wins them yet: this is where prizes will be recorded,
- * by [win], once the rules for them are decided.
- */
-class AvatarPrizes(private val store: KeyValueStore) {
-
-    private val won: Set<String>
-        get() = store.get(KEY).orEmpty().split(",").filter { it.isNotEmpty() }.toSet()
-
-    fun has(piece: AvatarPiece): Boolean = !piece.prize || piece.id in won
-
-    fun win(piece: AvatarPiece) {
-        if (!has(piece)) store.put(KEY, (won + piece.id).sorted().joinToString(","))
-    }
-
-    private companion object {
-        const val KEY = "avatar/won"
     }
 }

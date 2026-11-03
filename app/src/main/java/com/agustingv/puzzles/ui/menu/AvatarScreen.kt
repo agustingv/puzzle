@@ -59,6 +59,7 @@ import com.agustingv.puzzles.ui.common.AvatarTile
 import com.agustingv.puzzles.ui.common.Emoji
 import com.agustingv.puzzles.ui.common.ScreenTopBar
 import com.agustingv.puzzles.ui.common.avatarColor
+import com.agustingv.puzzles.ui.common.prizeGoal
 import com.agustingv.puzzles.ui.theme.Paper
 
 private val PieceTile = 44.dp
@@ -158,12 +159,22 @@ fun AvatarScreen(
                         AccessoryTile(accessory, won)
                     }
                 }
-                if (AvatarCatalog.accessories.any { !prizes.has(it) }) {
-                    Text(
-                        text = stringResource(R.string.avatar_prizes_hint),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                val locked = AvatarCatalog.accessories.filter { !prizes.has(it) }
+                if (locked.isNotEmpty()) {
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(
+                            text = stringResource(R.string.avatar_prizes_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        for (piece in locked) {
+                            Text(
+                                text = prizeGoal(piece, prizes),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
                 }
             }
         }

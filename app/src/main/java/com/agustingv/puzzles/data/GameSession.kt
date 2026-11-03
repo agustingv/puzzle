@@ -38,6 +38,7 @@ class GameSession<G : Any>(private val store: KeyValueStore, private val rules: 
 
     private val records = Records(store)
     private val secret = SecretProgress(store)
+    private val prizes = AvatarPrizes(store)
 
     /** Null until the first game, or while one is being generated. */
     var game by mutableStateOf(load())
@@ -52,6 +53,10 @@ class GameSession<G : Any>(private val store: KeyValueStore, private val rules: 
 
     /** What this win revealed of the secret message. Not saved: the message's own screen keeps it. */
     var lastClue by mutableStateOf<SecretClue?>(null)
+        private set
+
+    /** The avatar prizes this win earned. Not saved, like [lastClue]: the avatar keeps them. */
+    var lastPrizes by mutableStateOf<List<AvatarPiece>>(emptyList())
         private set
 
     /** Not saved: a game restored after a restart has nothing new to celebrate. */
@@ -89,8 +94,11 @@ class GameSession<G : Any>(private val store: KeyValueStore, private val rules: 
 
         val wasWon = previous != null && rules.isWon(previous)
         if (rules.isWon(next) && !wasWon) {
-            lastRecord = records.add(rules.id, rules.variantOf(next), elapsedSeconds)
+            val variant = rules.variantOf(next)
+            val record = records.add(rules.id, variant, elapsedSeconds)
+            lastRecord = record
             lastClue = secret.recordWin(rules.id)
+            lastPrizes = prizes.recordWin(variant, record)
         }
 
         if (previous != null) {
@@ -125,6 +133,7 @@ class GameSession<G : Any>(private val store: KeyValueStore, private val rules: 
         game = null
         lastRecord = null
         lastClue = null
+        lastPrizes = emptyList()
         elapsedSeconds = 0
         store.remove(key(GAME))
         store.remove(key(EXTRA))

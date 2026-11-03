@@ -34,13 +34,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.agustingv.puzzles.R
 import com.agustingv.puzzles.data.Avatar
+import com.agustingv.puzzles.data.AvatarPiece
 import com.agustingv.puzzles.ui.theme.Card
 
 /** Opens the settings from wherever the player is. Null on screens that do not offer them. */
 val LocalOpenSettings = compositionLocalOf<(() -> Unit)?> { null }
 
-/** The player's avatar and the way to change it, on every screen that shows it. */
-class AvatarShortcut(val avatar: Avatar, val open: () -> Unit)
+/** The player's avatar, the way to change it, and to put on an accessory just won. */
+class AvatarShortcut(val avatar: Avatar, val open: () -> Unit, val wear: (AvatarPiece) -> Unit)
 
 /** Null on screens that do not show the avatar: the settings, which have it already, and its own. */
 val LocalAvatarShortcut = compositionLocalOf<AvatarShortcut?> { null }

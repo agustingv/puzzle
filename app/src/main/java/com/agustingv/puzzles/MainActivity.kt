@@ -8,6 +8,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -21,8 +24,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.agustingv.puzzles.R
 import com.agustingv.puzzles.data.AppStorage
+import com.agustingv.puzzles.data.AvatarCatalog
 import com.agustingv.puzzles.data.AvatarPrizes
 import com.agustingv.puzzles.data.GameEvent
 import com.agustingv.puzzles.data.PlayerAccount
@@ -36,6 +42,7 @@ import com.agustingv.puzzles.ui.common.GameSounds
 import com.agustingv.puzzles.ui.common.AvatarShortcut
 import com.agustingv.puzzles.ui.common.LocalAvatarShortcut
 import com.agustingv.puzzles.ui.common.LocalOpenSettings
+import com.agustingv.puzzles.ui.common.PrizeNote
 import com.agustingv.puzzles.ui.crossword.CrosswordScreen
 import com.agustingv.puzzles.ui.crossword.CrosswordViewModel
 import com.agustingv.puzzles.ui.garden.GardenScreen
@@ -97,6 +104,8 @@ private fun PuzzlesApp() {
     var showSettings by rememberSaveable { mutableStateOf(false) }
     var showAvatar by rememberSaveable { mutableStateOf(false) }
     var showSecret by rememberSaveable { mutableStateOf(false) }
+    // A prize won outside a game, by solving the message: shown on its own, as there is no result.
+    var newPrize by rememberSaveable { mutableStateOf<String?>(null) }
     var secretBursts by remember { mutableIntStateOf(0) }
     val screens = rememberSaveableStateHolder()
 
@@ -201,6 +210,7 @@ private fun PuzzlesApp() {
             sounds.play(GameEvent.WIN)
             haptics.performHapticFeedback(HapticFeedbackType.Confirm)
             if (animate) secretBursts++
+            newPrize = prizes.recordSecretSolved()?.id
         } else {
             sounds.play(GameEvent.MISS)
             haptics.performHapticFeedback(HapticFeedbackType.Reject)
@@ -211,7 +221,14 @@ private fun PuzzlesApp() {
     screens.SaveableStateProvider("screens") {
         CompositionLocalProvider(
             LocalOpenSettings provides { showSettings = true },
-            LocalAvatarShortcut provides AvatarShortcut(account.avatar) { showAvatar = true },
+            LocalAvatarShortcut provides AvatarShortcut(
+                avatar = account.avatar,
+                open = { showAvatar = true },
+                wear = { piece ->
+                    account.changeAvatar(account.avatar.copy(accessory = piece))
+                    PlayerSyncScheduler.request(context)
+                },
+            ),
         ) {
             when {
                 showPrivacy -> PrivacyScreen(onExit = { showPrivacy = false })
@@ -252,6 +269,15 @@ private fun PuzzlesApp() {
                     found = secret.found,
                     onGuess = ::guessSecret,
                     onDismiss = { showSecret = false },
+                )
+            }
+            newPrize?.let(AvatarCatalog::accessory)?.let { piece ->
+                AlertDialog(
+                    onDismissRequest = { newPrize = null },
+                    text = { PrizeNote(piece) },
+                    confirmButton = {
+                        TextButton(onClick = { newPrize = null }) { Text(stringResource(R.string.secret_close)) }
+                    },
                 )
             }
             Confetti(secretBursts)

@@ -2,9 +2,15 @@ package com.agustingv.puzzles.data
 
 import org.json.JSONArray
 
-/** How a finished game ranks among this device's best times. [rank] is 1-based, null if outside. */
-data class RecordResult(val seconds: Int, val rank: Int?, val best: Int) {
+/**
+ * How a finished game ranks among this device's best times. [rank] is 1-based, null if outside.
+ * [previousBest] is the best before this one, null if it is the first.
+ */
+data class RecordResult(val seconds: Int, val rank: Int?, val best: Int, val previousBest: Int? = null) {
     val isNewBest: Boolean = rank == 1
+
+    /** A best time beaten, not just a first one. */
+    val improved: Boolean = previousBest != null && seconds < previousBest
 }
 
 /** Best times per game and variant (a difficulty or a word length), fastest first. */
@@ -33,6 +39,7 @@ class Records(private val store: KeyValueStore) {
             seconds = seconds,
             rank = (position + 1).takeIf { it <= MAX_ENTRIES },
             best = updated.first(),
+            previousBest = times.firstOrNull(),
         )
     }
 

@@ -291,8 +291,8 @@ class RecordsTest {
     @Test
     fun `ranks and best are reported`() {
         assertEquals(RecordResult(30, 1, 30), add(30))
-        assertEquals(RecordResult(40, 2, 30), add(40))
-        assertEquals(RecordResult(20, 1, 20), add(20))
+        assertEquals(RecordResult(40, 2, 30, previousBest = 30), add(40))
+        assertEquals(RecordResult(20, 1, 20, previousBest = 30), add(20))
     }
 
     @Test
@@ -302,6 +302,14 @@ class RecordsTest {
         val tie = add(30)
         assertEquals(2, tie.rank)
         assertFalse(tie.isNewBest)
+    }
+
+    @Test
+    fun `only a time faster than an earlier best counts as beating it`() {
+        assertFalse("a first time beats nothing", add(30).improved)
+        assertFalse("equalling it does not", add(30).improved)
+        assertFalse(add(40).improved)
+        assertTrue(add(29).improved)
     }
 
     @Test
