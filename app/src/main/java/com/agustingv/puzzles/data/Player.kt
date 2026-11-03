@@ -16,17 +16,14 @@ object PlayerNames {
     private const val MAX_LENGTH = 24
     private val PATTERN = Regex("""^[\p{L}\p{N}][\p{L}\p{N} _-]*$""")
 
-    /** Each animal with its gender, so that the adjective agrees with it. */
-    private val animals = listOf(
-        "Zorro" to true, "Búho" to true, "Lince" to true, "Oso" to true, "Tigre" to true,
-        "León" to true, "Lobo" to true, "Delfín" to true, "Halcón" to true, "Panda" to true,
-        "Koala" to true, "Erizo" to true, "Castor" to true, "Gato" to true, "Pingüino" to true,
-        "Mapache" to true, "Ciervo" to true, "Ñandú" to true, "Gorrión" to true, "Pulpo" to true,
-        "Ardilla" to false, "Nutria" to false, "Tortuga" to false, "Jirafa" to false, "Cebra" to false,
-        "Ballena" to false, "Abeja" to false, "Hormiga" to false, "Garza" to false, "Foca" to false,
-        "Liebre" to false, "Gacela" to false, "Mariposa" to false, "Pantera" to false, "Lechuza" to false,
-        "Orca" to false,
+    /** The avatars' animals, so that every name has its avatar. The rest are masculine. */
+    private val feminine = setOf(
+        "ardilla", "nutria", "tortuga", "jirafa", "cebra", "ballena", "abeja", "hormiga", "rana", "foca",
+        "liebre", "oveja", "mariposa", "pantera", "gallina", "llama",
     )
+
+    /** Each animal with its gender, so that the adjective agrees with it. */
+    private val animals = AvatarCatalog.animals.map { it.label to (it.id !in feminine) }
 
     /** Masculine and feminine forms. */
     private val adjectives = listOf(
@@ -89,6 +86,18 @@ class PlayerAccount(private val store: KeyValueStore, private val random: Random
     var nameRejected by mutableStateOf(store.get(REJECTED_KEY) == YES)
         private set
 
+    var avatar by mutableStateOf(store.get(AVATAR_KEY)?.let(Avatar::decode) ?: Avatar.initial(name, id))
+        private set
+
+    init {
+        // A player from before avatars, or with one this version can not read: it gets the initial
+        // avatar, which the server has not seen yet.
+        if (store.get(AVATAR_KEY)?.let(Avatar::decode) == null) {
+            store.put(AVATAR_KEY, avatar.encode())
+            updatePending(true)
+        }
+    }
+
     fun status(serverConfigured: Boolean): SyncStatus = when {
         offline -> SyncStatus.OFFLINE
         !serverConfigured -> SyncStatus.NO_SERVER
@@ -108,14 +117,22 @@ class PlayerAccount(private val store: KeyValueStore, private val random: Random
         return true
     }
 
+    fun changeAvatar(newAvatar: Avatar) {
+        if (newAvatar == avatar) return
+
+        avatar = newAvatar
+        store.put(AVATAR_KEY, newAvatar.encode())
+        updatePending(true)
+    }
+
     fun changeOffline(value: Boolean) {
         offline = value
         store.put(OFFLINE_KEY, if (value) YES else NO)
     }
 
-    /** The server now has [sentName]. A rename made while it was being sent is still pending. */
-    internal fun markSynced(sentName: String) {
-        if (name == sentName) updatePending(false)
+    /** The server now has [sentName] and [sentAvatar]. A change made while they were being sent is still pending. */
+    internal fun markSynced(sentName: String, sentAvatar: String = avatar.encode()) {
+        if (name == sentName && avatar.encode() == sentAvatar) updatePending(false)
     }
 
     internal fun markRejected() {
@@ -166,6 +183,7 @@ class PlayerAccount(private val store: KeyValueStore, private val random: Random
         private const val OFFLINE_KEY = "player/offline"
         private const val PENDING_KEY = "player/pending"
         private const val REJECTED_KEY = "player/rejected"
+        private const val AVATAR_KEY = "player/avatar"
         private const val YES = "yes"
         private const val NO = "no"
         private const val SECRET_BYTES = 32

@@ -3,6 +3,7 @@ package com.agustingv.puzzles.ui.menu
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -35,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -43,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import com.agustingv.puzzles.R
 import com.agustingv.puzzles.data.PlayerAccount
 import com.agustingv.puzzles.data.SyncStatus
+import com.agustingv.puzzles.ui.common.AvatarTile
 import com.agustingv.puzzles.ui.common.GameSounds
 import com.agustingv.puzzles.ui.common.ScreenTopBar
 import com.agustingv.puzzles.ui.theme.Card
@@ -57,6 +60,7 @@ fun SettingsScreen(
     serverConfigured: Boolean,
     onRename: (String) -> Boolean,
     onOfflineChange: (Boolean) -> Unit,
+    onAvatar: () -> Unit,
     onExit: () -> Unit,
 ) {
     BackHandler(onBack = onExit)
@@ -71,14 +75,15 @@ fun SettingsScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            SettingsCard { PlayerSettings(account, serverConfigured, onRename, onOfflineChange) }
+            SettingsCard { PlayerSettings(account, serverConfigured, onRename, onOfflineChange, onAvatar) }
             SettingsCard { SoundSettings(sounds) }
         }
     }
 }
 
+/** A group of settings; the avatar screen uses them too. */
 @Composable
-private fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
+internal fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
     val shape = RoundedCornerShape(16.dp)
 
     Column(
@@ -117,8 +122,10 @@ private fun PlayerSettings(
     serverConfigured: Boolean,
     onRename: (String) -> Boolean,
     onOfflineChange: (Boolean) -> Unit,
+    onAvatar: () -> Unit,
 ) {
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
+    val avatarLabel = stringResource(R.string.avatar_change)
     var renaming by rememberSaveable { mutableStateOf(false) }
     val status = account.status(serverConfigured)
 
@@ -128,11 +135,25 @@ private fun PlayerSettings(
         fontWeight = FontWeight.Bold,
     )
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(
-            text = account.name,
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.weight(1f),
+        AvatarTile(
+            avatar = account.avatar,
+            size = 56.dp,
+            modifier = Modifier
+                .padding(top = 8.dp, end = 16.dp)
+                .clickable(onClick = onAvatar)
+                .semantics {
+                    contentDescription = avatarLabel
+                    role = Role.Button
+                },
         )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = account.name, style = MaterialTheme.typography.titleMedium)
+            Text(
+                text = stringResource(R.string.settings_avatar_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = muted,
+            )
+        }
         TextButton(onClick = { renaming = true }) { Text(stringResource(R.string.settings_rename)) }
     }
     Text(

@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.agustingv.puzzles.data.AppStorage
+import com.agustingv.puzzles.data.AvatarPrizes
 import com.agustingv.puzzles.data.GameEvent
 import com.agustingv.puzzles.data.PlayerAccount
 import com.agustingv.puzzles.data.PlayerSyncScheduler
@@ -32,6 +33,8 @@ import com.agustingv.puzzles.data.SecretProgress
 import com.agustingv.puzzles.game.Difficulty
 import com.agustingv.puzzles.ui.common.Confetti
 import com.agustingv.puzzles.ui.common.GameSounds
+import com.agustingv.puzzles.ui.common.AvatarShortcut
+import com.agustingv.puzzles.ui.common.LocalAvatarShortcut
 import com.agustingv.puzzles.ui.common.LocalOpenSettings
 import com.agustingv.puzzles.ui.crossword.CrosswordScreen
 import com.agustingv.puzzles.ui.crossword.CrosswordViewModel
@@ -43,6 +46,7 @@ import com.agustingv.puzzles.ui.kakuro.KakuroScreen
 import com.agustingv.puzzles.ui.kakuro.KakuroViewModel
 import com.agustingv.puzzles.ui.memorama.MemoramaScreen
 import com.agustingv.puzzles.ui.memorama.MemoramaViewModel
+import com.agustingv.puzzles.ui.menu.AvatarScreen
 import com.agustingv.puzzles.ui.menu.GameInfo
 import com.agustingv.puzzles.ui.menu.GameDetailScreen
 import com.agustingv.puzzles.ui.menu.HomeScreen
@@ -91,6 +95,7 @@ private fun PuzzlesApp() {
     var playing by rememberSaveable { mutableStateOf(false) }
     var showPrivacy by rememberSaveable { mutableStateOf(false) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
+    var showAvatar by rememberSaveable { mutableStateOf(false) }
     var showSecret by rememberSaveable { mutableStateOf(false) }
     var secretBursts by remember { mutableIntStateOf(0) }
     val screens = rememberSaveableStateHolder()
@@ -113,6 +118,7 @@ private fun PuzzlesApp() {
     val sounds = remember { GameSounds.of(context) }
     val secret = remember { SecretProgress(storage) }
     val account = remember { PlayerAccount.of(context) }
+    val prizes = remember { AvatarPrizes(storage) }
     var secretSolved by remember { mutableStateOf(secret.solved) }
     val haptics = LocalHapticFeedback.current
     val animate = remember { animationsEnabled(context) }
@@ -154,6 +160,21 @@ private fun PuzzlesApp() {
         playing = true
     }
 
+    // The avatar comes over the home screen or the settings, and goes back to the one it came from.
+    if (showAvatar) {
+        AvatarScreen(
+            avatar = account.avatar,
+            name = account.name,
+            prizes = prizes,
+            onChange = { avatar ->
+                account.changeAvatar(avatar)
+                PlayerSyncScheduler.request(context)
+            },
+            onExit = { showAvatar = false },
+        )
+        return
+    }
+
     // The settings replace whatever is on screen, which stops its clocks. That screen comes back as
     // it was, because its state stays in the holder while it is gone.
     if (showSettings) {
@@ -166,6 +187,7 @@ private fun PuzzlesApp() {
                 account.changeOffline(offline)
                 PlayerSyncScheduler.request(context)
             },
+            onAvatar = { showAvatar = true },
             onExit = { showSettings = false },
         )
         return
@@ -187,7 +209,10 @@ private fun PuzzlesApp() {
     }
 
     screens.SaveableStateProvider("screens") {
-        CompositionLocalProvider(LocalOpenSettings provides { showSettings = true }) {
+        CompositionLocalProvider(
+            LocalOpenSettings provides { showSettings = true },
+            LocalAvatarShortcut provides AvatarShortcut(account.avatar) { showAvatar = true },
+        ) {
             when {
                 showPrivacy -> PrivacyScreen(onExit = { showPrivacy = false })
                 game == null -> HomeScreen(

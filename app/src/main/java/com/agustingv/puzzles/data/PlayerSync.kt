@@ -35,12 +35,13 @@ sealed interface SaveResult {
 
 /** The server, behind an interface so that the sync can be tested without one. Calls block. */
 fun interface PlayerApi {
-    fun save(id: String, name: String, secret: String): SaveResult
+    /** [avatar] as [Avatar.encode] writes it. */
+    fun save(id: String, name: String, avatar: String, secret: String): SaveResult
 }
 
 /**
- * Registers or renames a player with one idempotent request: PUT /players/{id}. The API takes it as
- * a registration the first time and as a rename after that, and a repeated request does no harm.
+ * Registers or updates a player with one idempotent request: PUT /players/{id}. The API takes it as
+ * a registration the first time and as a change after that, and a repeated request does no harm.
  */
 class HttpPlayerApi(
     private val baseUrl: String,
@@ -48,7 +49,7 @@ class HttpPlayerApi(
     private val onFailure: (String, Throwable?) -> Unit = { _, _ -> },
 ) : PlayerApi {
 
-    override fun save(id: String, name: String, secret: String): SaveResult {
+    override fun save(id: String, name: String, avatar: String, secret: String): SaveResult {
         val connection = try {
             URL("${baseUrl}players/$id").openConnection() as HttpURLConnection
         } catch (e: IOException) {
@@ -64,7 +65,7 @@ class HttpPlayerApi(
             connection.setRequestProperty("Content-Type", "application/json")
             connection.setRequestProperty("Accept", "application/json")
 
-            val body = JSONObject().put("name", name).put("secret", secret).toString()
+            val body = JSONObject().put("name", name).put("avatar", avatar).put("secret", secret).toString()
             connection.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
 
             when (connection.responseCode) {
@@ -102,9 +103,10 @@ class PlayerSync(private val account: PlayerAccount, private val api: PlayerApi?
             if (account.offline || api == null || !account.pending || account.nameRejected) return Outcome.DONE
 
             val name = account.name
-            when (api.save(account.id, name, account.secret)) {
-                // A rename made meanwhile leaves it pending, and the next round sends it.
-                is SaveResult.Saved -> account.markSynced(name)
+            val avatar = account.avatar.encode()
+            when (api.save(account.id, name, avatar, account.secret)) {
+                // A change made meanwhile leaves it pending, and the next round sends it.
+                is SaveResult.Saved -> account.markSynced(name, avatar)
                 SaveResult.Taken -> account.replaceIdentity()
                 SaveResult.Rejected -> account.markRejected()
                 SaveResult.Failed -> return Outcome.TRY_LATER

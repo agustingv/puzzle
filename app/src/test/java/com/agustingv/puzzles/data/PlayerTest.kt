@@ -93,6 +93,41 @@ class PlayerTest {
     }
 
     @Test
+    fun `a new player's avatar is the animal in their name, and is sent with them`() {
+        val account = account()
+
+        assertEquals(AvatarCatalog.animalInName(account.name), account.avatar.animal)
+        assertEquals(account.avatar, account(7).avatar)
+        assertTrue(account.pending)
+    }
+
+    @Test
+    fun `a player from before avatars gets one, waiting to be sent`() {
+        val account = account()
+        account.markSynced(account.name)
+        store.remove("player/avatar")
+
+        val again = account(3)
+
+        assertEquals(Avatar.initial(again.name, again.id), again.avatar)
+        assertTrue(again.pending)
+    }
+
+    @Test
+    fun `a changed avatar is kept and waits to be sent, the same one changes nothing`() {
+        val account = account()
+        account.markSynced(account.name)
+
+        account.changeAvatar(account.avatar)
+        assertFalse(account.pending)
+
+        val other = Avatar(AvatarCatalog.animals[5], AvatarCatalog.colors[2], AvatarCatalog.accessories[0])
+        account.changeAvatar(other)
+        assertTrue(account.pending)
+        assertEquals(other, account(4).avatar)
+    }
+
+    @Test
     fun `offline mode is remembered`() {
         account().changeOffline(true)
 
@@ -114,22 +149,25 @@ class PlayerTest {
 
     // The sync
 
-    private class FakeApi(var answer: (String, String, String) -> SaveResult) : PlayerApi {
-        val calls = mutableListOf<Triple<String, String, String>>()
-        override fun save(id: String, name: String, secret: String): SaveResult {
-            calls += Triple(id, name, secret)
-            return answer(id, name, secret)
+    private data class Call(val id: String, val name: String, val avatar: String, val secret: String)
+
+    private class FakeApi(var answer: (Call) -> SaveResult) : PlayerApi {
+        val calls = mutableListOf<Call>()
+        override fun save(id: String, name: String, avatar: String, secret: String): SaveResult {
+            val call = Call(id, name, avatar, secret)
+            calls += call
+            return answer(call)
         }
     }
 
-    private val saving = FakeApi { _, name, _ -> SaveResult.Saved(name) }
+    private val saving = FakeApi { SaveResult.Saved(it.name) }
 
     @Test
-    fun `a new player is sent once with its id, name and secret`() {
+    fun `a new player is sent once with its id, name, avatar and secret`() {
         val account = account()
 
         assertEquals(PlayerSync.Outcome.DONE, PlayerSync(account, saving).run())
-        assertEquals(listOf(Triple(account.id, account.name, account.secret)), saving.calls)
+        assertEquals(listOf(Call(account.id, account.name, account.avatar.encode(), account.secret)), saving.calls)
         assertFalse(account.pending)
 
         PlayerSync(account, saving).run()
@@ -150,12 +188,12 @@ class PlayerTest {
     @Test
     fun `no answer keeps it pending, to try later`() {
         val account = account()
-        val down = FakeApi { _, _, _ -> SaveResult.Failed }
+        val down = FakeApi { SaveResult.Failed }
 
         assertEquals(PlayerSync.Outcome.TRY_LATER, PlayerSync(account, down).run())
         assertTrue(account.pending)
 
-        down.answer = { _, name, _ -> SaveResult.Saved(name) }
+        down.answer = { SaveResult.Saved(it.name) }
         assertEquals(PlayerSync.Outcome.DONE, PlayerSync(account, down).run())
         assertFalse(account.pending)
     }
@@ -163,13 +201,28 @@ class PlayerTest {
     @Test
     fun `a rename made while sending is sent too`() {
         val account = account()
-        val renaming = FakeApi { _, name, _ ->
-            if (name != "Nombre Nuevo") account.rename("Nombre Nuevo")
-            SaveResult.Saved(name)
+        val renaming = FakeApi {
+            if (it.name != "Nombre Nuevo") account.rename("Nombre Nuevo")
+            SaveResult.Saved(it.name)
         }
 
         assertEquals(PlayerSync.Outcome.DONE, PlayerSync(account, renaming).run())
-        assertEquals("Nombre Nuevo", renaming.calls.last().second)
+        assertEquals("Nombre Nuevo", renaming.calls.last().name)
+        assertFalse(account.pending)
+    }
+
+    @Test
+    fun `an avatar changed while sending is sent too`() {
+        val account = account()
+        val crowned = account.avatar.copy(accessory = AvatarCatalog.accessory("lazo"))
+        val changing = FakeApi {
+            account.changeAvatar(crowned)
+            SaveResult.Saved(it.name)
+        }
+
+        assertEquals(PlayerSync.Outcome.DONE, PlayerSync(account, changing).run())
+        assertEquals(2, changing.calls.size)
+        assertEquals(crowned.encode(), changing.calls.last().avatar)
         assertFalse(account.pending)
     }
 
@@ -178,7 +231,7 @@ class PlayerTest {
         val account = account()
         val oldId = account.id
         val oldSecret = account.secret
-        val api = FakeApi { id, name, _ -> if (id == oldId) SaveResult.Taken else SaveResult.Saved(name) }
+        val api = FakeApi { if (it.id == oldId) SaveResult.Taken else SaveResult.Saved(it.name) }
 
         assertEquals(PlayerSync.Outcome.DONE, PlayerSync(account, api).run())
         assertNotEquals(oldId, account.id)
@@ -190,7 +243,7 @@ class PlayerTest {
     @Test
     fun `a rejected name stops the retries until the player changes it`() {
         val account = account()
-        val picky = FakeApi { _, _, _ -> SaveResult.Rejected }
+        val picky = FakeApi { SaveResult.Rejected }
 
         assertEquals(PlayerSync.Outcome.DONE, PlayerSync(account, picky).run())
         assertEquals(SyncStatus.NAME_REJECTED, account.status(serverConfigured = true))
@@ -215,7 +268,7 @@ class PlayerTest {
         }
         server.start()
         try {
-            test("http://127.0.0.1:${server.address.port}/api/", received)
+            test("http://127.0.0.1:${server.address.port}/api/v1/", received)
         } finally {
             server.stop(0)
         }
@@ -224,26 +277,27 @@ class PlayerTest {
     @Test
     fun `the client puts the player at its own address`() {
         withServer(201, """{"id":"x","name":"Búho Sabio 3","registeredAt":"2026-11-03T00:00:00+00:00"}""") { url, received ->
-            val result = HttpPlayerApi(url).save("abc", "Búho Sabio 3", "s".repeat(64))
+            val result = HttpPlayerApi(url).save("abc", "Búho Sabio 3", "buho:lila:lazo", "s".repeat(64))
 
             assertEquals(SaveResult.Saved("Búho Sabio 3"), result)
-            assertEquals("PUT /api/players/abc application/json", received[0])
+            assertEquals("PUT /api/v1/players/abc application/json", received[0])
             val sent = JSONObject(received[1])
             assertEquals("Búho Sabio 3", sent.getString("name"))
+            assertEquals("buho:lila:lazo", sent.getString("avatar"))
             assertEquals("s".repeat(64), sent.getString("secret"))
         }
     }
 
     @Test
     fun `the client tells apart the server's answers`() {
-        withServer(409, "{}") { url, _ -> assertEquals(SaveResult.Taken, HttpPlayerApi(url).save("a", "Ana", "s")) }
-        withServer(422, "{}") { url, _ -> assertEquals(SaveResult.Rejected, HttpPlayerApi(url).save("a", "Ana", "s")) }
-        withServer(500, "") { url, _ -> assertEquals(SaveResult.Failed, HttpPlayerApi(url).save("a", "Ana", "s")) }
-        withServer(200, "not json") { url, _ -> assertEquals(SaveResult.Failed, HttpPlayerApi(url).save("a", "Ana", "s")) }
+        withServer(409, "{}") { url, _ -> assertEquals(SaveResult.Taken, HttpPlayerApi(url).save("a", "Ana", "zorro:menta", "s")) }
+        withServer(422, "{}") { url, _ -> assertEquals(SaveResult.Rejected, HttpPlayerApi(url).save("a", "Ana", "zorro:menta", "s")) }
+        withServer(500, "") { url, _ -> assertEquals(SaveResult.Failed, HttpPlayerApi(url).save("a", "Ana", "zorro:menta", "s")) }
+        withServer(200, "not json") { url, _ -> assertEquals(SaveResult.Failed, HttpPlayerApi(url).save("a", "Ana", "zorro:menta", "s")) }
     }
 
     @Test
     fun `no server at the address is a failure to retry`() {
-        assertEquals(SaveResult.Failed, HttpPlayerApi("http://127.0.0.1:9/api/").save("a", "Ana", "s"))
+        assertEquals(SaveResult.Failed, HttpPlayerApi("http://127.0.0.1:9/api/v1/").save("a", "Ana", "zorro:menta", "s"))
     }
 }

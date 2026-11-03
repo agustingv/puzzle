@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.agustingv.puzzles.R
 import com.agustingv.puzzles.data.SavedGame
+import com.agustingv.puzzles.ui.common.AvatarButton
 import com.agustingv.puzzles.ui.common.AppTitle
 import com.agustingv.puzzles.ui.common.CardTitle
 import com.agustingv.puzzles.ui.common.SettingsButton
@@ -69,6 +70,7 @@ fun HomeScreen(
                 modifier = Modifier.padding(top = 8.dp, bottom = 12.dp),
             ) {
                 AppTitle(secretSolved, onSecret, Modifier.weight(1f))
+                AvatarButton(modifier = Modifier.padding(start = 4.dp))
                 SettingsButton(modifier = Modifier.padding(start = 4.dp))
             }
         }
