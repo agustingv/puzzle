@@ -22,6 +22,7 @@ import com.agustingv.puzzles.ui.common.ScreenTopBar
 private val SECTIONS = listOf(
     R.string.privacy_summary_title to R.string.privacy_summary,
     R.string.privacy_collect_title to R.string.privacy_collect,
+    R.string.privacy_server_title to R.string.privacy_server,
     R.string.privacy_device_title to R.string.privacy_device,
     R.string.privacy_backup_title to R.string.privacy_backup,
     R.string.privacy_delete_title to R.string.privacy_delete,

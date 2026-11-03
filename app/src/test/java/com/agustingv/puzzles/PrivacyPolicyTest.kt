@@ -32,9 +32,19 @@ class PrivacyPolicyTest {
     }
 
     @Test
-    fun `the app really can not connect to the internet, as the policy promises`() {
-        assertFalse(manifest.contains("android.permission.INTERNET"))
-        assertTrue(appPolicy().any { it.contains("permiso para conectarse a Internet") })
+    fun `the app connects to the internet, and the policy says what for and how to stop it`() {
+        assertTrue(manifest.contains("android.permission.INTERNET"))
+        assertTrue(appPolicy().any { it.contains("envía tu jugador al servidor") })
+        assertTrue(appPolicy().any { it.contains("modo sin conexión") })
+    }
+
+    @Test
+    fun `release builds send nothing over plain HTTP`() {
+        val config = File("src/main/res/xml/network_security_config.xml").readText()
+
+        assertTrue(manifest.contains("@xml/network_security_config"))
+        assertTrue(config.contains("""cleartextTrafficPermitted="false""""))
+        assertFalse(config.contains("""cleartextTrafficPermitted="true""""))
     }
 
     @Test

@@ -5,6 +5,12 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
+// Where the player API lives. Debug builds use the API running in Docker on this computer, reached as
+// localhost after `adb reverse tcp:8080 tcp:8080` (emulator or phone over USB): from Android 17 on, an
+// app needs a special permission for the local network, but not for localhost. Release builds have no
+// server until one is given with -PpuzzlesApiUrl=https://…/api/
+val apiUrl: String? = providers.gradleProperty("puzzlesApiUrl").orNull
+
 // Signing secrets stay out of the repository. Without this file, release builds are simply unsigned.
 val keystoreProperties = rootProject.file("keystore.properties")
     .takeIf { it.exists() }
@@ -38,7 +44,11 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField("String", "API_URL", "\"${apiUrl ?: "http://localhost:8080/api/"}\"")
+        }
         release {
+            buildConfigField("String", "API_URL", "\"${apiUrl.orEmpty()}\"")
             if (keystoreProperties != null) signingConfig = signingConfigs.getByName("release")
             // Whole-app R8. Limiting it with packageScope to androidx and kotlin, as the project
             // template did, made the release build crash on launch with an IllegalAccessError.
@@ -53,10 +63,12 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
 dependencies {
+    implementation(libs.androidx.work.runtime.ktx)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)

@@ -24,6 +24,8 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.agustingv.puzzles.data.AppStorage
 import com.agustingv.puzzles.data.GameEvent
+import com.agustingv.puzzles.data.PlayerAccount
+import com.agustingv.puzzles.data.PlayerSyncScheduler
 import com.agustingv.puzzles.data.Records
 import com.agustingv.puzzles.data.SavedGame
 import com.agustingv.puzzles.data.SecretProgress
@@ -110,6 +112,7 @@ private fun PuzzlesApp() {
     val records = remember { Records(storage) }
     val sounds = remember { GameSounds.of(context) }
     val secret = remember { SecretProgress(storage) }
+    val account = remember { PlayerAccount.of(context) }
     var secretSolved by remember { mutableStateOf(secret.solved) }
     val haptics = LocalHapticFeedback.current
     val animate = remember { animationsEnabled(context) }
@@ -154,7 +157,17 @@ private fun PuzzlesApp() {
     // The settings replace whatever is on screen, which stops its clocks. That screen comes back as
     // it was, because its state stays in the holder while it is gone.
     if (showSettings) {
-        SettingsScreen(sounds, onExit = { showSettings = false })
+        SettingsScreen(
+            sounds = sounds,
+            account = account,
+            serverConfigured = PlayerSyncScheduler.serverConfigured,
+            onRename = { name -> account.rename(name).also { if (it) PlayerSyncScheduler.request(context) } },
+            onOfflineChange = { offline ->
+                account.changeOffline(offline)
+                PlayerSyncScheduler.request(context)
+            },
+            onExit = { showSettings = false },
+        )
         return
     }
 
