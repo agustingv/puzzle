@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -52,7 +53,7 @@ import com.agustingv.puzzles.ui.theme.Card
 import com.agustingv.puzzles.ui.theme.Danger
 import kotlin.math.roundToInt
 
-/** The app's settings: the player on this phone, and the sound. */
+/** The app's settings: the player on this phone, the sound, and the privacy policy. */
 @Composable
 fun SettingsScreen(
     sounds: GameSounds,
@@ -61,6 +62,7 @@ fun SettingsScreen(
     onRename: (String) -> Boolean,
     onOfflineChange: (Boolean) -> Unit,
     onAvatar: () -> Unit,
+    onPrivacy: () -> Unit,
     onExit: () -> Unit,
 ) {
     BackHandler(onBack = onExit)
@@ -77,6 +79,7 @@ fun SettingsScreen(
         ) {
             SettingsCard { PlayerSettings(account, serverConfigured, onRename, onOfflineChange, onAvatar) }
             SettingsCard { SoundSettings(sounds) }
+            SettingsCard { LinkRow(stringResource(R.string.privacy_title), onPrivacy) }
         }
     }
 }
@@ -113,6 +116,30 @@ private fun SwitchRow(label: String, checked: Boolean, onChange: (Boolean) -> Un
             modifier = Modifier.weight(1f),
         )
         Switch(checked = checked, onCheckedChange = null)
+    }
+}
+
+/** A setting that opens another screen. */
+@Composable
+private fun LinkRow(label: String, onClick: () -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(role = Role.Button, onClick = onClick),
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.weight(1f),
+        )
+        Text(
+            text = "›",
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.clearAndSetSemantics {},
+        )
     }
 }
 

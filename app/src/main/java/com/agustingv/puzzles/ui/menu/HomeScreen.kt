@@ -19,7 +19,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,7 +50,6 @@ private val MinCardWidth = 150.dp
 fun HomeScreen(
     saved: (GameInfo) -> SavedGame?,
     onOpen: (GameInfo) -> Unit,
-    onPrivacy: () -> Unit,
     secretSolved: Boolean,
     onSecret: () -> Unit,
 ) {
@@ -77,12 +75,6 @@ fun HomeScreen(
 
         items(GameInfo.entries, key = { it.id }) { info ->
             GameCard(info, widest, inProgress = saved(info) != null, onClick = { onOpen(info) })
-        }
-
-        item(span = { GridItemSpan(maxLineSpan) }) {
-            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                TextButton(onClick = onPrivacy) { Text(stringResource(R.string.privacy_title)) }
-            }
         }
     }
 }
@@ -139,7 +131,6 @@ private fun HomePreview() {
         HomeScreen(
             saved = { if (it == GameInfo.HANGMAN) SavedGame("5", 83) else null },
             onOpen = {},
-            onPrivacy = {},
             secretSolved = false,
             onSecret = {},
         )

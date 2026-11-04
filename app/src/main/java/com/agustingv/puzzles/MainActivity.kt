@@ -184,6 +184,12 @@ private fun PuzzlesApp() {
         return
     }
 
+    // The privacy policy opens from the settings and goes back to them.
+    if (showPrivacy) {
+        PrivacyScreen(onExit = { showPrivacy = false })
+        return
+    }
+
     // The settings replace whatever is on screen, which stops its clocks. That screen comes back as
     // it was, because its state stays in the holder while it is gone.
     if (showSettings) {
@@ -197,6 +203,7 @@ private fun PuzzlesApp() {
                 PlayerSyncScheduler.request(context)
             },
             onAvatar = { showAvatar = true },
+            onPrivacy = { showPrivacy = true },
             onExit = { showSettings = false },
         )
         return
@@ -231,14 +238,12 @@ private fun PuzzlesApp() {
             ),
         ) {
             when {
-                showPrivacy -> PrivacyScreen(onExit = { showPrivacy = false })
                 game == null -> HomeScreen(
                     saved = ::savedGame,
                     onOpen = {
                         opened = it
                         playing = savedGame(it) != null
                     },
-                    onPrivacy = { showPrivacy = true },
                     secretSolved = secretSolved,
                     onSecret = { showSecret = true },
                 )
