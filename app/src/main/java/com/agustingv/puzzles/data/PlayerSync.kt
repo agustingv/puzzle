@@ -130,10 +130,13 @@ class PlayerSync(private val account: PlayerAccount, private val api: PlayerApi?
 class PlayerSyncWorker(context: Context, parameters: WorkerParameters) : CoroutineWorker(context, parameters) {
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
-        val account = PlayerAccount.of(applicationContext)
-        val player = PlayerSync(account, PlayerSyncScheduler.api()).run()
-        val scores = ScoreSync(account, ScoreUploads(AppStorage.of(applicationContext)), PlayerSyncScheduler.scoreApi()).run()
-        if (player == PlayerSync.Outcome.TRY_LATER || scores == PlayerSync.Outcome.TRY_LATER) Result.retry() else Result.success()
+        val outcome = FullSync(
+            account = PlayerAccount.of(applicationContext),
+            playerApi = PlayerSyncScheduler.api(),
+            uploads = ScoreUploads(AppStorage.of(applicationContext)),
+            scoreApi = PlayerSyncScheduler.scoreApi(),
+        ).run()
+        if (outcome == PlayerSync.Outcome.TRY_LATER) Result.retry() else Result.success()
     }
 }
 

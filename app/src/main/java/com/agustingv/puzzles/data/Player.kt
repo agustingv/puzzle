@@ -153,6 +153,16 @@ class PlayerAccount(private val store: KeyValueStore, private val random: Random
         if (name == sentName && avatar.encode() == sentAvatar) updatePending(false)
     }
 
+    /**
+     * The server has lost this player. It is sent again as it is, with the same id and secret, which
+     * the server takes as a new registration; until then it is not known there.
+     */
+    internal fun markUnknownToServer() {
+        registered = false
+        store.put(REGISTERED_KEY, NO)
+        updatePending(true)
+    }
+
     internal fun markRejected() {
         updateFailed(false)
         updateRejected(true)

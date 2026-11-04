@@ -82,7 +82,13 @@ sealed interface SubmitResult {
     /** The server will never take it, so it is dropped: a bad time, or an id that is someone else's. */
     data object Rejected : SubmitResult
 
-    /** No answer, a fault on the server's side, or a player it does not know yet: try again later. */
+    /**
+     * The server does not know the player: it never got it, or has lost it, say to a database emptied
+     * or restored. Sending the player again, with the same id and secret, sets that right.
+     */
+    data object PlayerUnknown : SubmitResult
+
+    /** No answer, or a fault on the server's side: try again later. */
     data object Failed : SubmitResult
 }
 
@@ -139,6 +145,7 @@ class HttpScoreApi(
                     SubmitResult.Filed(if (answer.isNull("rank")) null else answer.getInt("rank"))
                 }
                 400, 409, 422 -> SubmitResult.Rejected
+                401 -> SubmitResult.PlayerUnknown
                 else -> SubmitResult.Failed.also { onFailure("El API respondió ${connection.responseCode} a un tiempo", null) }
             }
         } catch (e: IOException) {
@@ -217,9 +224,47 @@ class ScoreSync(private val account: PlayerAccount, private val uploads: ScoreUp
             when (api.submit(account.secret, score)) {
                 is SubmitResult.Filed, SubmitResult.Rejected -> uploads.remove(score.id)
                 SubmitResult.Failed -> return PlayerSync.Outcome.TRY_LATER
+                SubmitResult.PlayerUnknown -> {
+                    account.markUnknownToServer()
+                    return PlayerSync.Outcome.TRY_LATER
+                }
             }
         }
         return PlayerSync.Outcome.DONE
+    }
+}
+
+/**
+ * Everything the server should have: first the player, then the times. If the server turns out to have
+ * lost the player, it is registered again and the times go after it, in the same run.
+ */
+class FullSync(
+    private val account: PlayerAccount,
+    private val playerApi: PlayerApi?,
+    private val uploads: ScoreUploads,
+    private val scoreApi: ScoreApi?,
+) {
+    fun run(): PlayerSync.Outcome {
+        repeat(ROUNDS) {
+            val player = PlayerSync(account, playerApi).run()
+            val wasRegistered = account.registered
+            val scores = ScoreSync(account, uploads, scoreApi).run()
+            // Only the times can find out that the server lost the player: they unregister it.
+            val lostPlayer = wasRegistered && !account.registered
+            if (!lostPlayer) {
+                return if (player == PlayerSync.Outcome.TRY_LATER || scores == PlayerSync.Outcome.TRY_LATER) {
+                    PlayerSync.Outcome.TRY_LATER
+                } else {
+                    PlayerSync.Outcome.DONE
+                }
+            }
+        }
+        return PlayerSync.Outcome.TRY_LATER
+    }
+
+    private companion object {
+        /** One round, and one more after sending a lost player again: never a loop. */
+        const val ROUNDS = 2
     }
 }
 

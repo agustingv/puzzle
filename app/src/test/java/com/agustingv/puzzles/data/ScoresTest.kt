@@ -203,6 +203,87 @@ class ScoresTest {
         assertFalse(account.registered)
     }
 
+    // A server that lost the player
+
+    /** A server that forgets players, like a database emptied by hand, and knows them again when sent. */
+    private class ForgetfulServer {
+        val known = mutableSetOf<String>()
+        val players = mutableListOf<String>()
+        val filed = mutableListOf<Int>()
+        var reachable = true
+
+        val playerApi = PlayerApi { id, name, _, secret ->
+            if (!reachable) return@PlayerApi SaveResult.Failed
+            players += id
+            known += secret
+            SaveResult.Saved(name)
+        }
+
+        val scoreApi = object : ScoreApi {
+            override fun submit(secret: String, score: PendingScore): SubmitResult = when {
+                !reachable -> SubmitResult.Failed
+                secret !in known -> SubmitResult.PlayerUnknown
+                else -> SubmitResult.Filed(1).also { filed += score.seconds }
+            }
+
+            override fun ranking(game: String, variant: String): List<RankingEntry>? = null
+        }
+    }
+
+    @Test
+    fun `a player the server lost is sent again, with the same id, and its times after it`() {
+        val server = ForgetfulServer()
+        val account = PlayerAccount(store, Random(1))
+        assertEquals(PlayerSync.Outcome.DONE, FullSync(account, server.playerApi, uploads, server.scoreApi).run())
+        val id = account.id
+        server.known.clear()
+        records.add("sudoku", "EASY", 30)
+
+        assertEquals(PlayerSync.Outcome.DONE, FullSync(account, server.playerApi, uploads, server.scoreApi).run())
+
+        assertEquals(listOf(id, id), server.players)
+        assertEquals(listOf(30), server.filed)
+        assertTrue(account.registered)
+        assertFalse(account.pending)
+        assertFalse(uploads.isNotEmpty())
+    }
+
+    @Test
+    fun `a lost player that can not be sent again keeps everything for later`() {
+        val server = ForgetfulServer()
+        val account = PlayerAccount(store, Random(1))
+        FullSync(account, server.playerApi, uploads, server.scoreApi).run()
+        server.known.clear()
+        records.add("sudoku", "EASY", 30)
+
+        // The time finds the player lost; then the connection drops before it is sent again.
+        val flaky = object : ScoreApi by server.scoreApi {
+            override fun submit(secret: String, score: PendingScore) =
+                server.scoreApi.submit(secret, score).also { server.reachable = false }
+        }
+
+        assertEquals(PlayerSync.Outcome.TRY_LATER, FullSync(account, server.playerApi, uploads, flaky).run())
+        assertFalse(account.registered)
+        assertTrue(account.pending)
+        assertTrue(uploads.isNotEmpty())
+
+        server.reachable = true
+        assertEquals(PlayerSync.Outcome.DONE, FullSync(account, server.playerApi, uploads, server.scoreApi).run())
+        assertTrue(account.registered)
+        assertFalse(uploads.isNotEmpty())
+    }
+
+    @Test
+    fun `nothing to do is done, not tried again and again`() {
+        val account = PlayerAccount(store, Random(1))
+        records.add("sudoku", "EASY", 30)
+
+        // No server in this build, or no connections wanted: the player is never sent, and that is fine.
+        assertEquals(PlayerSync.Outcome.DONE, FullSync(account, null, uploads, null).run())
+        account.changeOffline(true)
+        assertEquals(PlayerSync.Outcome.DONE, FullSync(account, ForgetfulServer().playerApi, uploads, ForgetfulServer().scoreApi).run())
+    }
+
     // The global rankings
 
     private val entry = RankingEntry(1, "s1", 42, "p1", "Búho Sabio 3", "buho:lila:lazo")
@@ -282,8 +363,8 @@ class ScoresTest {
         for (refused in listOf(400, 409, 422)) {
             withServer(refused, "{}") { url, _ -> assertEquals(SubmitResult.Rejected, HttpScoreApi(url).submit("s", score)) }
         }
-        // 401: the server does not know the player yet, which a later try can fix.
-        for (later in listOf(401, 500, 503)) {
+        withServer(401, "") { url, _ -> assertEquals(SubmitResult.PlayerUnknown, HttpScoreApi(url).submit("s", score)) }
+        for (later in listOf(500, 503)) {
             withServer(later, "") { url, _ -> assertEquals(SubmitResult.Failed, HttpScoreApi(url).submit("s", score)) }
         }
         withServer(200, "no es json") { url, _ -> assertEquals(SubmitResult.Failed, HttpScoreApi(url).submit("s", score)) }
