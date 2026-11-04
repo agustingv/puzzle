@@ -15,6 +15,7 @@
 local.properties
 /.idea/deviceManager.xml
 /.idea/deploymentTargetSelector.xml
+/.idea/deviceHardwareInput.xml
 keystore.properties
 *.jks
 *.keystore
