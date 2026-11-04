@@ -5,10 +5,12 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
-// Where the player API lives. Debug builds use the API running in Docker on this computer, reached as
-// localhost after `adb reverse tcp:8080 tcp:8080` (emulator or phone over USB): from Android 17 on, an
-// app needs a special permission for the local network, but not for localhost. Release builds have no
-// server until one is given with -PpuzzlesApiUrl=https://…/api/v1/ (the path carries the API version)
+// Where the player API lives. Debug builds use the production API unless told otherwise; release
+// builds have no server until one is given. Either takes -PpuzzlesApiUrl=https://…/api/v1/ (the path
+// carries the API version). To try the API running in Docker on this computer, pass
+// -PpuzzlesApiUrl=http://localhost:8080/api/v1/ and run `adb reverse tcp:8080 tcp:8080` (emulator or
+// phone over USB): from Android 17 on, an app needs a special permission for the local network, but
+// not for localhost, which the debug network config lets through without TLS.
 val apiUrl: String? = providers.gradleProperty("puzzlesApiUrl").orNull
 
 // Signing secrets stay out of the repository. Without this file, release builds are simply unsigned.
@@ -45,7 +47,7 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField("String", "API_URL", "\"${apiUrl ?: "http://localhost:8080/api/v1/"}\"")
+            buildConfigField("String", "API_URL", "\"${apiUrl ?: "https://api.puzzles.butaca13.com/api/v1/"}\"")
         }
         release {
             buildConfigField("String", "API_URL", "\"${apiUrl.orEmpty()}\"")

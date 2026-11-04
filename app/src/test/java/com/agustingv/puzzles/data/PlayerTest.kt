@@ -190,12 +190,16 @@ class PlayerTest {
         val account = account()
         val down = FakeApi { SaveResult.Failed }
 
+        assertEquals(SyncStatus.PENDING, account.status(serverConfigured = true))
         assertEquals(PlayerSync.Outcome.TRY_LATER, PlayerSync(account, down).run())
         assertTrue(account.pending)
+        assertEquals(SyncStatus.FAILED, account.status(serverConfigured = true))
 
         down.answer = { SaveResult.Saved(it.name) }
         assertEquals(PlayerSync.Outcome.DONE, PlayerSync(account, down).run())
         assertFalse(account.pending)
+        assertFalse(account.syncFailed)
+        assertEquals(SyncStatus.SYNCED, account.status(serverConfigured = true))
     }
 
     @Test

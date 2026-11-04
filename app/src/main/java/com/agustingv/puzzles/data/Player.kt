@@ -53,7 +53,8 @@ object PlayerNames {
 }
 
 /** How far the player is from being on the server. */
-enum class SyncStatus { SYNCED, PENDING, OFFLINE, NO_SERVER, NAME_REJECTED }
+/** [PENDING] has not been tried yet, or is waiting for a connection; [FAILED] reached for the server and got no good answer. */
+enum class SyncStatus { SYNCED, PENDING, FAILED, OFFLINE, NO_SERVER, NAME_REJECTED }
 
 /**
  * The player on this phone. There is no sign-up: the first launch makes one up, with a random id and
@@ -86,6 +87,10 @@ class PlayerAccount(private val store: KeyValueStore, private val random: Random
     var nameRejected by mutableStateOf(store.get(REJECTED_KEY) == YES)
         private set
 
+    /** The last attempt to send the pending changes got no answer, or a fault from the server. */
+    var syncFailed by mutableStateOf(store.get(FAILED_KEY) == YES)
+        private set
+
     var avatar by mutableStateOf(store.get(AVATAR_KEY)?.let(Avatar::decode) ?: Avatar.initial(name, id))
         private set
 
@@ -102,6 +107,7 @@ class PlayerAccount(private val store: KeyValueStore, private val random: Random
         offline -> SyncStatus.OFFLINE
         !serverConfigured -> SyncStatus.NO_SERVER
         nameRejected -> SyncStatus.NAME_REJECTED
+        pending && syncFailed -> SyncStatus.FAILED
         pending -> SyncStatus.PENDING
         else -> SyncStatus.SYNCED
     }
@@ -132,15 +138,23 @@ class PlayerAccount(private val store: KeyValueStore, private val random: Random
 
     /** The server now has [sentName] and [sentAvatar]. A change made while they were being sent is still pending. */
     internal fun markSynced(sentName: String, sentAvatar: String = avatar.encode()) {
+        updateFailed(false)
         if (name == sentName && avatar.encode() == sentAvatar) updatePending(false)
     }
 
     internal fun markRejected() {
+        updateFailed(false)
         updateRejected(true)
     }
 
     /** The id was someone else's: an all but impossible clash of random ids. Start over with new ones. */
+    /** The server could not be reached, or failed: the changes stay pending and are tried again later. */
+    internal fun markFailed() {
+        updateFailed(true)
+    }
+
     internal fun replaceIdentity() {
+        updateFailed(false)
         id = newIdentity()
         updatePending(true)
     }
@@ -171,6 +185,11 @@ class PlayerAccount(private val store: KeyValueStore, private val random: Random
         store.put(PENDING_KEY, if (value) YES else NO)
     }
 
+    private fun updateFailed(value: Boolean) {
+        syncFailed = value
+        store.put(FAILED_KEY, if (value) YES else NO)
+    }
+
     private fun updateRejected(value: Boolean) {
         nameRejected = value
         store.put(REJECTED_KEY, if (value) YES else NO)
@@ -183,6 +202,7 @@ class PlayerAccount(private val store: KeyValueStore, private val random: Random
         private const val OFFLINE_KEY = "player/offline"
         private const val PENDING_KEY = "player/pending"
         private const val REJECTED_KEY = "player/rejected"
+        private const val FAILED_KEY = "player/sync-failed"
         private const val AVATAR_KEY = "player/avatar"
         private const val YES = "yes"
         private const val NO = "no"

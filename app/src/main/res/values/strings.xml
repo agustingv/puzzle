@@ -74,6 +74,7 @@
     <string name="settings_player_id">Identificador: %1$s</string>
     <string name="sync_synced">Sincronizado con el servidor.</string>
     <string name="sync_pending">Pendiente de sincronizar: se enviará cuando haya conexión.</string>
+    <string name="sync_failed">Pendiente de sincronizar: el servidor no responde. Se volverá a intentar.</string>
     <string name="sync_offline">Solo en este móvil, en modo sin conexión.</string>
     <string name="sync_no_server">Solo en este móvil: esta versión no tiene servidor.</string>
     <string name="sync_rejected">El servidor no ha aceptado el nombre. Prueba con otro.</string>

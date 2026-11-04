@@ -188,6 +188,7 @@ private fun PlayerSettings(
             when (status) {
                 SyncStatus.SYNCED -> R.string.sync_synced
                 SyncStatus.PENDING -> R.string.sync_pending
+                SyncStatus.FAILED -> R.string.sync_failed
                 SyncStatus.OFFLINE -> R.string.sync_offline
                 SyncStatus.NO_SERVER -> R.string.sync_no_server
                 SyncStatus.NAME_REJECTED -> R.string.sync_rejected

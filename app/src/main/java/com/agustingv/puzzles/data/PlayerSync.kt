@@ -109,7 +109,10 @@ class PlayerSync(private val account: PlayerAccount, private val api: PlayerApi?
                 is SaveResult.Saved -> account.markSynced(name, avatar)
                 SaveResult.Taken -> account.replaceIdentity()
                 SaveResult.Rejected -> account.markRejected()
-                SaveResult.Failed -> return Outcome.TRY_LATER
+                SaveResult.Failed -> {
+                    account.markFailed()
+                    return Outcome.TRY_LATER
+                }
             }
         }
         return if (account.pending && !account.nameRejected) Outcome.TRY_LATER else Outcome.DONE
