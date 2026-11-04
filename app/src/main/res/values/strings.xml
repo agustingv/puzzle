@@ -90,6 +90,12 @@
     <string name="ranking_you">tú</string>
     <string name="ranking_updated">Actualizado %1$s</string>
     <string name="ranking_just_now">ahora mismo</string>
+    <string name="ranking_you_at">estás en el %1$dº</string>
+    <plurals name="records_show_more">
+        <item quantity="one">Ver %1$d tiempo más</item>
+        <item quantity="other">Ver %1$d tiempos más</item>
+    </plurals>
+    <string name="records_show_less">Ver menos tiempos</string>
     <plurals name="ranking_minutes_ago">
         <item quantity="one">hace %1$d minuto</item>
         <item quantity="other">hace %1$d minutos</item>
