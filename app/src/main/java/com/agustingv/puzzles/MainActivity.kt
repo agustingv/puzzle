@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -32,6 +33,7 @@ import com.agustingv.puzzles.data.AvatarCatalog
 import com.agustingv.puzzles.data.AvatarPrizes
 import com.agustingv.puzzles.data.GameEvent
 import com.agustingv.puzzles.data.PlayerAccount
+import com.agustingv.puzzles.data.GlobalRankings
 import com.agustingv.puzzles.data.PlayerSyncScheduler
 import com.agustingv.puzzles.data.Records
 import com.agustingv.puzzles.data.SavedGame
@@ -124,6 +126,7 @@ private fun PuzzlesApp() {
     val context = LocalContext.current
     val storage = remember { AppStorage.of(context) }
     val records = remember { Records(storage) }
+    val rankings = remember { GlobalRankings(storage, PlayerSyncScheduler.scoreApi()) }
     val sounds = remember { GameSounds.of(context) }
     val secret = remember { SecretProgress(storage) }
     val account = remember { PlayerAccount.of(context) }
@@ -132,6 +135,16 @@ private fun PuzzlesApp() {
     val haptics = LocalHapticFeedback.current
     val animate = remember { animationsEnabled(context) }
     val game = opened
+
+    // A win that makes the player's ten best goes to the rankings at once, connection allowing. A new
+    // game clears the last record, so the next one counts again even with the same values.
+    val rankedWin = listOf(
+        race.session, hangman.session, word.session, wordSearch.session, crossword.session, sudoku.session,
+        garden.session, path.session, kakuro.session, memorama.session, sliding.session,
+    ).firstNotNullOfOrNull { session -> session.lastRecord?.takeIf { it.rank != null } }
+    LaunchedEffect(rankedWin) {
+        if (rankedWin != null) PlayerSyncScheduler.request(context)
+    }
 
     fun savedGame(info: GameInfo): SavedGame? = when (info) {
         GameInfo.RACE -> race.session.saved
@@ -250,6 +263,8 @@ private fun PuzzlesApp() {
                 !playing -> GameDetailScreen(
                     info = game,
                     records = records,
+                    rankings = rankings,
+                    account = account,
                     storage = storage,
                     onPlay = { variant -> startGame(game, variant) },
                     onBack = { opened = null },

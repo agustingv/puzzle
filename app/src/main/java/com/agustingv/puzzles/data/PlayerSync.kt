@@ -123,12 +123,17 @@ class PlayerSync(private val account: PlayerAccount, private val api: PlayerApi?
     }
 }
 
-/** Runs the sync in the background, when there is a connection, even after the app is closed. */
+/**
+ * Runs the sync in the background, when there is a connection, even after the app is closed: first
+ * the player, then the times waiting for the rankings, which the server takes only from a player it knows.
+ */
 class PlayerSyncWorker(context: Context, parameters: WorkerParameters) : CoroutineWorker(context, parameters) {
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
-        val outcome = PlayerSync(PlayerAccount.of(applicationContext), PlayerSyncScheduler.api()).run()
-        if (outcome == PlayerSync.Outcome.TRY_LATER) Result.retry() else Result.success()
+        val account = PlayerAccount.of(applicationContext)
+        val player = PlayerSync(account, PlayerSyncScheduler.api()).run()
+        val scores = ScoreSync(account, ScoreUploads(AppStorage.of(applicationContext)), PlayerSyncScheduler.scoreApi()).run()
+        if (player == PlayerSync.Outcome.TRY_LATER || scores == PlayerSync.Outcome.TRY_LATER) Result.retry() else Result.success()
     }
 }
 
@@ -146,7 +151,16 @@ object PlayerSyncScheduler {
         HttpPlayerApi(BuildConfig.API_URL) { reason, error -> Log.w(LOG_TAG, reason, error) }
     }
 
-    /** Asks for a sync, or calls off any waiting one when the player wants no connections. */
+    fun scoreApi(): ScoreApi? = if (!serverConfigured) {
+        null
+    } else {
+        HttpScoreApi(BuildConfig.API_URL) { reason, error -> Log.w(LOG_TAG, reason, error) }
+    }
+
+    /**
+     * Asks for a sync, when the player or some times are waiting to be sent, or calls off any waiting
+     * one when the player wants no connections.
+     */
     fun request(context: Context) {
         val account = PlayerAccount.of(context)
         val work = WorkManager.getInstance(context)
@@ -155,7 +169,7 @@ object PlayerSyncScheduler {
             work.cancelUniqueWork(WORK_NAME)
             return
         }
-        if (!account.pending) return
+        if (!account.pending && !ScoreUploads(AppStorage.of(context)).isNotEmpty()) return
 
         val request = OneTimeWorkRequestBuilder<PlayerSyncWorker>()
             .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())

@@ -87,6 +87,13 @@ class PlayerAccount(private val store: KeyValueStore, private val random: Random
     var nameRejected by mutableStateOf(store.get(REJECTED_KEY) == YES)
         private set
 
+    /**
+     * The server has this player: it has been sent at least once. The global rankings are seen, and
+     * times sent, only from then on. A player synced before this was noted counts, since it was sent.
+     */
+    var registered by mutableStateOf(store.get(REGISTERED_KEY)?.let { it == YES } ?: (store.get(PENDING_KEY) == NO))
+        private set
+
     /** The last attempt to send the pending changes got no answer, or a fault from the server. */
     var syncFailed by mutableStateOf(store.get(FAILED_KEY) == YES)
         private set
@@ -139,6 +146,10 @@ class PlayerAccount(private val store: KeyValueStore, private val random: Random
     /** The server now has [sentName] and [sentAvatar]. A change made while they were being sent is still pending. */
     internal fun markSynced(sentName: String, sentAvatar: String = avatar.encode()) {
         updateFailed(false)
+        if (!registered) {
+            registered = true
+            store.put(REGISTERED_KEY, YES)
+        }
         if (name == sentName && avatar.encode() == sentAvatar) updatePending(false)
     }
 
@@ -155,6 +166,8 @@ class PlayerAccount(private val store: KeyValueStore, private val random: Random
 
     internal fun replaceIdentity() {
         updateFailed(false)
+        registered = false
+        store.put(REGISTERED_KEY, NO)
         id = newIdentity()
         updatePending(true)
     }
@@ -203,6 +216,7 @@ class PlayerAccount(private val store: KeyValueStore, private val random: Random
         private const val PENDING_KEY = "player/pending"
         private const val REJECTED_KEY = "player/rejected"
         private const val FAILED_KEY = "player/sync-failed"
+        private const val REGISTERED_KEY = "player/registered"
         private const val AVATAR_KEY = "player/avatar"
         private const val YES = "yes"
         private const val NO = "no"
