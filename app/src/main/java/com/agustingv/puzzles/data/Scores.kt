@@ -1,5 +1,8 @@
 package com.agustingv.puzzles.data
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.setValue
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -71,11 +74,22 @@ class ScoreUploads(private val store: KeyValueStore) {
         store.put(KEY, array.toString())
     }
 
-    private companion object {
-        const val KEY = "scores/pending"
+    companion object {
+        /**
+         * How many times the server has filed since the app started. Compose state, so that a ranking on
+         * screen downloads again once a time sent in the background has reached it.
+         */
+        var filed by mutableIntStateOf(0)
+            private set
+
+        internal fun noteFiled() {
+            filed++
+        }
+
+        private const val KEY = "scores/pending"
 
         /** The game files times on the main thread while the sync sends them in the background. */
-        val LOCK = Any()
+        private val LOCK = Any()
     }
 }
 
@@ -227,7 +241,11 @@ class ScoreSync(private val account: PlayerAccount, private val uploads: ScoreUp
 
         for (score in uploads.all()) {
             when (api.submit(account.secret, score)) {
-                is SubmitResult.Filed, SubmitResult.Rejected -> uploads.remove(score.id)
+                is SubmitResult.Filed -> {
+                    uploads.remove(score.id)
+                    ScoreUploads.noteFiled()
+                }
+                SubmitResult.Rejected -> uploads.remove(score.id)
                 SubmitResult.Failed -> return PlayerSync.Outcome.TRY_LATER
                 SubmitResult.PlayerUnknown -> {
                     account.markUnknownToServer()

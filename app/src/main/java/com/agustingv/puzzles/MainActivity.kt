@@ -138,14 +138,16 @@ private fun PuzzlesApp() {
     val animate = remember { animationsEnabled(context) }
     val game = opened
 
-    // A win that makes the player's ten best goes to the rankings at once, connection allowing. A new
-    // game clears the last record, so the next one counts again even with the same values.
-    val rankedWin = listOf(
+    // A win that makes the player's ten best goes to the rankings at once, connection allowing. Every
+    // game's last record counts, not only the first one found: each game keeps its own until a new game
+    // of that kind, so a win in another game must change this too. A new game clears the last record,
+    // so the next one counts again even with the same values.
+    val rankedWins = listOf(
         race.session, hangman.session, word.session, wordSearch.session, crossword.session, sudoku.session,
         garden.session, path.session, kakuro.session, memorama.session, sliding.session,
-    ).firstNotNullOfOrNull { session -> session.lastRecord?.takeIf { it.rank != null } }
-    LaunchedEffect(rankedWin) {
-        if (rankedWin != null) PlayerSyncScheduler.request(context)
+    ).map { session -> session.lastRecord?.takeIf { it.rank != null } }
+    LaunchedEffect(rankedWins) {
+        if (rankedWins.any { it != null }) PlayerSyncScheduler.request(context)
     }
 
     fun savedGame(info: GameInfo): SavedGame? = when (info) {

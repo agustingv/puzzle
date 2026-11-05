@@ -172,6 +172,19 @@ class ScoresTest {
     }
 
     @Test
+    fun `each time the server files is noted, for the rankings on screen to reload`() {
+        val account = registeredAccount()
+        records.add("sudoku", "EASY", 30)
+        records.add("race", "EASY", 40)
+        records.add("hangman", "EASY", 50)
+        val before = ScoreUploads.filed
+
+        ScoreSync(account, uploads, FakeScoreApi { if (it.seconds == 50) SubmitResult.Rejected else SubmitResult.Filed(1) }).run()
+
+        assertEquals(before + 2, ScoreUploads.filed)
+    }
+
+    @Test
     fun `without connections nothing is sent and the queue stays`() {
         val account = registeredAccount()
         val api = FakeScoreApi()

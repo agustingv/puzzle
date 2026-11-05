@@ -67,6 +67,7 @@ import com.agustingv.puzzles.data.PlayerAccount
 import com.agustingv.puzzles.data.Ranking
 import com.agustingv.puzzles.data.RecordEntry
 import com.agustingv.puzzles.data.Records
+import com.agustingv.puzzles.data.ScoreUploads
 import com.agustingv.puzzles.ui.common.AvatarTile
 import com.agustingv.puzzles.ui.common.ScreenTopBar
 import com.agustingv.puzzles.ui.common.formatTime
@@ -102,9 +103,11 @@ fun GameDetailScreen(
         mutableStateOf(storage.get(lastKey)?.takeIf { it in info.variants } ?: info.variants.first())
     }
 
-    // The global ranking shows as last downloaded, at once, and is brought up to date behind it.
+    // The global ranking shows as last downloaded, at once, and is brought up to date behind it, and
+    // again whenever a time sent in the background reaches the server: a win just before opening this
+    // page is usually still on its way.
     var global by remember(info, selected) { mutableStateOf(rankings.cached(info.id, selected)) }
-    LaunchedEffect(info, selected, account.registered, account.offline) {
+    LaunchedEffect(info, selected, account.registered, account.offline, ScoreUploads.filed) {
         withContext(Dispatchers.IO) { rankings.refresh(account, info.id, selected) }?.let { global = it }
     }
 
