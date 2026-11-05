@@ -50,8 +50,11 @@ enum class GameInfo(
 /** The Google Play product that opens this game; null for a free one. */
 val GameInfo.productId: String? get() = if (paid) Products.forGame(id) else null
 
-/** The products of every paid game, for Google Play to price. */
-val PAID_GAME_PRODUCTS: List<String> = GameInfo.entries.mapNotNull { it.productId }
+/**
+ * The products of every paid game, for Google Play to price. Worked out when first asked for, not when
+ * this file loads: the games load this file for their levels, and would not exist yet.
+ */
+val PAID_GAME_PRODUCTS: List<String> by lazy { GameInfo.entries.mapNotNull { it.productId } }
 
 val GameInfo.usesWordLengths: Boolean get() = variants === BY_LENGTH
 
