@@ -258,6 +258,98 @@ class PlayerTest {
         assertEquals(SyncStatus.PENDING, account.status(serverConfigured = true))
     }
 
+    // Deleting the player from the server
+
+    private fun queuedScore() = PendingScore(UUID.randomUUID().toString(), "sudoku", "EASY", 95, null)
+
+    @Test
+    fun `a deleted player stays on the phone, offline, with a new identity and nothing to send`() {
+        val account = account()
+        account.markSynced(account.name)
+        val uploads = ScoreUploads(store).apply { add(queuedScore()) }
+        val (oldId, oldSecret, name, avatar) = listOf(account.id, account.secret, account.name, account.avatar.encode())
+        val asked = mutableListOf<Pair<String, String>>()
+
+        val gone = PlayerDeletion(account, uploads) { id, secret -> DeleteResult.GONE.also { asked += id to secret } }.run()
+
+        assertTrue(gone)
+        assertEquals(listOf(oldId to oldSecret), asked)
+        assertTrue(account.offline)
+        assertFalse(account.registered)
+        assertNotEquals(oldId, account.id)
+        assertNotEquals(oldSecret, account.secret)
+        assertEquals(name, account.name)
+        assertEquals(avatar, account.avatar.encode())
+        assertFalse(uploads.isNotEmpty())
+        assertEquals(SyncStatus.OFFLINE, account.status(serverConfigured = true))
+        // As it is kept, too.
+        assertEquals(account.id, account(seed = 2).id)
+        assertTrue(account(seed = 2).offline)
+    }
+
+    @Test
+    fun `a deletion that fails changes nothing`() {
+        val account = account()
+        account.markSynced(account.name)
+        val uploads = ScoreUploads(store).apply { add(queuedScore()) }
+        val id = account.id
+
+        assertFalse(PlayerDeletion(account, uploads) { _, _ -> DeleteResult.FAILED }.run())
+        assertFalse(PlayerDeletion(account, uploads, api = null).run())
+
+        assertEquals(id, account.id)
+        assertTrue(account.registered)
+        assertFalse(account.offline)
+        assertTrue(uploads.isNotEmpty())
+    }
+
+    @Test
+    fun `after a deletion, going online makes a new player on the server`() {
+        val account = account()
+        account.markSynced(account.name)
+        PlayerDeletion(account, ScoreUploads(store)) { _, _ -> DeleteResult.GONE }.run()
+        val api = FakeApi { SaveResult.Saved(it.name) }
+
+        PlayerSync(account, api).run()
+        assertTrue(api.calls.isEmpty())
+
+        account.changeOffline(false)
+        PlayerSync(account, api).run()
+        assertEquals(listOf(account.id), api.calls.map { it.id })
+        assertTrue(account.registered)
+    }
+
+    @Test
+    fun `the client deletes the player at its own address, with its secret`() {
+        val received = mutableListOf<String>()
+        val server = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0)
+        server.createContext("/") { exchange ->
+            received += "${exchange.requestMethod} ${exchange.requestURI} ${exchange.requestHeaders.getFirst("Authorization")}"
+            exchange.sendResponseHeaders(204, -1)
+            exchange.close()
+        }
+        server.start()
+        try {
+            val result = HttpPlayerApi("http://127.0.0.1:${server.address.port}/api/v1/").delete("abc", "s".repeat(64))
+
+            assertEquals(DeleteResult.GONE, result)
+            assertEquals(listOf("DELETE /api/v1/players/abc Bearer ${"s".repeat(64)}"), received)
+        } finally {
+            server.stop(0)
+        }
+    }
+
+    @Test
+    fun `a player already gone counts as deleted, anything else as a failure`() {
+        for (status in listOf(401, 404)) {
+            withServer(status, "{}") { url, _ -> assertEquals(DeleteResult.GONE, HttpPlayerApi(url).delete("a", "s")) }
+        }
+        for (status in listOf(403, 429, 500)) {
+            withServer(status, "{}") { url, _ -> assertEquals(DeleteResult.FAILED, HttpPlayerApi(url).delete("a", "s")) }
+        }
+        assertEquals(DeleteResult.FAILED, HttpPlayerApi("http://127.0.0.1:9/api/v1/").delete("a", "s"))
+    }
+
     // The real HTTP client, against a small local server
 
     private fun withServer(status: Int, body: String, test: (baseUrl: String, received: MutableList<String>) -> Unit) {

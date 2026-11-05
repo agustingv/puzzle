@@ -136,7 +136,8 @@ fun GameDetailScreen(
             var allMine by rememberSaveable(info, selected) { mutableStateOf(false) }
             var allGlobal by rememberSaveable(info, selected) { mutableStateOf(false) }
             PersonalRecords(records.entries(info.id, selected), allMine, onToggle = { allMine = !allMine })
-            global?.let { GlobalRanking(it, ownPlayer = account.id, allGlobal, onToggle = { allGlobal = !allGlobal }) }
+            // Not once the player is off the server, as after deleting it: the copy kept is the old one.
+            global?.takeIf { account.registered }?.let { GlobalRanking(it, ownPlayer = account.id, allGlobal, onToggle = { allGlobal = !allGlobal }) }
         }
         val spacing = Arrangement.spacedBy(16.dp)
         val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE

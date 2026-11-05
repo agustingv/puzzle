@@ -17,7 +17,6 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
@@ -31,6 +30,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
+import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -62,6 +65,8 @@ fun SettingsScreen(
     onRename: (String) -> Boolean,
     onOfflineChange: (Boolean) -> Unit,
     onAvatar: () -> Unit,
+    /** Deletes the player from the server; whether it worked. */
+    onDeletePlayer: suspend () -> Boolean,
     onPrivacy: () -> Unit,
     onExit: () -> Unit,
 ) {
@@ -77,7 +82,7 @@ fun SettingsScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            SettingsCard { PlayerSettings(account, serverConfigured, onRename, onOfflineChange, onAvatar) }
+            SettingsCard { PlayerSettings(account, serverConfigured, onRename, onOfflineChange, onAvatar, onDeletePlayer) }
             SettingsCard { SoundSettings(sounds) }
             SettingsCard { LinkRow(stringResource(R.string.privacy_title), onPrivacy) }
         }
@@ -150,6 +155,7 @@ private fun PlayerSettings(
     onRename: (String) -> Boolean,
     onOfflineChange: (Boolean) -> Unit,
     onAvatar: () -> Unit,
+    onDeletePlayer: suspend () -> Boolean,
 ) {
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
     val avatarLabel = stringResource(R.string.avatar_change)
@@ -205,12 +211,30 @@ private fun PlayerSettings(
         color = muted,
     )
 
-    // Needed to ask for the player to be deleted from the server; see the privacy policy.
-    SelectionContainer {
-        Text(
-            text = stringResource(R.string.settings_player_id, account.id),
-            style = MaterialTheme.typography.bodySmall,
-            color = muted,
+    // Only a build with a server has a player there to delete.
+    var deleting by rememberSaveable { mutableStateOf(false) }
+    var deleted by rememberSaveable { mutableStateOf(false) }
+    if (serverConfigured) {
+        TextButton(onClick = { deleting = true }) {
+            Text(stringResource(R.string.settings_delete_player), color = Danger)
+        }
+        if (deleted) {
+            Text(
+                text = stringResource(R.string.settings_delete_done),
+                style = MaterialTheme.typography.bodySmall,
+                color = muted,
+            )
+        }
+    }
+
+    if (deleting) {
+        DeletePlayerDialog(
+            onDelete = onDeletePlayer,
+            onDeleted = {
+                deleting = false
+                deleted = true
+            },
+            onDismiss = { deleting = false },
         )
     }
 
@@ -221,6 +245,47 @@ private fun PlayerSettings(
             onDismiss = { renaming = false },
         )
     }
+}
+
+/** Asks before deleting the player from the server, and waits there for the answer. */
+@Composable
+private fun DeletePlayerDialog(onDelete: suspend () -> Boolean, onDeleted: () -> Unit, onDismiss: () -> Unit) {
+    val scope = rememberCoroutineScope()
+    var working by remember { mutableStateOf(false) }
+    var failed by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = { if (!working) onDismiss() },
+        title = { Text(stringResource(R.string.settings_delete_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(stringResource(R.string.settings_delete_text))
+                if (failed) Text(stringResource(R.string.settings_delete_failed), color = Danger)
+            }
+        },
+        confirmButton = {
+            TextButton(
+                enabled = !working,
+                onClick = {
+                    working = true
+                    failed = false
+                    scope.launch {
+                        val gone = onDelete()
+                        working = false
+                        if (gone) onDeleted() else failed = true
+                    }
+                },
+            ) {
+                Text(
+                    text = stringResource(if (working) R.string.settings_delete_working else R.string.settings_delete_confirm),
+                    color = if (working) Color.Unspecified else Danger,
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(enabled = !working, onClick = onDismiss) { Text(stringResource(R.string.settings_delete_cancel)) }
+        },
+    )
 }
 
 @Composable

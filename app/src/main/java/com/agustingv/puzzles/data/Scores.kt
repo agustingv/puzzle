@@ -33,6 +33,11 @@ class ScoreUploads(private val store: KeyValueStore) {
         write(read().filterNot { it.id == id })
     }
 
+    /** Drops every time waiting, as when the player is deleted from the server. */
+    fun clear() = synchronized(LOCK) {
+        store.remove(KEY)
+    }
+
     private fun read(): List<PendingScore> {
         val json = store.get(KEY) ?: return emptyList()
         return try {

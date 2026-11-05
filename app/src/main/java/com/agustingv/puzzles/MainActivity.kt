@@ -34,7 +34,9 @@ import com.agustingv.puzzles.data.AvatarPrizes
 import com.agustingv.puzzles.data.GameEvent
 import com.agustingv.puzzles.data.PlayerAccount
 import com.agustingv.puzzles.data.GlobalRankings
+import com.agustingv.puzzles.data.PlayerDeletion
 import com.agustingv.puzzles.data.PlayerSyncScheduler
+import com.agustingv.puzzles.data.ScoreUploads
 import com.agustingv.puzzles.data.Records
 import com.agustingv.puzzles.data.SavedGame
 import com.agustingv.puzzles.data.SecretProgress
@@ -78,6 +80,8 @@ import com.agustingv.puzzles.ui.word.WordScreen
 import com.agustingv.puzzles.ui.word.WordViewModel
 import com.agustingv.puzzles.ui.wordsearch.WordSearchScreen
 import com.agustingv.puzzles.ui.wordsearch.WordSearchViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -216,6 +220,15 @@ private fun PuzzlesApp() {
                 PlayerSyncScheduler.request(context)
             },
             onAvatar = { showAvatar = true },
+            onDeletePlayer = {
+                PlayerSyncScheduler.cancel(context)
+                val gone = withContext(Dispatchers.IO) {
+                    PlayerDeletion(account, ScoreUploads(storage), PlayerSyncScheduler.deletionApi()).run()
+                }
+                // Not deleted: whatever was waiting to be sent still is.
+                if (!gone) PlayerSyncScheduler.request(context)
+                gone
+            },
             onPrivacy = { showPrivacy = true },
             onExit = { showSettings = false },
         )

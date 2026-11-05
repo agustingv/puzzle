@@ -168,12 +168,21 @@ class PlayerAccount(private val store: KeyValueStore, private val random: Random
         updateRejected(true)
     }
 
-    /** The id was someone else's: an all but impossible clash of random ids. Start over with new ones. */
     /** The server could not be reached, or failed: the changes stay pending and are tried again later. */
     internal fun markFailed() {
         updateFailed(true)
     }
 
+    /**
+     * The server deleted this player at its request. The name and avatar stay, under a new id and secret
+     * that the server has never seen, and the app stops connecting until the player says otherwise.
+     */
+    internal fun forgetServerPlayer() {
+        changeOffline(true)
+        replaceIdentity()
+    }
+
+    /** The id was someone else's: an all but impossible clash of random ids. Start over with new ones. */
     internal fun replaceIdentity() {
         updateFailed(false)
         registered = false

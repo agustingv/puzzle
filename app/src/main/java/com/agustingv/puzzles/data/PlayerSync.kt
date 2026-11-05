@@ -33,6 +33,20 @@ sealed interface SaveResult {
     data object Failed : SaveResult
 }
 
+/** What the server said to a player asking to be deleted. */
+enum class DeleteResult {
+    /** The server has no such player any more: deleted now, or already gone. */
+    GONE,
+
+    /** No answer, too many requests, or a fault: the player may still be there. */
+    FAILED,
+}
+
+/** Deleting the player from the server, behind an interface so that it can be tested without one. Blocks. */
+fun interface PlayerDeletionApi {
+    fun delete(id: String, secret: String): DeleteResult
+}
+
 /** The server, behind an interface so that the sync can be tested without one. Calls block. */
 fun interface PlayerApi {
     /** [avatar] as [Avatar.encode] writes it. */
@@ -47,7 +61,38 @@ class HttpPlayerApi(
     private val baseUrl: String,
     /** Why a request failed, for the log: failures are retried quietly, but should not be invisible. */
     private val onFailure: (String, Throwable?) -> Unit = { _, _ -> },
-) : PlayerApi {
+) : PlayerApi, PlayerDeletionApi {
+
+    /**
+     * DELETE /players/{id}, proving with the secret that the player is this phone's. The secret goes
+     * with the player, so a player already gone answers 401 to it, and an id the server never had, 404.
+     */
+    override fun delete(id: String, secret: String): DeleteResult {
+        val connection = try {
+            URL("${baseUrl}players/$id").openConnection() as HttpURLConnection
+        } catch (e: IOException) {
+            onFailure("Dirección del API no válida", e)
+            return DeleteResult.FAILED
+        }
+
+        return try {
+            connection.requestMethod = "DELETE"
+            connection.connectTimeout = TIMEOUT_MILLIS
+            connection.readTimeout = TIMEOUT_MILLIS
+            connection.setRequestProperty("Accept", "application/json")
+            connection.setRequestProperty("Authorization", "Bearer $secret")
+
+            when (connection.responseCode) {
+                204, 401, 404 -> DeleteResult.GONE
+                else -> DeleteResult.FAILED.also { onFailure("El API respondió ${connection.responseCode} al borrar", null) }
+            }
+        } catch (e: IOException) {
+            onFailure("Sin respuesta del API al borrar", e)
+            DeleteResult.FAILED
+        } finally {
+            connection.disconnect()
+        }
+    }
 
     override fun save(id: String, name: String, avatar: String, secret: String): SaveResult {
         val connection = try {
@@ -90,6 +135,28 @@ class HttpPlayerApi(
 
     private companion object {
         const val TIMEOUT_MILLIS = 15_000
+    }
+}
+
+/**
+ * Deletes the player from the server, with its times there, when the player asks for it. On this phone
+ * the games and records stay, but nothing more goes out: the app turns to the mode without connection,
+ * the times waiting to be sent are dropped, and the player gets a new id and secret, so that going online
+ * again makes a new player on the server rather than bringing the old one back.
+ */
+class PlayerDeletion(
+    private val account: PlayerAccount,
+    private val uploads: ScoreUploads,
+    private val api: PlayerDeletionApi?,
+) {
+    /** Whether the player is gone from the server. Blocks: call it off the main thread. */
+    fun run(): Boolean {
+        // Even a player that seems never to have arrived is asked for: an answer may have been lost.
+        if (api == null || api.delete(account.id, account.secret) != DeleteResult.GONE) return false
+
+        uploads.clear()
+        account.forgetServerPlayer()
+        return true
     }
 }
 
@@ -152,6 +219,17 @@ object PlayerSyncScheduler {
         null
     } else {
         HttpPlayerApi(BuildConfig.API_URL) { reason, error -> Log.w(LOG_TAG, reason, error) }
+    }
+
+    fun deletionApi(): PlayerDeletionApi? = if (!serverConfigured) {
+        null
+    } else {
+        HttpPlayerApi(BuildConfig.API_URL) { reason, error -> Log.w(LOG_TAG, reason, error) }
+    }
+
+    /** Stops a waiting or running sync, so that it does not send the player while it is being deleted. */
+    fun cancel(context: Context) {
+        WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)
     }
 
     fun scoreApi(): ScoreApi? = if (!serverConfigured) {

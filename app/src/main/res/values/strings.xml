@@ -17,7 +17,7 @@
     <string name="privacy_backup_title">Copias de seguridad de Android</string>
     <string name="privacy_backup">Si tienes activada la copia de seguridad de Android, el sistema puede incluir tus partidas, récords y tu jugador en la copia de tu cuenta de Google y restaurarlos en otro móvil. Eso lo gestiona Google según tus ajustes y su política de privacidad; el desarrollador no tiene acceso. Puedes desactivarla en los ajustes de Android.</string>
     <string name="privacy_delete_title">Cómo borrar tus datos</string>
-    <string name="privacy_delete">Borra los datos de la app en los ajustes de Android o desinstálala. Eso no borra tu jugador del servidor: para borrarlo, junto con tus tiempos del ranking global, escribe al correo de contacto con el identificador que aparece en los ajustes de la app. Las copias de seguridad se gestionan desde tu cuenta de Google.</string>
+    <string name="privacy_delete">Borra los datos de la app en los ajustes de Android o desinstálala. Eso no borra tu jugador del servidor: para borrarlo, junto con tus tiempos del ranking global, usa «Borrar mi jugador del servidor» en los ajustes de la app antes de desinstalarla. La app pasa entonces al modo sin conexión; si lo desactivas, crea en el servidor un jugador nuevo. Si ya la desinstalaste, escribe al correo de contacto indicando el nombre y el avatar de tu jugador. Las copias de seguridad se gestionan desde tu cuenta de Google.</string>
     <string name="privacy_play_title">Google Play</string>
     <string name="privacy_play">Si descargas la app desde Google Play, Google trata los datos de esa descarga según su propia política de privacidad.</string>
     <string name="privacy_children_title">Menores</string>
@@ -47,6 +47,14 @@
     <string name="settings_offline">Modo sin conexión</string>
     <string name="settings_offline_hint">La app no se conecta a internet. Tu jugador se queda en el móvil y se sincroniza cuando lo desactives.</string>
     <string name="settings_avatar_hint">Toca el avatar para cambiarlo.</string>
+    <string name="settings_delete_player">Borrar mi jugador del servidor</string>
+    <string name="settings_delete_title">¿Borrar tu jugador del servidor?</string>
+    <string name="settings_delete_text">Se borrarán del servidor tu jugador y tus tiempos del ranking global. No se puede deshacer.\n\nEn el móvil conservas tus partidas y tus récords, y la app pasará al modo sin conexión. Si lo desactivas, se creará en el servidor un jugador nuevo.</string>
+    <string name="settings_delete_confirm">Borrar</string>
+    <string name="settings_delete_cancel">Cancelar</string>
+    <string name="settings_delete_working">Borrando…</string>
+    <string name="settings_delete_failed">No se ha podido borrar: el servidor no responde. Inténtalo más tarde.</string>
+    <string name="settings_delete_done">Tu jugador se ha borrado del servidor.</string>
     <string name="avatar_title">Tu avatar</string>
     <string name="avatar_change">Tu avatar. Cambiarlo</string>
     <string name="avatar_animal">Animal</string>
@@ -71,7 +79,6 @@
     <string name="prize_reason_chistera">Por ganar %1$d partidas.</string>
     <string name="prize_wear">Ponérmelo</string>
     <string name="prize_wearing">Lo llevas puesto</string>
-    <string name="settings_player_id">Identificador: %1$s</string>
     <string name="sync_synced">Sincronizado con el servidor.</string>
     <string name="sync_pending">Pendiente de sincronizar: se enviará cuando haya conexión.</string>
     <string name="sync_failed">Pendiente de sincronizar: el servidor no responde. Se volverá a intentar.</string>
