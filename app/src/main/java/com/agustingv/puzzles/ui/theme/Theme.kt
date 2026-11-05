@@ -58,7 +58,6 @@ internal data class PuzzleColors(
     val secondary: Color,
     val onSecondary: Color,
     val selection: Color,
-    val fractalAlpha: Float,
     val bedDim: Float,
 )
 
@@ -76,7 +75,6 @@ internal val LightColors = PuzzleColors(
     secondary = Purple,
     onSecondary = Color.White,
     selection = Pink.copy(alpha = 0.18f),
-    fractalAlpha = 0.1f,
     bedDim = 0f,
 )
 
@@ -94,7 +92,6 @@ internal val DarkColors = PuzzleColors(
     secondary = Color(0xFFB3A9FF),
     onSecondary = Color(0xFF17123F),
     selection = Pink.copy(alpha = 0.32f),
-    fractalAlpha = 0.18f,
     bedDim = 0.2f,
 )
 
@@ -118,8 +115,6 @@ val Alert: Color
     @Composable @ReadOnlyComposable get() = LocalColors.current.alert
 val BedDim: Float
     @Composable @ReadOnlyComposable get() = LocalColors.current.bedDim
-val FractalAlpha: Float
-    @Composable @ReadOnlyComposable get() = LocalColors.current.fractalAlpha
 
 private val PlusJakartaSans = FontFamily(
     listOf(FontWeight.Normal, FontWeight.Medium, FontWeight.SemiBold, FontWeight.Bold, FontWeight.ExtraBold).map {

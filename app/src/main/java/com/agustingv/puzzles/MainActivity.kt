@@ -72,7 +72,6 @@ import com.agustingv.puzzles.ui.sliding.SlidingScreen
 import com.agustingv.puzzles.ui.sliding.SlidingViewModel
 import com.agustingv.puzzles.ui.sudoku.SudokuScreen
 import com.agustingv.puzzles.ui.sudoku.SudokuViewModel
-import com.agustingv.puzzles.ui.theme.FractalBackground
 import com.agustingv.puzzles.ui.theme.Paper
 import com.agustingv.puzzles.ui.theme.PuzzlesTheme
 import com.agustingv.puzzles.ui.theme.animationsEnabled
@@ -92,7 +91,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             PuzzlesTheme {
                 Box(modifier = Modifier.fillMaxSize().background(Paper)) {
-                    FractalBackground()
                     PuzzlesApp()
                 }
             }
