@@ -35,6 +35,13 @@ import com.agustingv.puzzles.data.GameEvent
 import com.agustingv.puzzles.data.PlayerAccount
 import com.agustingv.puzzles.data.GlobalRankings
 import com.agustingv.puzzles.data.PlayerDeletion
+import com.agustingv.puzzles.ui.menu.productId
+import com.agustingv.puzzles.ui.menu.PAID_GAME_PRODUCTS
+import com.agustingv.puzzles.ui.menu.GameShop
+import com.agustingv.puzzles.data.Products
+import com.agustingv.puzzles.data.PlayBilling
+import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.activity.compose.LocalActivity
 import com.agustingv.puzzles.data.PlayerSyncScheduler
 import com.agustingv.puzzles.data.ScoreUploads
 import com.agustingv.puzzles.data.Records
@@ -133,6 +140,25 @@ private fun PuzzlesApp() {
     val secret = remember { SecretProgress(storage) }
     val account = remember { PlayerAccount.of(context) }
     val prizes = remember { AvatarPrizes(storage) }
+    val billing = remember { PlayBilling.of(context) }
+    val entitlements = remember { PlayBilling.entitlementsOf(context) }
+    val activity = LocalActivity.current
+    // Google Play is asked again on every return to the app: a payment completed meanwhile, or a refund,
+    // shows at once.
+    LifecycleResumeEffect(billing) {
+        billing.refresh(PAID_GAME_PRODUCTS)
+        onPauseOrDispose {}
+    }
+    val shop = remember(billing, entitlements, activity) {
+        GameShop(
+            unlocked = { entitlements.unlocked(it.productId) },
+            price = { billing.prices[it] },
+            pending = { it in billing.pending },
+            ownsAll = { Products.ALL_GAMES in entitlements.owned },
+            buy = { productId -> activity?.let { billing.buy(it, productId) } },
+            restore = { billing.refresh(PAID_GAME_PRODUCTS) },
+        )
+    }
     var secretSolved by remember { mutableStateOf(secret.solved) }
     val haptics = LocalHapticFeedback.current
     val animate = remember { animationsEnabled(context) }
@@ -231,6 +257,7 @@ private fun PuzzlesApp() {
             },
             onPrivacy = { showPrivacy = true },
             onExit = { showSettings = false },
+            shop = shop,
         )
         return
     }
@@ -268,10 +295,12 @@ private fun PuzzlesApp() {
                     saved = ::savedGame,
                     onOpen = {
                         opened = it
-                        playing = savedGame(it) != null
+                        // A game no longer owned, refunded say, opens on its page, which offers to buy it.
+                        playing = savedGame(it) != null && shop.unlocked(it)
                     },
                     secretSolved = secretSolved,
                     onSecret = { showSecret = true },
+                    shop = shop,
                 )
                 !playing -> GameDetailScreen(
                     info = game,
@@ -281,6 +310,7 @@ private fun PuzzlesApp() {
                     storage = storage,
                     onPlay = { variant -> startGame(game, variant) },
                     onBack = { opened = null },
+                    shop = shop,
                 )
                 else -> when (game) {
                     GameInfo.RACE -> RaceScreen(race, ::stopPlaying)

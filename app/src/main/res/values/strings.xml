@@ -5,7 +5,7 @@
     <string name="back">Volver</string>
 
     <string name="privacy_title">Política de privacidad</string>
-    <string name="privacy_updated">Última actualización: 4 de noviembre de 2026</string>
+    <string name="privacy_updated">Última actualización: 5 de noviembre de 2026</string>
     <string name="privacy_summary_title">En resumen</string>
     <string name="privacy_summary">Puzzles no recopila datos personales. La app crea un jugador anónimo y lo guarda en el servidor del desarrollador, junto con tus mejores tiempos si entran en el ranking global; tus partidas se quedan en tu móvil.</string>
     <string name="privacy_collect_title">Datos que recopila la app</string>
@@ -19,7 +19,7 @@
     <string name="privacy_delete_title">Cómo borrar tus datos</string>
     <string name="privacy_delete">Borra los datos de la app en los ajustes de Android o desinstálala. Eso no borra tu jugador del servidor: para borrarlo, junto con tus tiempos del ranking global, usa «Borrar mi jugador del servidor» en los ajustes de la app antes de desinstalarla. La app pasa entonces al modo sin conexión; si lo desactivas, crea en el servidor un jugador nuevo. Si ya la desinstalaste, escribe al correo de contacto indicando el nombre y el avatar de tu jugador. Las copias de seguridad se gestionan desde tu cuenta de Google.</string>
     <string name="privacy_play_title">Google Play</string>
-    <string name="privacy_play">Si descargas la app desde Google Play, Google trata los datos de esa descarga según su propia política de privacidad.</string>
+    <string name="privacy_play">Si descargas la app desde Google Play, Google trata los datos de esa descarga según su propia política de privacidad. Lo mismo con las compras: si compras juegos en la app, el pago lo gestiona Google Play, y la app solo le pregunta qué has comprado para desbloquearlo. El desarrollador no recibe tus datos de pago, y la app no envía tus compras a su servidor.</string>
     <string name="privacy_children_title">Menores</string>
     <string name="privacy_children">La app no pide datos personales a nadie, tampoco a menores. Si un menor ha puesto su nombre real a su jugador, escribe al correo de contacto y se borrará.</string>
     <string name="privacy_changes_title">Cambios en esta política</string>
@@ -55,6 +55,20 @@
     <string name="settings_delete_working">Borrando…</string>
     <string name="settings_delete_failed">No se ha podido borrar: el servidor no responde. Inténtalo más tarde.</string>
     <string name="settings_delete_done">Tu jugador se ha borrado del servidor.</string>
+    <string name="shop_locked">Juego de pago</string>
+    <string name="shop_locked_price">de pago, %1$s</string>
+    <string name="shop_unlock">Desbloquear por %1$s</string>
+    <string name="shop_unlock_all">O todos los juegos de pago por %1$s</string>
+    <string name="shop_pending">Pago pendiente: el juego se abrirá en cuanto se complete.</string>
+    <string name="shop_unavailable">Las compras no están disponibles ahora. Comprueba la conexión y que tienes Google Play.</string>
+    <string name="settings_shop">Compras</string>
+    <string name="settings_shop_all">Todos los juegos de pago</string>
+    <string name="settings_shop_all_hint">Los que hay y los que lleguen, con un solo pago.</string>
+    <string name="settings_shop_owned">Comprado</string>
+    <string name="settings_shop_pending">Pendiente</string>
+    <string name="settings_shop_unavailable">No disponible</string>
+    <string name="settings_shop_restore">Restaurar compras</string>
+    <string name="settings_shop_restore_hint">Las compras van con tu cuenta de Google: en otro móvil se recuperan solas al abrir la app.</string>
     <string name="avatar_title">Tu avatar</string>
     <string name="avatar_change">Tu avatar. Cambiarlo</string>
     <string name="avatar_animal">Animal</string>

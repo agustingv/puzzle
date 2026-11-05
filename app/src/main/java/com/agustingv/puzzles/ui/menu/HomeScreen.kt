@@ -52,6 +52,7 @@ fun HomeScreen(
     onOpen: (GameInfo) -> Unit,
     secretSolved: Boolean,
     onSecret: () -> Unit,
+    shop: GameShop = GameShop.Free,
 ) {
     val widest = widestTitle(GameInfo.entries.map { stringResource(it.title) })
 
@@ -74,15 +75,26 @@ fun HomeScreen(
         }
 
         items(GameInfo.entries, key = { it.id }) { info ->
-            GameCard(info, widest, inProgress = saved(info) != null, onClick = { onOpen(info) })
+            val locked = !shop.unlocked(info)
+            GameCard(
+                info = info,
+                widestTitle = widest,
+                inProgress = saved(info) != null && !locked,
+                lock = if (locked) LockBadge(info.productId?.let(shop.price)) else null,
+                onClick = { onOpen(info) },
+            )
         }
     }
 }
 
+/** A paid game not bought yet, with its price when Google Play has said it. */
+private class LockBadge(val price: String?)
+
 @Composable
-private fun GameCard(info: GameInfo, widestTitle: Float, inProgress: Boolean, onClick: () -> Unit) {
+private fun GameCard(info: GameInfo, widestTitle: Float, inProgress: Boolean, lock: LockBadge?, onClick: () -> Unit) {
     val title = stringResource(info.title)
     val status = stringResource(R.string.game_in_progress)
+    val lockLabel = lock?.price?.let { stringResource(R.string.shop_locked_price, it) } ?: stringResource(R.string.shop_locked)
 
     Card(
         onClick = onClick,
@@ -91,7 +103,13 @@ private fun GameCard(info: GameInfo, widestTitle: Float, inProgress: Boolean, on
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .semantics { contentDescription = if (inProgress) "$title, $status" else title },
+            .semantics {
+                contentDescription = when {
+                    lock != null -> "$title, $lockLabel"
+                    inProgress -> "$title, $status"
+                    else -> title
+                }
+            },
     ) {
         Box(
             contentAlignment = Alignment.Center,
@@ -105,6 +123,20 @@ private fun GameCard(info: GameInfo, widestTitle: Float, inProgress: Boolean, on
                 fontSize = 42.sp,
                 modifier = Modifier.clearAndSetSemantics {},
             )
+            if (lock != null) {
+                Text(
+                    text = listOfNotNull("🔒", lock.price).joinToString(" "),
+                    color = Color.White,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                        .clip(RoundedCornerShape(999.dp))
+                        .background(Color.Black.copy(alpha = 0.55f))
+                        .padding(horizontal = 8.dp, vertical = 3.dp),
+                )
+            }
             if (inProgress) {
                 Text(
                     text = status,

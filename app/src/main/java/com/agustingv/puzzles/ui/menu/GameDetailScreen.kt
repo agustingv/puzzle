@@ -31,6 +31,7 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -56,6 +57,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -64,6 +66,7 @@ import com.agustingv.puzzles.data.Avatar
 import com.agustingv.puzzles.data.GlobalRankings
 import com.agustingv.puzzles.data.KeyValueStore
 import com.agustingv.puzzles.data.PlayerAccount
+import com.agustingv.puzzles.data.Products
 import com.agustingv.puzzles.data.Ranking
 import com.agustingv.puzzles.data.RecordEntry
 import com.agustingv.puzzles.data.Records
@@ -94,6 +97,7 @@ fun GameDetailScreen(
     storage: KeyValueStore,
     onPlay: (variant: String) -> Unit,
     onBack: () -> Unit,
+    shop: GameShop = GameShop.Free,
 ) {
     BackHandler(onBack = onBack)
 
@@ -174,11 +178,60 @@ fun GameDetailScreen(
             }
         }
 
+        val productId = info.productId
+        if (productId != null && !shop.unlocked(info)) {
+            UnlockButtons(productId, shop)
+        } else {
+            Button(
+                onClick = ::play,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp).height(52.dp),
+            ) {
+                Text(stringResource(R.string.play), style = MaterialTheme.typography.titleMedium)
+            }
+        }
+    }
+}
+
+/**
+ * In place of the play button for a paid game not bought yet: this game alone, or all the paid ones.
+ * The page itself stays open to see, with its levels and rankings.
+ */
+@Composable
+private fun UnlockButtons(productId: String, shop: GameShop) {
+    val price = shop.price(productId)
+    val allPrice = shop.allPrice
+
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        when {
+            shop.pending(productId) || shop.pending(Products.ALL_GAMES) -> Text(
+                text = stringResource(R.string.shop_pending),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+            price == null && allPrice == null -> Text(
+                text = stringResource(R.string.shop_unavailable),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+        }
         Button(
-            onClick = ::play,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp).height(52.dp),
+            onClick = { shop.buy(productId) },
+            enabled = price != null,
+            modifier = Modifier.fillMaxWidth().height(52.dp),
         ) {
-            Text(stringResource(R.string.play), style = MaterialTheme.typography.titleMedium)
+            Text(
+                text = price?.let { stringResource(R.string.shop_unlock, it) } ?: stringResource(R.string.shop_locked),
+                style = MaterialTheme.typography.titleMedium,
+            )
+        }
+        if (allPrice != null) {
+            TextButton(onClick = { shop.buy(Products.ALL_GAMES) }) {
+                Text(stringResource(R.string.shop_unlock_all, allPrice), textAlign = TextAlign.Center)
+            }
         }
     }
 }

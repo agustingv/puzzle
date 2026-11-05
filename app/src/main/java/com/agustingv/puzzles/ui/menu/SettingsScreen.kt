@@ -47,6 +47,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.agustingv.puzzles.R
+import com.agustingv.puzzles.data.Products
 import com.agustingv.puzzles.data.PlayerAccount
 import com.agustingv.puzzles.data.SyncStatus
 import com.agustingv.puzzles.ui.common.AvatarTile
@@ -69,6 +70,7 @@ fun SettingsScreen(
     onDeletePlayer: suspend () -> Boolean,
     onPrivacy: () -> Unit,
     onExit: () -> Unit,
+    shop: GameShop = GameShop.Free,
 ) {
     BackHandler(onBack = onExit)
 
@@ -84,6 +86,8 @@ fun SettingsScreen(
         ) {
             SettingsCard { PlayerSettings(account, serverConfigured, onRename, onOfflineChange, onAvatar, onDeletePlayer) }
             SettingsCard { SoundSettings(sounds) }
+            // Only once there are games to buy.
+            if (PAID_GAME_PRODUCTS.isNotEmpty()) SettingsCard { ShopSettings(shop) }
             SettingsCard { LinkRow(stringResource(R.string.privacy_title), onPrivacy) }
         }
     }
@@ -319,6 +323,40 @@ private fun RenameDialog(current: String, onRename: (String) -> Boolean, onDismi
         },
         confirmButton = { TextButton(onClick = save) { Text(stringResource(R.string.settings_save)) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.secret_close)) } },
+    )
+}
+
+@Composable
+private fun ShopSettings(shop: GameShop) {
+    val muted = MaterialTheme.colorScheme.onSurfaceVariant
+    val allPrice = shop.allPrice
+
+    Text(
+        text = stringResource(R.string.settings_shop),
+        style = MaterialTheme.typography.titleSmall,
+        fontWeight = FontWeight.Bold,
+    )
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = stringResource(R.string.settings_shop_all), style = MaterialTheme.typography.titleMedium)
+            Text(
+                text = stringResource(R.string.settings_shop_all_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = muted,
+            )
+        }
+        when {
+            shop.ownsAll() -> Text(stringResource(R.string.settings_shop_owned), color = muted)
+            shop.pending(Products.ALL_GAMES) -> Text(stringResource(R.string.settings_shop_pending), color = muted)
+            allPrice != null -> TextButton(onClick = { shop.buy(Products.ALL_GAMES) }) { Text(allPrice) }
+            else -> Text(stringResource(R.string.settings_shop_unavailable), color = muted)
+        }
+    }
+    TextButton(onClick = shop.restore) { Text(stringResource(R.string.settings_shop_restore)) }
+    Text(
+        text = stringResource(R.string.settings_shop_restore_hint),
+        style = MaterialTheme.typography.bodySmall,
+        color = muted,
     )
 }
 

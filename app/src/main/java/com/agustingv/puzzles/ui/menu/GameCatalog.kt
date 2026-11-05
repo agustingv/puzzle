@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import com.agustingv.puzzles.R
+import com.agustingv.puzzles.data.Products
 import com.agustingv.puzzles.game.Difficulty
 import com.agustingv.puzzles.game.word.WordList
 import com.agustingv.puzzles.ui.theme.Accent
@@ -20,7 +21,8 @@ private val BY_LENGTH = WordList.LENGTHS.map { it.toString() }
 /**
  * Every game, in menu order. [id] names its saved game and records. Icons are kept to old emoji:
  * minSdk 24 has no glyph for newer ones like 🟩, 🪢 or 🧠. [variants] are a game's difficulties or
- * word lengths. [gradient] is its colour pair, the same one each game has on the web.
+ * word lengths. [gradient] is its colour pair, the same one each game has on the web. A [paid] game
+ * is bought on its own (its [productId]) or with all of them, see [Products].
  */
 enum class GameInfo(
     val id: String,
@@ -29,6 +31,7 @@ enum class GameInfo(
     @param:StringRes val description: Int,
     val variants: List<String>,
     val gradient: List<Color>,
+    val paid: Boolean = false,
 ) {
     RACE("race", "🏁", R.string.race_title, R.string.race_description, BY_LENGTH, listOf(Pink, Purple)),
     HANGMAN("hangman", "🎯", R.string.hangman_title, R.string.hangman_description, BY_LENGTH, listOf(Warn, Danger)),
@@ -40,8 +43,15 @@ enum class GameInfo(
     PATH("path", "🔗", R.string.path_title, R.string.path_description, BY_DIFFICULTY, listOf(Pink, Accent)),
     KAKURO("kakuro", "➕", R.string.kakuro_title, R.string.kakuro_description, BY_DIFFICULTY, listOf(Purple, Accent)),
     MEMORAMA("memorama", "🃏", R.string.memorama_title, R.string.memorama_description, BY_DIFFICULTY, listOf(Purple, Warn)),
-    SLIDING("sliding", "🔀", R.string.sliding_title, R.string.sliding_description, BY_DIFFICULTY, listOf(Danger, Accent)),
+    // Provisional, to try the purchases out on the compras branch.
+    SLIDING("sliding", "🔀", R.string.sliding_title, R.string.sliding_description, BY_DIFFICULTY, listOf(Danger, Accent), paid = true),
 }
+
+/** The Google Play product that opens this game; null for a free one. */
+val GameInfo.productId: String? get() = if (paid) Products.forGame(id) else null
+
+/** The products of every paid game, for Google Play to price. */
+val PAID_GAME_PRODUCTS: List<String> = GameInfo.entries.mapNotNull { it.productId }
 
 val GameInfo.usesWordLengths: Boolean get() = variants === BY_LENGTH
 
