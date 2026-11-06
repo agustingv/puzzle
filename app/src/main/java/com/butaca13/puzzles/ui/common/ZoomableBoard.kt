@@ -102,7 +102,9 @@ class BoardZoomState {
  * Square board that can optionally zoom: two fingers pinch and pan, as do the +/− buttons, which
  * keep zoom reachable for anyone who cannot pinch. What one finger does depends on the game: with
  * [singleFingerPans] a drag moves the board (only tapping selects), otherwise the drag is reported.
- * Callbacks receive positions as fractions of the board, so games can stay unaware of the zoom.
+ * With [onDoubleTap], a second tap soon after one and near it is reported as such, instead of as a
+ * tap: the first one has been reported already, at once, so that a single tap never waits. Callbacks
+ * receive positions as fractions of the board, so games can stay unaware of the zoom.
  */
 @Composable
 fun ZoomableBoard(
@@ -116,6 +118,7 @@ fun ZoomableBoard(
     onDrag: (Offset) -> Unit = {},
     onDragEnd: () -> Unit = {},
     onDragCancel: () -> Unit = {},
+    onDoubleTap: ((Offset) -> Unit)? = null,
     content: @Composable (boardSide: Dp) -> Unit,
 ) {
     val boardSide = if (zoomEnabled) side - ControlsHeight - ControlsGap else side
@@ -126,6 +129,7 @@ fun ZoomableBoard(
     val dragCancel by rememberUpdatedState(onDragCancel)
     val zooms by rememberUpdatedState(zoomEnabled)
     val pans by rememberUpdatedState(singleFingerPans)
+    val doubleTap by rememberUpdatedState(onDoubleTap)
 
     Column(
         modifier = modifier.width(side),
@@ -140,6 +144,10 @@ fun ZoomableBoard(
                 .systemGestureExclusion()
                 .onSizeChanged { state.viewport = it.width.toFloat() }
                 .pointerInput(state) {
+                    // The last single tap: where it was, and when its finger lifted.
+                    var lastTap: Offset? = null
+                    var lastTapUp = 0L
+
                     awaitEachGesture {
                         val down = awaitFirstDown()
                         down.consume()
@@ -165,7 +173,22 @@ fun ZoomableBoard(
                                 }
 
                                 when (mode) {
-                                    GestureMode.UNDECIDED -> tap(state.toBoardFraction(down.position))
+                                    GestureMode.UNDECIDED -> {
+                                        val second = doubleTap
+                                        val previousTap = lastTap
+                                        val isDouble = second != null && previousTap != null &&
+                                            down.uptimeMillis - lastTapUp <= viewConfiguration.doubleTapTimeoutMillis &&
+                                            (down.position - previousTap).getDistance() <= viewConfiguration.touchSlop * 4
+                                        if (isDouble) {
+                                            second(state.toBoardFraction(down.position))
+                                            // A third tap starts over, as a single one.
+                                            lastTap = null
+                                        } else {
+                                            tap(state.toBoardFraction(down.position))
+                                            lastTap = down.position
+                                            lastTapUp = event.changes.firstOrNull { it.id == down.id }?.uptimeMillis ?: down.uptimeMillis
+                                        }
+                                    }
                                     GestureMode.DRAG -> {
                                         drag(state.toBoardFraction(lift))
                                         dragEnd()

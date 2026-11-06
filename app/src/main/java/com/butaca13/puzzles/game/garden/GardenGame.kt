@@ -44,16 +44,25 @@ data class GardenGame(
         return rowGap == 0 || columnGap == 0 || beds[a] == beds[b] || (rowGap <= 1 && columnGap <= 1)
     }
 
-    /** A tap goes round: empty, marked as ruled out, flower, and empty again. */
+    /** A tap rules a cell out, or takes the mark away. A flower stays: a brush must not uproot it. */
     fun tap(cell: Int): GardenGame {
         if (isComplete || cell !in cells.indices) return this
 
-        val next = when (cells[cell]) {
-            GardenCell.EMPTY -> GardenCell.MARK
-            GardenCell.MARK -> GardenCell.FLOWER
-            GardenCell.FLOWER -> GardenCell.EMPTY
+        return when (cells[cell]) {
+            GardenCell.EMPTY -> withCell(cell, GardenCell.MARK)
+            GardenCell.MARK -> withCell(cell, GardenCell.EMPTY)
+            GardenCell.FLOWER -> this
         }
-        return withCell(cell, next)
+    }
+
+    /**
+     * A double tap plants a flower, over a mark too, or takes one away. Its first tap has already come
+     * in as a [tap], which changed only the mark: either way, the cell had no flower before.
+     */
+    fun toggleFlower(cell: Int): GardenGame {
+        if (isComplete || cell !in cells.indices) return this
+
+        return withCell(cell, if (cells[cell] == GardenCell.FLOWER) GardenCell.EMPTY else GardenCell.FLOWER)
     }
 
     /** A drag rules out the empty cells it crosses, and leaves flowers and marks alone. */

@@ -7,14 +7,24 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalDensity
@@ -84,78 +94,70 @@ private fun Board(game: GardenGame, side: Dp, viewModel: GardenViewModel) {
         return row * size + col
     }
 
+    // The cell of the last single tap: a double tap plants only where its first tap fell, and two quick
+    // taps on neighbouring cells are two single ones.
+    var lastTap by remember { mutableIntStateOf(-1) }
+
     ZoomableBoard(
         side = side,
         state = zoom,
         zoomEnabled = false,
-        onTap = { viewModel.tap(cellAt(it)) },
+        onTap = {
+            lastTap = cellAt(it)
+            viewModel.tap(lastTap)
+        },
+        onDoubleTap = {
+            val cell = cellAt(it)
+            if (cell == lastTap) viewModel.toggleFlower(cell) else viewModel.tap(cell)
+            lastTap = -1
+        },
         onDragStart = { viewModel.mark(cellAt(it)) },
         onDrag = { viewModel.mark(cellAt(it)) },
     ) { boardSide ->
         val cell = boardSide / size
+        val colors = remember(game.beds) { bedColors(game.beds, size) }
 
         Box(modifier = Modifier.size(boardSide)) {
             Column {
                 for (row in 0 until size) {
                     Row {
                         for (col in 0 until size) {
-                            GardenCellView(game, row * size + col, row, col, cell) {
-                                viewModel.tap(row * size + col)
-                            }
+                            GardenCellView(
+                                game, row * size + col, row, col, cell, colors,
+                                onTap = { viewModel.tap(row * size + col) },
+                                onToggleFlower = { viewModel.toggleFlower(row * size + col) },
+                            )
                         }
                     }
                 }
-            }
-
-            // Bold lines between beds: the shape of each one must not depend on telling colours apart.
-            Canvas(modifier = Modifier.fillMaxSize()) {
-                val step = this.size.width / size
-                val fine = 0.5.dp.toPx()
-                val bold = 2.5.dp.toPx()
-
-                fun line(from: Offset, to: Offset, strong: Boolean) {
-                    drawLine(
-                        color = if (strong) GardenInk else GardenInk.copy(alpha = 0.18f),
-                        start = from,
-                        end = to,
-                        strokeWidth = if (strong) bold else fine,
-                    )
-                }
-
-                for (row in 0 until size) {
-                    for (col in 0 until size) {
-                        val here = row * size + col
-                        val x = col * step
-                        val y = row * step
-                        if (col + 1 < size) {
-                            line(Offset(x + step, y), Offset(x + step, y + step), game.beds[here] != game.beds[here + 1])
-                        }
-                        if (row + 1 < size) {
-                            line(Offset(x, y + step), Offset(x + step, y + step), game.beds[here] != game.beds[here + size])
-                        }
-                    }
-                }
-
-                val end = this.size.width
-                line(Offset(0f, 0f), Offset(end, 0f), true)
-                line(Offset(0f, end), Offset(end, end), true)
-                line(Offset(0f, 0f), Offset(0f, end), true)
-                line(Offset(end, 0f), Offset(end, end), true)
             }
         }
     }
 }
 
 @Composable
-private fun GardenCellView(game: GardenGame, index: Int, row: Int, col: Int, side: Dp, onTap: () -> Unit) {
+private fun GardenCellView(
+    game: GardenGame,
+    index: Int,
+    row: Int,
+    col: Int,
+    side: Dp,
+    /** The pastel of each bed, from [bedColors]. */
+    colors: List<Int>,
+    onTap: () -> Unit,
+    onToggleFlower: () -> Unit,
+) {
     val state = game.cells[index]
     val clashing = index in game.conflicts
     val bed = game.beds[index]
-    val base = lerp(GardenBeds[bed % GardenBeds.size], Color.Black, BedDim)
+    val base = lerp(GardenBeds[colors[bed]], Color.Black, BedDim)
+    val markColor = lerp(base, Color.Black, 0.42f)
     val density = LocalDensity.current
     val flowerSize = with(density) { (side * 0.62f).toSp() }
-    val markSize = with(density) { (side * 0.42f).toSp() }
 
+    // Screen readers have no double tap of their own to spare: planting is an action of the cell.
+    val markLabel = stringResource(if (state == GardenCell.MARK) R.string.garden_action_unmark else R.string.garden_action_mark)
+    val flowerLabel = stringResource(if (state == GardenCell.FLOWER) R.string.garden_action_unplant else R.string.garden_action_plant)
     val description = stringResource(
         when {
             clashing -> R.string.garden_cell_clash
@@ -168,26 +170,40 @@ private fun GardenCellView(game: GardenGame, index: Int, row: Int, col: Int, sid
         bed + 1,
     )
 
+    val fill = when {
+        game.isComplete && state == GardenCell.FLOWER -> Accent.copy(alpha = 0.55f).compositeOver(base)
+        clashing -> Danger.copy(alpha = 0.5f).compositeOver(base)
+        else -> base
+    }
+    val shape = RoundedCornerShape(side * 0.16f)
+
+    // Each cell a raised tile, like the title's, with a little room around it.
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .size(side)
-            .background(
-                when {
-                    game.isComplete && state == GardenCell.FLOWER -> Accent.copy(alpha = 0.55f).compositeOver(base)
-                    clashing -> Danger.copy(alpha = 0.5f).compositeOver(base)
-                    else -> base
-                },
-            )
-            .then(if (clashing) Modifier.border(2.dp, Danger) else Modifier)
+            .padding(side * 0.05f)
+            .shadow(side * 0.06f, shape)
+            // Lit from above: a touch lighter at the top, a touch darker at the bottom.
+            .background(Brush.verticalGradient(listOf(lerp(fill, Color.White, 0.18f), fill, lerp(fill, Color.Black, 0.06f))), shape)
+            .then(if (clashing) Modifier.border(2.dp, Danger, shape) else Modifier)
             .clearAndSetSemantics {
                 contentDescription = description
-                onClick { onTap(); true }
+                if (state != GardenCell.FLOWER) onClick(label = markLabel) { onTap(); true }
+                customActions = listOf(CustomAccessibilityAction(flowerLabel) { onToggleFlower(); true })
             },
     ) {
         when (state) {
             GardenCell.FLOWER -> Text(text = "🌻", fontSize = flowerSize)
-            GardenCell.MARK -> Text(text = "×", fontSize = markSize, fontWeight = FontWeight.Bold, color = GardenInk)
+            // Drawn, not a "×" glyph, which fills only part of its box: corner to corner over 90% of the
+            // tile, in a deeper shade of its own bed, so that it reads without standing out from the pastels.
+            GardenCell.MARK -> Canvas(modifier = Modifier.fillMaxSize(0.9f)) {
+                val stroke = this.size.width * 0.06f
+                val inset = stroke / 2
+                val end = this.size.width - inset
+                drawLine(markColor, Offset(inset, inset), Offset(end, end), stroke, StrokeCap.Round)
+                drawLine(markColor, Offset(end, inset), Offset(inset, end), stroke, StrokeCap.Round)
+            }
             GardenCell.EMPTY -> Unit
         }
     }

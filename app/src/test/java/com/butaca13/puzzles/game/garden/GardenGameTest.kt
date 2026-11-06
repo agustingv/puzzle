@@ -20,24 +20,36 @@ class GardenGameTest {
     private val game = GardenGame(5, Difficulty.EASY, beds)
 
     private fun GardenGame.plant(vararg cells: Int) =
-        cells.fold(this) { g, c -> g.tap(c).tap(c) }
+        cells.fold(this) { g, c -> g.toggleFlower(c) }
 
     @Test
-    fun `a tap goes round empty, marked, flower and back`() {
+    fun `a tap puts a mark on or takes it off, and leaves a flower alone`() {
         val marked = game.tap(0)
         assertEquals(GardenCell.MARK, marked.cells[0])
+        assertEquals(GardenCell.EMPTY, marked.tap(0).cells[0])
 
-        val flower = marked.tap(0)
-        assertEquals(GardenCell.FLOWER, flower.cells[0])
-        assertEquals(listOf(0), flower.flowers)
+        val flower = game.toggleFlower(0)
+        assertSame(flower, flower.tap(0))
+    }
 
-        assertEquals(GardenCell.EMPTY, flower.tap(0).cells[0])
+    @Test
+    fun `a double tap plants a flower or takes it away, whatever its first tap did`() {
+        // From empty, the first tap marks the cell; from a mark, it takes the mark off.
+        for (start in listOf(game, game.tap(0))) {
+            val planted = start.tap(0).toggleFlower(0)
+            assertEquals(GardenCell.FLOWER, planted.cells[0])
+            assertEquals(listOf(0), planted.flowers)
+
+            // On a flower, the first tap does nothing and the second takes it away.
+            assertEquals(GardenCell.EMPTY, planted.tap(0).toggleFlower(0).cells[0])
+        }
     }
 
     @Test
     fun `out of range cells are ignored`() {
         assertSame(game, game.tap(-1))
         assertSame(game, game.tap(25))
+        assertSame(game, game.toggleFlower(25))
         assertSame(game, game.mark(25))
     }
 
@@ -142,7 +154,7 @@ class GardenGameTest {
 
                 assertEquals("$difficulty seed $seed", listOf(solution.sorted()), bruteForceSolutions(beds, size))
 
-                val played = solution.fold(game) { g, cell -> g.tap(cell).tap(cell) }
+                val played = solution.fold(game) { g, cell -> g.toggleFlower(cell) }
                 assertTrue(played.isComplete)
             }
 
@@ -152,7 +164,7 @@ class GardenGameTest {
 
     @Test
     fun `json round trip keeps the whole state`() {
-        val played = GardenGame.generate(Difficulty.HARD, Random(4)).tap(0).tap(5).tap(5)
+        val played = GardenGame.generate(Difficulty.HARD, Random(4)).tap(0).toggleFlower(5)
 
         assertEquals(played, GardenGame.fromJson(played.toJson()))
     }

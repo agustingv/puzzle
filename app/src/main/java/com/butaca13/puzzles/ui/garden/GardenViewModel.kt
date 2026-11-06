@@ -59,6 +59,8 @@ class GardenViewModel(application: Application) : AndroidViewModel(application) 
 
     fun mark(cell: Int) = play { it.mark(cell) }
 
+    fun toggleFlower(cell: Int) = play { it.toggleFlower(cell) }
+
     fun reset() = play { it.reset() }
 
     private fun play(action: (GardenGame) -> GardenGame) {
