@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
@@ -139,21 +140,44 @@ fun AvatarScreen(
 
             FoldingCard(
                 title = R.string.avatar_accessory,
-                summary = avatar.accessory?.label ?: stringResource(R.string.avatar_none),
+                summary = when (avatar.accessories.size) {
+                    0 -> stringResource(R.string.avatar_none)
+                    1 -> avatar.accessories[0].label
+                    else -> stringResource(R.string.avatar_accessories_count, avatar.accessories.size)
+                },
                 expanded = open == Section.ACCESSORY,
                 onToggle = { open = if (open == Section.ACCESSORY) null else Section.ACCESSORY },
-                preview = { avatar.accessory?.let { Emoji(it.emoji, SummarySize) } },
+                preview = {
+                    Row { avatar.accessories.forEach { Emoji(it.emoji, SummarySize * 0.8f) } }
+                },
             ) {
+                Text(
+                    text = stringResource(R.string.avatar_accessories_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
                 val choices = listOf<AvatarPiece?>(null) + AvatarCatalog.accessories
                 PieceGrid(choices, minCell = 58.dp) { accessory ->
                     val won = accessory == null || prizes.has(accessory)
                     val label = accessory?.label ?: stringResource(R.string.avatar_none)
+                    // "None" takes everything off; any other is put on or taken off, and takes the place
+                    // of the one worn in its slot.
+                    val worn = if (accessory == null) avatar.accessories.isEmpty() else avatar.wears(accessory)
                     PieceCell(
                         label = label,
                         description = if (won) label else stringResource(R.string.avatar_locked, label),
-                        selected = accessory == avatar.accessory,
+                        selected = worn,
                         enabled = won,
-                        onClick = { onChange(avatar.copy(accessory = accessory)) },
+                        role = if (accessory == null) Role.RadioButton else Role.Checkbox,
+                        onClick = {
+                            onChange(
+                                when {
+                                    accessory == null -> avatar.copy(accessories = emptyList())
+                                    worn -> avatar.takeOff(accessory)
+                                    else -> avatar.wear(accessory)
+                                },
+                            )
+                        },
                         showLabel = true,
                     ) {
                         AccessoryTile(accessory, won)
@@ -218,7 +242,7 @@ private fun FoldingCard(
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f),
             )
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(SummarySize + 6.dp)) { preview() }
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.heightIn(min = SummarySize + 6.dp).widthIn(min = SummarySize + 6.dp)) { preview() }
             Text(summary, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(
                 text = "▾",
@@ -271,6 +295,7 @@ private fun PieceCell(
     onClick: () -> Unit,
     description: String = label,
     enabled: Boolean = true,
+    role: Role = Role.RadioButton,
     showLabel: Boolean = false,
     shape: Shape = RoundedCornerShape(12.dp),
     picture: @Composable () -> Unit,
@@ -281,7 +306,7 @@ private fun PieceCell(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(2.dp),
         modifier = Modifier
-            .selectable(selected = selected, enabled = enabled, role = Role.RadioButton, onClick = onClick)
+            .selectable(selected = selected, enabled = enabled, role = role, onClick = onClick)
             .semantics { contentDescription = description },
     ) {
         Box(

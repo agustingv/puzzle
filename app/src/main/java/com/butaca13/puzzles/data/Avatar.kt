@@ -3,10 +3,23 @@ package com.butaca13.puzzles.data
 import java.text.Normalizer
 
 /**
- * One piece of an avatar. [id] is what the server stores: lowercase letters only, never changed once
- * released, or players would lose the piece. A [prize] piece has to be won before it can be used.
+ * Where an accessory goes on the avatar. One accessory per place: a free one in the corner, and the
+ * prizes on the head, the face or at the side, so that they can be worn together.
  */
-data class AvatarPiece(val id: String, val label: String, val emoji: String = "", val prize: Boolean = false)
+enum class AccessorySlot { CORNER, HEAD, FACE, HAND }
+
+/**
+ * One piece of an avatar. [id] is what the server stores: lowercase letters only, never changed once
+ * released, or players would lose the piece. A [prize] piece has to be won before it can be used. An
+ * accessory has its [slot].
+ */
+data class AvatarPiece(
+    val id: String,
+    val label: String,
+    val emoji: String = "",
+    val prize: Boolean = false,
+    val slot: AccessorySlot? = null,
+)
 
 /**
  * Every piece an avatar can have. The animals are the ones in the made up names, so that a new player's
@@ -44,11 +57,14 @@ object AvatarCatalog {
 
     /** A few to start with, and the prizes, won by playing (AvatarPrizes). */
     val accessories = listOf(
-        AvatarPiece("lazo", "Lazo", "🎀"), AvatarPiece("flor", "Flor", "🌸"),
-        AvatarPiece("estrella", "Estrella", "⭐"),
-        AvatarPiece("corona", "Corona", "👑", prize = true), AvatarPiece("chistera", "Chistera", "🎩", prize = true),
-        AvatarPiece("gafas", "Gafas", "🕶️", prize = true), AvatarPiece("trofeo", "Trofeo", "🏆", prize = true),
-        AvatarPiece("birrete", "Birrete", "🎓", prize = true),
+        AvatarPiece("lazo", "Lazo", "🎀", slot = AccessorySlot.CORNER),
+        AvatarPiece("flor", "Flor", "🌸", slot = AccessorySlot.CORNER),
+        AvatarPiece("estrella", "Estrella", "⭐", slot = AccessorySlot.CORNER),
+        AvatarPiece("corona", "Corona", "👑", prize = true, slot = AccessorySlot.HEAD),
+        AvatarPiece("chistera", "Chistera", "🎩", prize = true, slot = AccessorySlot.HEAD),
+        AvatarPiece("gafas", "Gafas", "🕶️", prize = true, slot = AccessorySlot.FACE),
+        AvatarPiece("trofeo", "Trofeo", "🏆", prize = true, slot = AccessorySlot.HAND),
+        AvatarPiece("birrete", "Birrete", "🎓", prize = true, slot = AccessorySlot.HEAD),
     )
 
     fun animal(id: String) = animals.find { it.id == id }
@@ -65,21 +81,56 @@ object AvatarCatalog {
         Normalizer.normalize(text.lowercase(), Normalizer.Form.NFD).replace(Regex("\\p{M}"), "")
 }
 
-/** An avatar as the player put it together: an animal on a coloured tile, maybe with an accessory. */
-data class Avatar(val animal: AvatarPiece, val color: AvatarPiece, val accessory: AvatarPiece? = null) {
+/**
+ * An avatar as the player put it together: an animal on a coloured tile, with up to one accessory in
+ * each [AccessorySlot]. [accessories] are kept in the catalog's order, whatever order they were put on.
+ */
+class Avatar(val animal: AvatarPiece, val color: AvatarPiece, accessories: List<AvatarPiece> = emptyList()) {
 
-    /** The form the server keeps: `animal:color` or `animal:color:accessory`. */
-    fun encode(): String = listOfNotNull(animal.id, color.id, accessory?.id).joinToString(":")
+    val accessories: List<AvatarPiece> = accessories.distinct().sortedBy(AvatarCatalog.accessories::indexOf)
+
+    init {
+        require(accessories.all { it.slot != null }) { "not an accessory: $accessories" }
+        require(this.accessories.groupBy { it.slot }.all { it.value.size == 1 }) { "two in a slot: $accessories" }
+    }
+
+    fun wears(piece: AvatarPiece): Boolean = piece in accessories
+
+    /** The accessory in [slot], if any. */
+    fun accessoryIn(slot: AccessorySlot): AvatarPiece? = accessories.find { it.slot == slot }
+
+    /** Wearing [piece] too, in place of whatever was in its slot. */
+    fun wear(piece: AvatarPiece): Avatar = copy(accessories = accessories.filter { it.slot != piece.slot } + piece)
+
+    fun takeOff(piece: AvatarPiece): Avatar = copy(accessories = accessories - piece)
+
+    fun copy(
+        animal: AvatarPiece = this.animal,
+        color: AvatarPiece = this.color,
+        accessories: List<AvatarPiece> = this.accessories,
+    ) = Avatar(animal, color, accessories)
+
+    /** The form the server keeps: `animal:color`, then each accessory, as `animal:color:accessory:accessory`. */
+    fun encode(): String = (listOf(animal.id, color.id) + accessories.map { it.id }).joinToString(":")
+
+    override fun equals(other: Any?): Boolean =
+        other is Avatar && animal == other.animal && color == other.color && accessories == other.accessories
+
+    override fun hashCode(): Int = encode().hashCode()
+
+    override fun toString(): String = "Avatar(${encode()})"
 
     companion object {
         /** Null for anything that is not an avatar of the pieces this version knows. */
         fun decode(text: String): Avatar? {
             val parts = text.split(":")
-            if (parts.size !in 2..3) return null
+            if (parts.size < 2 || parts.size > 2 + AccessorySlot.entries.size) return null
             val animal = AvatarCatalog.animal(parts[0]) ?: return null
             val color = AvatarCatalog.color(parts[1]) ?: return null
-            val accessory = parts.getOrNull(2)?.let { AvatarCatalog.accessory(it) ?: return null }
-            return Avatar(animal, color, accessory)
+            val accessories = parts.drop(2).map { AvatarCatalog.accessory(it) ?: return null }
+            // Each in its own slot, and once.
+            if (accessories.map { it.slot }.toSet().size != accessories.size) return null
+            return Avatar(animal, color, accessories)
         }
 
         /**

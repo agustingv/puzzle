@@ -17,6 +17,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.Dp
+import com.butaca13.puzzles.data.AccessorySlot
 import com.butaca13.puzzles.data.Avatar
 import com.butaca13.puzzles.data.AvatarCatalog
 import com.butaca13.puzzles.data.AvatarPiece
@@ -31,9 +32,10 @@ fun avatarColor(color: AvatarPiece): Color {
 }
 
 /**
- * The player's avatar, drawn like the title's tiles: the animal on a raised pastel tile, and the
- * accessory, if any, over its top right corner, a little outside the tile. It says nothing to screen
- * readers: whatever holds it describes it.
+ * The player's avatar, drawn like the title's tiles: the animal on a raised pastel tile, and each
+ * accessory in its place: the free one over the top right corner, a hat on top, glasses over the eyes,
+ * and the trophy at the bottom right, those outside the tile sticking out a little. It says nothing to
+ * screen readers: whatever holds it describes it.
  */
 @Composable
 fun AvatarTile(avatar: Avatar, size: Dp, modifier: Modifier = Modifier) {
@@ -47,12 +49,18 @@ fun AvatarTile(avatar: Avatar, size: Dp, modifier: Modifier = Modifier) {
         ) {
             Emoji(avatar.animal.emoji, size * 0.62f)
         }
-        avatar.accessory?.let {
-            Emoji(
-                it.emoji,
-                size * 0.4f,
-                Modifier.align(Alignment.TopEnd).offset(x = size * 0.14f, y = -size * 0.14f),
-            )
+        // Glasses first, so that a hat or the trophy, sticking out, goes over them.
+        avatar.accessoryIn(AccessorySlot.FACE)?.let {
+            Emoji(it.emoji, size * 0.42f, Modifier.align(Alignment.Center).offset(y = -size * 0.06f))
+        }
+        avatar.accessoryIn(AccessorySlot.HEAD)?.let {
+            Emoji(it.emoji, size * 0.44f, Modifier.align(Alignment.TopCenter).offset(y = -size * 0.3f))
+        }
+        avatar.accessoryIn(AccessorySlot.HAND)?.let {
+            Emoji(it.emoji, size * 0.36f, Modifier.align(Alignment.BottomEnd).offset(x = size * 0.12f, y = size * 0.08f))
+        }
+        avatar.accessoryIn(AccessorySlot.CORNER)?.let {
+            Emoji(it.emoji, size * 0.4f, Modifier.align(Alignment.TopEnd).offset(x = size * 0.14f, y = -size * 0.14f))
         }
     }
 }

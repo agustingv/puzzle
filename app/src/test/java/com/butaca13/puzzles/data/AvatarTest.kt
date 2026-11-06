@@ -53,17 +53,61 @@ class AvatarTest {
     @Test
     fun `an avatar goes to the server and back unchanged`() {
         val plain = Avatar(AvatarCatalog.animals[1], AvatarCatalog.colors[2])
-        val dressed = plain.copy(accessory = AvatarCatalog.accessories[0])
+        val dressed = plain.wear(piece("lazo"))
+        val full = dressed.wear(piece("trofeo")).wear(piece("gafas")).wear(piece("chistera"))
 
         assertEquals("buho:lila", plain.encode())
         assertEquals("buho:lila:lazo", dressed.encode())
-        assertEquals(plain, Avatar.decode(plain.encode()))
-        assertEquals(dressed, Avatar.decode(dressed.encode()))
+        assertEquals("buho:lila:lazo:chistera:gafas:trofeo", full.encode())
+        for (avatar in listOf(plain, dressed, full)) assertEquals(avatar, Avatar.decode(avatar.encode()))
     }
 
     @Test
+    fun `the longest avatar fits the server's column`() {
+        val longest = Avatar(
+            AvatarCatalog.animals.maxBy { it.id.length },
+            AvatarCatalog.colors.maxBy { it.id.length },
+            AccessorySlot.entries.map { slot -> AvatarCatalog.accessories.filter { it.slot == slot }.maxBy { it.id.length } },
+        )
+        // puzzles-api: player.avatar is VARCHAR(200), each part at most 16 letters, up to eight accessories.
+        assertTrue(longest.encode(), longest.encode().length <= 200)
+        assertEquals(2 + AccessorySlot.entries.size, longest.encode().split(":").size)
+    }
+
+    @Test
+    fun `accessories in different places are worn together, one per place`() {
+        val avatar = Avatar(AvatarCatalog.animals[0], AvatarCatalog.colors[0])
+            .wear(piece("lazo")).wear(piece("chistera")).wear(piece("gafas"))
+
+        assertEquals(listOf("lazo", "chistera", "gafas"), avatar.accessories.map { it.id })
+
+        // Another hat, or another free one, takes the place of the one worn.
+        val swapped = avatar.wear(piece("corona")).wear(piece("flor"))
+        assertEquals(listOf("flor", "corona", "gafas"), swapped.accessories.map { it.id })
+
+        assertEquals(listOf("flor", "corona"), swapped.takeOff(piece("gafas")).accessories.map { it.id })
+        assertTrue(swapped.wears(piece("corona")))
+        assertFalse(swapped.wears(piece("chistera")))
+    }
+
+    @Test
+    fun `every accessory has its place, and every place has one`() {
+        for (piece in AvatarCatalog.accessories) assertNotNull(piece.id, piece.slot)
+        assertEquals(AccessorySlot.entries.toSet(), AvatarCatalog.accessories.map { it.slot }.toSet())
+        // The free ones share the corner, the prizes the other places.
+        assertTrue(AvatarCatalog.accessories.filter { !it.prize }.all { it.slot == AccessorySlot.CORNER })
+        assertTrue(AvatarCatalog.accessories.filter { it.prize }.none { it.slot == AccessorySlot.CORNER })
+    }
+
+    private fun piece(id: String) = AvatarCatalog.accessory(id)!!
+
+    @Test
     fun `anything else is not an avatar`() {
-        for (bad in listOf("", "buho", "buho:", "buho:lila:", "buho:lila:lazo:extra", "lince:lila", "buho:negro", "buho:lila:capa", "Buho:lila")) {
+        for (bad in listOf(
+            "", "buho", "buho:", "buho:lila:", "buho:lila:lazo:extra", "lince:lila", "buho:negro", "buho:lila:capa", "Buho:lila",
+            // Two in one place, or the same twice.
+            "buho:lila:lazo:flor", "buho:lila:corona:chistera", "buho:lila:gafas:gafas",
+        )) {
             assertNull(bad, Avatar.decode(bad))
         }
     }
@@ -75,7 +119,7 @@ class AvatarTest {
         val avatar = Avatar.initial("Ardilla Astuta 7", id)
 
         assertEquals("ardilla", avatar.animal.id)
-        assertNull(avatar.accessory)
+        assertEquals(emptyList<AvatarPiece>(), avatar.accessories)
         assertEquals(avatar, Avatar.initial("Ardilla Astuta 7", id))
     }
 

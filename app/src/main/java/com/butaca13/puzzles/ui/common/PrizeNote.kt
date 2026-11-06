@@ -75,9 +75,9 @@ fun PrizeNote(piece: AvatarPiece, modifier: Modifier = Modifier) {
             .padding(start = 12.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
     ) {
         // Room above and to the right for the accessory, which sticks out of the tile.
-        val wearing = shortcut?.avatar?.accessory == piece
+        val wearing = shortcut?.avatar?.wears(piece) == true
         if (shortcut != null) {
-            AvatarTile(shortcut.avatar.copy(accessory = piece), NoteAvatar, Modifier.padding(top = 6.dp, end = 6.dp))
+            AvatarTile(shortcut.avatar.wear(piece), NoteAvatar, Modifier.padding(top = 6.dp, end = 6.dp))
         } else {
             Emoji(piece.emoji, NoteAvatar)
         }

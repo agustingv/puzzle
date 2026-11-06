@@ -289,7 +289,7 @@ private fun PuzzlesApp() {
                 avatar = account.avatar,
                 open = { showAvatar = true },
                 wear = { piece ->
-                    account.changeAvatar(account.avatar.copy(accessory = piece))
+                    account.changeAvatar(account.avatar.wear(piece))
                     PlayerSyncScheduler.request(context)
                 },
             ),

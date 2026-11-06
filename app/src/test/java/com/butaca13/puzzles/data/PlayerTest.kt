@@ -121,7 +121,7 @@ class PlayerTest {
         account.changeAvatar(account.avatar)
         assertFalse(account.pending)
 
-        val other = Avatar(AvatarCatalog.animals[5], AvatarCatalog.colors[2], AvatarCatalog.accessories[0])
+        val other = Avatar(AvatarCatalog.animals[5], AvatarCatalog.colors[2], listOf(AvatarCatalog.accessories[0]))
         account.changeAvatar(other)
         assertTrue(account.pending)
         assertEquals(other, account(4).avatar)
@@ -218,7 +218,7 @@ class PlayerTest {
     @Test
     fun `an avatar changed while sending is sent too`() {
         val account = account()
-        val crowned = account.avatar.copy(accessory = AvatarCatalog.accessory("lazo"))
+        val crowned = account.avatar.wear(AvatarCatalog.accessory("lazo")!!)
         val changing = FakeApi {
             account.changeAvatar(crowned)
             SaveResult.Saved(it.name)
