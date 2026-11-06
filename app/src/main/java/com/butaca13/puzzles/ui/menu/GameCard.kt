@@ -34,6 +34,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.butaca13.puzzles.R
+import com.butaca13.puzzles.ui.theme.pastelBrush
 import com.butaca13.puzzles.data.SavedGame
 import com.butaca13.puzzles.ui.common.AvatarButton
 import com.butaca13.puzzles.ui.common.AppTitle
@@ -73,7 +74,7 @@ internal fun GameCard(info: GameInfo, widestTitle: Float, inProgress: Boolean, l
             modifier = Modifier
                 .fillMaxWidth()
                 .height(92.dp)
-                .background(Brush.linearGradient(info.gradient)),
+                .background(pastelBrush(info.gradient)),
         ) {
             Text(
                 text = info.icon,

@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import androidx.compose.ui.unit.sp
 import com.butaca13.puzzles.R
+import com.butaca13.puzzles.ui.theme.pastelBrush
 import com.butaca13.puzzles.data.SavedGame
 import com.butaca13.puzzles.ui.common.AppTitle
 import com.butaca13.puzzles.ui.common.AvatarButton
@@ -135,7 +136,7 @@ private fun GroupCard(group: GameGroup, widestTitle: Float, inProgress: Int, onC
         Column(modifier = Modifier.fillMaxSize().clearAndSetSemantics {}) {
             BoxWithConstraints(
                 contentAlignment = Alignment.Center,
-                modifier = Modifier.fillMaxWidth().weight(1f).background(Brush.linearGradient(group.gradient)),
+                modifier = Modifier.fillMaxWidth().weight(1f).background(pastelBrush(group.gradient)),
             ) {
                 // As large as the picture's share of the card allows, which depends on the phone.
                 val iconSize = with(LocalDensity.current) { (min(maxHeight, maxWidth) * 0.5f).toSp() }
@@ -238,7 +239,7 @@ private fun FavoriteCard(info: GameInfo, inProgress: Boolean, locked: Boolean, o
         Column(modifier = Modifier.fillMaxSize().clearAndSetSemantics {}) {
             Box(
                 contentAlignment = Alignment.Center,
-                modifier = Modifier.fillMaxWidth().weight(1f).background(Brush.linearGradient(info.gradient)),
+                modifier = Modifier.fillMaxWidth().weight(1f).background(pastelBrush(info.gradient)),
             ) {
                 Text(text = info.icon, fontSize = 34.sp)
                 // Small as the card is, "in progress" fits; a padlock says locked.

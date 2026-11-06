@@ -8,12 +8,12 @@ import com.butaca13.puzzles.R
 import com.butaca13.puzzles.data.Products
 import com.butaca13.puzzles.game.Difficulty
 import com.butaca13.puzzles.game.word.WordList
-import com.butaca13.puzzles.ui.theme.Accent
-import com.butaca13.puzzles.ui.theme.Danger
-import com.butaca13.puzzles.ui.theme.Pink
-import com.butaca13.puzzles.ui.theme.Purple
-import com.butaca13.puzzles.ui.theme.Teal
-import com.butaca13.puzzles.ui.theme.Warn
+import com.butaca13.puzzles.ui.theme.PastelCoral
+import com.butaca13.puzzles.ui.theme.PastelLilac
+import com.butaca13.puzzles.ui.theme.PastelMint
+import com.butaca13.puzzles.ui.theme.PastelPeach
+import com.butaca13.puzzles.ui.theme.PastelPink
+import com.butaca13.puzzles.ui.theme.PastelTeal
 
 private val BY_DIFFICULTY = Difficulty.entries.map { it.name }
 private val BY_LENGTH = WordList.LENGTHS.map { it.toString() }
@@ -21,7 +21,7 @@ private val BY_LENGTH = WordList.LENGTHS.map { it.toString() }
 /**
  * Every game, in menu order. [id] names its saved game and records. Icons are kept to old emoji:
  * minSdk 24 has no glyph for newer ones like 🟩, 🪢 or 🧠. [variants] are a game's difficulties or
- * word lengths. [gradient] is its colour pair, the same one each game has on the web. A [paid] game
+ * word lengths. [gradient] is its pair of pastels, the web's colour pair made pastel. A [paid] game
  * is bought on its own (its [productId]) or with all of them, see [Products]. [group] is where the
  * home screen lists it.
  */
@@ -35,18 +35,18 @@ enum class GameInfo(
     val group: GameGroup,
     val paid: Boolean = false,
 ) {
-    RACE("race", "🏁", R.string.race_title, R.string.race_description, BY_LENGTH, listOf(Pink, Purple), GameGroup.LETTERS),
-    HANGMAN("hangman", "🎯", R.string.hangman_title, R.string.hangman_description, BY_LENGTH, listOf(Warn, Danger), GameGroup.LETTERS),
-    WORD("word", "🔠", R.string.word_title, R.string.word_description, BY_LENGTH, listOf(Accent, Teal), GameGroup.LETTERS),
-    WORD_SEARCH("wordsearch", "🔍", R.string.wordsearch_title, R.string.wordsearch_description, BY_DIFFICULTY, listOf(Purple, Pink), GameGroup.LETTERS),
-    CROSSWORD("crossword", "🧩", R.string.crossword_title, R.string.crossword_description, BY_DIFFICULTY, listOf(Warn, Purple), GameGroup.LETTERS),
-    SUDOKU("sudoku", "🔢", R.string.sudoku_title, R.string.sudoku_description, BY_DIFFICULTY, listOf(Accent, Pink), GameGroup.NUMBERS),
-    GARDEN("garden", "🌻", R.string.garden_title, R.string.garden_description, BY_DIFFICULTY, listOf(Accent, Warn), GameGroup.VARIOUS),
-    PATH("path", "🔗", R.string.path_title, R.string.path_description, BY_DIFFICULTY, listOf(Pink, Accent), GameGroup.VARIOUS),
-    KAKURO("kakuro", "➕", R.string.kakuro_title, R.string.kakuro_description, BY_DIFFICULTY, listOf(Purple, Accent), GameGroup.NUMBERS),
-    MEMORAMA("memorama", "🃏", R.string.memorama_title, R.string.memorama_description, BY_DIFFICULTY, listOf(Purple, Warn), GameGroup.VARIOUS),
+    RACE("race", "🏁", R.string.race_title, R.string.race_description, BY_LENGTH, listOf(PastelPink, PastelLilac), GameGroup.LETTERS),
+    HANGMAN("hangman", "🎯", R.string.hangman_title, R.string.hangman_description, BY_LENGTH, listOf(PastelPeach, PastelCoral), GameGroup.LETTERS),
+    WORD("word", "🔠", R.string.word_title, R.string.word_description, BY_LENGTH, listOf(PastelMint, PastelTeal), GameGroup.LETTERS),
+    WORD_SEARCH("wordsearch", "🔍", R.string.wordsearch_title, R.string.wordsearch_description, BY_DIFFICULTY, listOf(PastelLilac, PastelPink), GameGroup.LETTERS),
+    CROSSWORD("crossword", "🧩", R.string.crossword_title, R.string.crossword_description, BY_DIFFICULTY, listOf(PastelPeach, PastelLilac), GameGroup.LETTERS),
+    SUDOKU("sudoku", "🔢", R.string.sudoku_title, R.string.sudoku_description, BY_DIFFICULTY, listOf(PastelMint, PastelPink), GameGroup.NUMBERS),
+    GARDEN("garden", "🌻", R.string.garden_title, R.string.garden_description, BY_DIFFICULTY, listOf(PastelMint, PastelPeach), GameGroup.VARIOUS),
+    PATH("path", "🔗", R.string.path_title, R.string.path_description, BY_DIFFICULTY, listOf(PastelPink, PastelMint), GameGroup.VARIOUS),
+    KAKURO("kakuro", "➕", R.string.kakuro_title, R.string.kakuro_description, BY_DIFFICULTY, listOf(PastelLilac, PastelMint), GameGroup.NUMBERS),
+    MEMORAMA("memorama", "🃏", R.string.memorama_title, R.string.memorama_description, BY_DIFFICULTY, listOf(PastelLilac, PastelPeach), GameGroup.VARIOUS),
     // Provisional, to try the purchases out on the compras branch.
-    SLIDING("sliding", "🔀", R.string.sliding_title, R.string.sliding_description, BY_DIFFICULTY, listOf(Danger, Accent), GameGroup.NUMBERS, paid = true),
+    SLIDING("sliding", "🔀", R.string.sliding_title, R.string.sliding_description, BY_DIFFICULTY, listOf(PastelCoral, PastelMint), GameGroup.NUMBERS, paid = true),
 }
 
 /**
@@ -54,10 +54,10 @@ enum class GameInfo(
  * the others. A group may have no games yet, as [CARDS]: it shows as coming soon.
  */
 enum class GameGroup(@param:StringRes val title: Int, val icon: String, val gradient: List<Color>) {
-    LETTERS(R.string.group_letters, "🔤", listOf(Purple, Pink)),
-    NUMBERS(R.string.group_numbers, "🔢", listOf(Accent, Teal)),
-    CARDS(R.string.group_cards, "🃏", listOf(Danger, Warn)),
-    VARIOUS(R.string.group_various, "🎲", listOf(Warn, Accent)),
+    LETTERS(R.string.group_letters, "🔤", listOf(PastelLilac, PastelPink)),
+    NUMBERS(R.string.group_numbers, "🔢", listOf(PastelMint, PastelTeal)),
+    CARDS(R.string.group_cards, "🃏", listOf(PastelCoral, PastelPeach)),
+    VARIOUS(R.string.group_various, "🎲", listOf(PastelPeach, PastelMint)),
     ;
 
     val games: List<GameInfo> get() = GameInfo.entries.filter { it.group == this }

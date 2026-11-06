@@ -12,6 +12,8 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontVariation
@@ -27,10 +29,20 @@ val Warn = Color(0xFFFFA63E)
 val Danger = Color(0xFFFF5470)
 val Teal = Color(0xFF2DD4BF)
 
+/** The pastels: the garden's beds, the avatars' tiles and the cards' backgrounds. */
+val PastelMint = Color(0xFFA8E6CF)
+val PastelSky = Color(0xFFA9D6F5)
+val PastelLilac = Color(0xFFCDB4F6)
+val PastelPink = Color(0xFFF9B8CF)
+val PastelPeach = Color(0xFFFFD0A6)
+val PastelTeal = Color(0xFF8FD9D1)
+val PastelSand = Color(0xFFE5D3B3)
+val PastelLime = Color(0xFFCFE89A)
+val PastelCoral = Color(0xFFF7A89A)
+
 /** One colour per flower bed. Pastel in both themes: [BedDim] darkens them on the dark one. */
 val GardenBeds = listOf(
-    Color(0xFFA8E6CF), Color(0xFFA9D6F5), Color(0xFFCDB4F6), Color(0xFFF9B8CF), Color(0xFFFFD0A6),
-    Color(0xFF8FD9D1), Color(0xFFE5D3B3), Color(0xFFCFE89A), Color(0xFFF7A89A),
+    PastelMint, PastelSky, PastelLilac, PastelPink, PastelPeach, PastelTeal, PastelSand, PastelLime, PastelCoral,
 )
 
 /** Marks and lines drawn on a bed, which is light in both themes. */
@@ -199,3 +211,10 @@ fun PuzzlesTheme(dark: Boolean = isSystemInDarkTheme(), content: @Composable () 
         }
     }
 }
+
+/**
+ * A card's background: its pastels from top left to bottom right, darkened a little on the dark theme,
+ * like the garden's beds.
+ */
+@Composable
+fun pastelBrush(colors: List<Color>): Brush = Brush.linearGradient(colors.map { lerp(it, Color.Black, BedDim) })

@@ -64,6 +64,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.butaca13.puzzles.R
+import com.butaca13.puzzles.ui.theme.pastelBrush
 import com.butaca13.puzzles.data.Avatar
 import com.butaca13.puzzles.data.GlobalRankings
 import com.butaca13.puzzles.data.KeyValueStore
@@ -135,7 +136,7 @@ fun GameDetailScreen(
                     .fillMaxWidth()
                     .height(112.dp)
                     .clip(RoundedCornerShape(20.dp))
-                    .background(Brush.linearGradient(info.gradient)),
+                    .background(pastelBrush(info.gradient)),
             ) {
                 Text(text = info.icon, fontSize = 56.sp, modifier = Modifier.clearAndSetSemantics {})
                 if (onFavorite != null) FavoriteButton(favorite, onFavorite, Modifier.align(Alignment.TopEnd))
