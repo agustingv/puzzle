@@ -19,16 +19,16 @@ val keystoreProperties = rootProject.file("keystore.properties")
     ?.let { file -> Properties().apply { file.inputStream().use { load(it) } } }
 
 android {
-    namespace = "com.agustingv.puzzles"
+    namespace = "com.butaca13.puzzles"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "com.agustingv.puzzles"
+        applicationId = "com.butaca13.puzzles"
         minSdk = 24
         targetSdk = 37
-        versionCode = 1
+        versionCode = 2
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -71,6 +71,7 @@ android {
 
 dependencies {
     implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.billing.ktx)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
