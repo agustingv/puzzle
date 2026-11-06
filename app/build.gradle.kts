@@ -19,13 +19,13 @@ val keystoreProperties = rootProject.file("keystore.properties")
     ?.let { file -> Properties().apply { file.inputStream().use { load(it) } } }
 
 android {
-    namespace = "com.agustingv.puzzles"
+    namespace = "com.butaca13.puzzles"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "com.agustingv.puzzles"
+        applicationId = "com.butaca13.puzzles"
         minSdk = 24
         targetSdk = 37
         versionCode = 2
