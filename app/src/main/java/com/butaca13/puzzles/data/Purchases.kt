@@ -7,30 +7,14 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.android.billingclient.api.AcknowledgePurchaseParams
-import com.android.billingclient.api.BillingClient
-import com.android.billingclient.api.BillingClientStateListener
-import com.android.billingclient.api.BillingFlowParams
-import com.android.billingclient.api.BillingResult
-import com.android.billingclient.api.PendingPurchasesParams
-import com.android.billingclient.api.ProductDetails
-import com.android.billingclient.api.Purchase
-import com.android.billingclient.api.PurchasesUpdatedListener
-import com.android.billingclient.api.QueryProductDetailsParams
-import com.android.billingclient.api.QueryPurchasesParams
-import com.android.billingclient.api.acknowledgePurchase
-import com.android.billingclient.api.queryProductDetails
-import com.android.billingclient.api.queryPurchasesAsync
+import com.butaca13.puzzles.BuildConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.json.JSONArray
 import org.json.JSONException
-import kotlin.coroutines.resume
 
 /**
  * What can be bought, as one-time products in Google Play: each paid game on its own, and all of them,
@@ -102,26 +86,57 @@ data class PurchaseState(val owned: Set<String>, val pending: Set<String>, val t
     }
 }
 
+
+/** What the store says about a purchase flow once it ends, or about a purchase that changes meanwhile. */
+sealed interface StoreUpdate {
+    /** Bought, or waiting for its payment: [purchases] are only the ones that changed. */
+    data class Purchased(val purchases: List<StorePurchase>) : StoreUpdate
+
+    /** Bought before, on this account, but not known here. */
+    data object AlreadyOwned : StoreUpdate
+
+    data object Canceled : StoreUpdate
+
+    data class Failed(val reason: String) : StoreUpdate
+}
+
 /**
- * Google Play's billing: the prices of the products, buying them, and what this account owns. Each
- * purchase is acknowledged, or Google refunds it after three days. Without Google Play, as on a phone
- * without it or a build installed by hand, nothing can be bought and what was bought stays as kept.
+ * The store's side of buying: Google Play, or a simulated one to try purchases without it, see
+ * [FakeStore]. Each call that asks the store something gives null when it can not answer.
+ */
+interface Store {
+    /** Where [StoreUpdate]s go; set once, before anything is bought. */
+    fun setListener(listener: (StoreUpdate) -> Unit)
+
+    suspend fun connect(): Boolean
+
+    /** Each product's price as the store shows it, for those it sells. */
+    suspend fun prices(products: List<String>): Map<String, String>?
+
+    /** Everything this account owns or is paying for. */
+    suspend fun purchases(): List<StorePurchase>?
+
+    suspend fun acknowledge(token: String)
+
+    /** Opens the store's payment sheet. False when the product is not available to buy now. */
+    fun launchPurchase(activity: Activity, productId: String): Boolean
+}
+
+/**
+ * Buying games, whatever the store: the prices, what is paid and what is waiting, and what this account
+ * owns, kept in [entitlements]. Each purchase is acknowledged, or Google refunds it after three days.
+ * Without the store, as on a phone without Google Play, nothing can be bought and what was bought stays
+ * as kept.
  */
 @Stable
-class PlayBilling private constructor(context: Context, private val entitlements: Entitlements) :
-    PurchasesUpdatedListener {
-
-    private val client = BillingClient.newBuilder(context)
-        .setListener(this)
-        .enablePendingPurchases(PendingPurchasesParams.newBuilder().enableOneTimeProducts().build())
-        .enableAutoServiceReconnection()
-        .build()
-
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+class Billing(
+    private val store: Store,
+    private val entitlements: Entitlements,
+    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate),
+) {
     private val refreshing = Mutex()
-    private var details: Map<String, ProductDetails> = emptyMap()
 
-    /** Each product's price as Google Play shows it, in the player's currency and with taxes. */
+    /** Each product's price as the store shows it, in the player's currency and with taxes. */
     var prices by mutableStateOf<Map<String, String>>(emptyMap())
         private set
 
@@ -129,8 +144,12 @@ class PlayBilling private constructor(context: Context, private val entitlements
     var pending by mutableStateOf<Set<String>>(emptySet())
         private set
 
+    init {
+        store.setListener(::onUpdate)
+    }
+
     /**
-     * Asks Google Play for the prices of [products] and for what is owned, as on starting or coming back
+     * Asks the store for the prices of [products] and for what is owned, as on starting or coming back
      * to the app. [products] are the games' own; the one for all of them is always asked for.
      */
     fun refresh(products: List<String>) {
@@ -138,8 +157,8 @@ class PlayBilling private constructor(context: Context, private val entitlements
             // One at a time: coming back to the app while a refresh is under way asks for nothing more.
             if (!refreshing.tryLock()) return@launch
             try {
-                if (!connect()) return@launch
-                loadPrices(products + Products.ALL_GAMES)
+                if (!store.connect()) return@launch
+                store.prices((products + Products.ALL_GAMES).distinct())?.let { prices = it }
                 loadPurchases()
             } finally {
                 refreshing.unlock()
@@ -147,85 +166,30 @@ class PlayBilling private constructor(context: Context, private val entitlements
         }
     }
 
-    /** Opens Google Play's payment sheet. False when the product is not available to buy now. */
-    fun buy(activity: Activity, productId: String): Boolean {
-        val product = details[productId] ?: return false
-        val offer = product.oneTimePurchaseOfferDetails ?: return false
-        val params = BillingFlowParams.newBuilder()
-            .setProductDetailsParamsList(
-                listOf(
-                    BillingFlowParams.ProductDetailsParams.newBuilder()
-                        .setProductDetails(product)
-                        // A product with several purchase options needs the one chosen: its only one here.
-                        .apply { offer.offerToken?.let(::setOfferToken) }
-                        .build(),
-                ),
-            )
-            .build()
-        return client.launchBillingFlow(activity, params).responseCode == BillingClient.BillingResponseCode.OK
-    }
+    /** Opens the store's payment sheet. False when the product is not available to buy now. */
+    fun buy(activity: Activity, productId: String): Boolean = store.launchPurchase(activity, productId)
 
-    override fun onPurchasesUpdated(result: BillingResult, purchases: List<Purchase>?) {
-        when (result.responseCode) {
-            BillingClient.BillingResponseCode.OK -> scope.launch { settle(purchases.orEmpty().map(::toStore), complete = false) }
-            // Bought before, on this account, but not known here: the full list says so.
-            BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED -> scope.launch { if (connect()) loadPurchases() }
-            BillingClient.BillingResponseCode.USER_CANCELED -> Unit
-            else -> Log.w(LOG_TAG, "Compra fallida: ${result.responseCode} ${result.debugMessage}")
+    private fun onUpdate(update: StoreUpdate) {
+        when (update) {
+            is StoreUpdate.Purchased -> scope.launch { settle(update.purchases, complete = false) }
+            // The full list says so.
+            StoreUpdate.AlreadyOwned -> scope.launch { if (store.connect()) loadPurchases() }
+            StoreUpdate.Canceled -> Unit
+            is StoreUpdate.Failed -> Log.w(LOG_TAG, "Compra fallida: ${update.reason}")
         }
-    }
-
-    private suspend fun connect(): Boolean {
-        if (client.isReady) return true
-        return suspendCancellableCoroutine { continuation ->
-            client.startConnection(object : BillingClientStateListener {
-                override fun onBillingSetupFinished(result: BillingResult) {
-                    val ready = result.responseCode == BillingClient.BillingResponseCode.OK
-                    if (!ready) Log.w(LOG_TAG, "Google Play no disponible: ${result.responseCode} ${result.debugMessage}")
-                    if (continuation.isActive) continuation.resume(ready)
-                }
-
-                // The client reconnects by itself (enableAutoServiceReconnection) on the next call.
-                override fun onBillingServiceDisconnected() {
-                    if (continuation.isActive) continuation.resume(false)
-                }
-            })
-        }
-    }
-
-    private suspend fun loadPrices(ids: List<String>) {
-        val products = ids.distinct().map {
-            QueryProductDetailsParams.Product.newBuilder()
-                .setProductId(it)
-                .setProductType(BillingClient.ProductType.INAPP)
-                .build()
-        }
-        val result = client.queryProductDetails(QueryProductDetailsParams.newBuilder().setProductList(products).build())
-        if (result.billingResult.responseCode != BillingClient.BillingResponseCode.OK) return
-
-        val found = result.productDetailsList.orEmpty()
-        details = found.associateBy { it.productId }
-        prices = found.mapNotNull { product ->
-            product.oneTimePurchaseOfferDetails?.formattedPrice?.let { product.productId to it }
-        }.toMap()
     }
 
     private suspend fun loadPurchases() {
-        val result = client.queryPurchasesAsync(
-            QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.INAPP).build(),
-        )
         // Without an answer, what was kept stays: a game paid for does not lock for want of a connection.
-        if (result.billingResult.responseCode != BillingClient.BillingResponseCode.OK) return
-        settle(result.purchasesList.map(::toStore), complete = true)
+        val purchases = store.purchases() ?: return
+        settle(purchases, complete = true)
     }
 
     /** [complete] when [purchases] is all this account owns, not just a purchase that has come in. */
     private suspend fun settle(purchases: List<StorePurchase>, complete: Boolean) {
         val state = PurchaseState.of(purchases)
-        for (token in state.toAcknowledge) {
-            // A failure is tried again on the next refresh: the purchase stays unacknowledged until then.
-            client.acknowledgePurchase(AcknowledgePurchaseParams.newBuilder().setPurchaseToken(token).build())
-        }
+        // A failure is tried again on the next refresh: the purchase stays unacknowledged until then.
+        for (token in state.toAcknowledge) store.acknowledge(token)
         if (complete) {
             entitlements.replace(state.owned)
             pending = state.pending
@@ -235,23 +199,31 @@ class PlayBilling private constructor(context: Context, private val entitlements
         }
     }
 
-    private fun toStore(purchase: Purchase) = StorePurchase(
-        products = purchase.products,
-        purchased = purchase.purchaseState == Purchase.PurchaseState.PURCHASED,
-        pending = purchase.purchaseState == Purchase.PurchaseState.PENDING,
-        acknowledged = purchase.isAcknowledged,
-        token = purchase.purchaseToken,
-    )
-
     companion object {
-        private const val LOG_TAG = "Purchases"
+        internal const val LOG_TAG = "Purchases"
 
         @Volatile
-        private var instance: PlayBilling? = null
+        private var instance: Billing? = null
 
-        /** One for the whole app, as Google recommends: a single connection to Google Play. */
-        fun of(context: Context): PlayBilling = instance ?: synchronized(this) {
-            instance ?: PlayBilling(context.applicationContext, entitlementsOf(context)).also { instance = it }
+        /** The simulated store, when this build uses it; null with Google Play. */
+        @Volatile
+        var fakeStore: FakeStore? = null
+            private set
+
+        /**
+         * One for the whole app, as Google recommends: a single connection to Google Play. Debug builds
+         * use a simulated store instead, unless built with -PfakeStore=false.
+         */
+        fun of(context: Context): Billing = instance ?: synchronized(this) {
+            instance ?: run {
+                val app = context.applicationContext
+                val store = if (BuildConfig.FAKE_STORE) {
+                    FakeStore(AppStorage.of(app)).also { fakeStore = it }
+                } else {
+                    PlayStore(app)
+                }
+                Billing(store, entitlementsOf(app)).also { instance = it }
+            }
         }
 
         @Volatile

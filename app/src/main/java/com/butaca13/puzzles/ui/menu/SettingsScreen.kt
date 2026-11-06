@@ -47,6 +47,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.butaca13.puzzles.R
+import com.butaca13.puzzles.data.FakeStore
 import com.butaca13.puzzles.data.Products
 import com.butaca13.puzzles.data.PlayerAccount
 import com.butaca13.puzzles.data.SyncStatus
@@ -71,6 +72,8 @@ fun SettingsScreen(
     onPrivacy: () -> Unit,
     onExit: () -> Unit,
     shop: GameShop = GameShop.Free,
+    /** The simulated store of debug builds, to be driven from here. */
+    fakeStore: FakeStore? = null,
 ) {
     BackHandler(onBack = onExit)
 
@@ -88,6 +91,7 @@ fun SettingsScreen(
             SettingsCard { SoundSettings(sounds) }
             // Only once there are games to buy.
             if (PAID_GAME_PRODUCTS.isNotEmpty()) SettingsCard { ShopSettings(shop) }
+            fakeStore?.let { SettingsCard { FakeStoreControls(it) } }
             SettingsCard { LinkRow(stringResource(R.string.privacy_title), onPrivacy) }
         }
     }

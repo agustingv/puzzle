@@ -13,6 +13,11 @@ plugins {
 // not for localhost, which the debug network config lets through without TLS.
 val apiUrl: String? = providers.gradleProperty("puzzlesApiUrl").orNull
 
+// Debug builds buy from a simulated store (FakeStore), to try purchases without Play Console; with
+// -PfakeStore=false they use Google Play, which needs the app uploaded there and a tester account.
+// Release builds always use Google Play.
+val fakeStore: Boolean = providers.gradleProperty("fakeStore").orNull?.toBoolean() ?: true
+
 // Signing secrets stay out of the repository. Without this file, release builds are simply unsigned.
 val keystoreProperties = rootProject.file("keystore.properties")
     .takeIf { it.exists() }
@@ -48,9 +53,11 @@ android {
     buildTypes {
         debug {
             buildConfigField("String", "API_URL", "\"${apiUrl ?: "https://api.puzzles.butaca13.com/api/v1/"}\"")
+            buildConfigField("boolean", "FAKE_STORE", fakeStore.toString())
         }
         release {
             buildConfigField("String", "API_URL", "\"${apiUrl.orEmpty()}\"")
+            buildConfigField("boolean", "FAKE_STORE", "false")
             if (keystoreProperties != null) signingConfig = signingConfigs.getByName("release")
             // Whole-app R8. Limiting it with packageScope to androidx and kotlin, as the project
             // template did, made the release build crash on launch with an IllegalAccessError.

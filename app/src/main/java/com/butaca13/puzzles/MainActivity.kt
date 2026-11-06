@@ -39,7 +39,8 @@ import com.butaca13.puzzles.ui.menu.productId
 import com.butaca13.puzzles.ui.menu.PAID_GAME_PRODUCTS
 import com.butaca13.puzzles.ui.menu.GameShop
 import com.butaca13.puzzles.data.Products
-import com.butaca13.puzzles.data.PlayBilling
+import com.butaca13.puzzles.data.Billing
+import com.butaca13.puzzles.ui.menu.FakeStoreSheet
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.activity.compose.LocalActivity
 import com.butaca13.puzzles.data.PlayerSyncScheduler
@@ -140,8 +141,8 @@ private fun PuzzlesApp() {
     val secret = remember { SecretProgress(storage) }
     val account = remember { PlayerAccount.of(context) }
     val prizes = remember { AvatarPrizes(storage) }
-    val billing = remember { PlayBilling.of(context) }
-    val entitlements = remember { PlayBilling.entitlementsOf(context) }
+    val billing = remember { Billing.of(context) }
+    val entitlements = remember { Billing.entitlementsOf(context) }
     val activity = LocalActivity.current
     // Google Play is asked again on every return to the app: a payment completed meanwhile, or a refund,
     // shows at once.
@@ -159,6 +160,8 @@ private fun PuzzlesApp() {
             restore = { billing.refresh(PAID_GAME_PRODUCTS) },
         )
     }
+    // The simulated store's payment sheet, over whatever screen it was opened from.
+    Billing.fakeStore?.let { FakeStoreSheet(it) }
     var secretSolved by remember { mutableStateOf(secret.solved) }
     val haptics = LocalHapticFeedback.current
     val animate = remember { animationsEnabled(context) }
@@ -258,6 +261,7 @@ private fun PuzzlesApp() {
             onPrivacy = { showPrivacy = true },
             onExit = { showSettings = false },
             shop = shop,
+            fakeStore = Billing.fakeStore,
         )
         return
     }

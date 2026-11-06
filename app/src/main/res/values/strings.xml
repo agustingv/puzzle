@@ -69,6 +69,22 @@
     <string name="settings_shop_unavailable">No disponible</string>
     <string name="settings_shop_restore">Restaurar compras</string>
     <string name="settings_shop_restore_hint">Las compras van con tu cuenta de Google: en otro móvil se recuperan solas al abrir la app.</string>
+    <!-- The simulated store of debug builds: never in a release build. -->
+    <string name="fake_store_title">Tienda simulada</string>
+    <string name="fake_store_sheet_hint">En lugar de Google Play, solo en las versiones de prueba.</string>
+    <string name="fake_store_pay">Pagar</string>
+    <string name="fake_store_pay_later">Pagar más tarde (pago pendiente)</string>
+    <string name="fake_store_fail">Fallar el pago</string>
+    <string name="fake_store_cancel">Cancelar</string>
+    <string name="fake_store_hint">Solo en las versiones de prueba. Lo que haga Google Play por su cuenta se hace aquí; la app lo ve al volver a ella o con «Restaurar compras».</string>
+    <string name="fake_store_available">Google Play disponible</string>
+    <string name="fake_store_not_bought">No comprado</string>
+    <string name="fake_store_waiting">Pago pendiente</string>
+    <string name="fake_store_paid">Pagado y reconocido por la app</string>
+    <string name="fake_store_paid_unacknowledged">Pagado, sin reconocer por la app</string>
+    <string name="fake_store_complete">Completar pago</string>
+    <string name="fake_store_abandon">No pagar</string>
+    <string name="fake_store_refund">Reembolsar</string>
     <string name="avatar_title">Tu avatar</string>
     <string name="avatar_change">Tu avatar. Cambiarlo</string>
     <string name="avatar_animal">Animal</string>
