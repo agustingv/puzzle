@@ -22,7 +22,8 @@ private val BY_LENGTH = WordList.LENGTHS.map { it.toString() }
  * Every game, in menu order. [id] names its saved game and records. Icons are kept to old emoji:
  * minSdk 24 has no glyph for newer ones like 🟩, 🪢 or 🧠. [variants] are a game's difficulties or
  * word lengths. [gradient] is its colour pair, the same one each game has on the web. A [paid] game
- * is bought on its own (its [productId]) or with all of them, see [Products].
+ * is bought on its own (its [productId]) or with all of them, see [Products]. [group] is where the
+ * home screen lists it.
  */
 enum class GameInfo(
     val id: String,
@@ -31,20 +32,35 @@ enum class GameInfo(
     @param:StringRes val description: Int,
     val variants: List<String>,
     val gradient: List<Color>,
+    val group: GameGroup,
     val paid: Boolean = false,
 ) {
-    RACE("race", "🏁", R.string.race_title, R.string.race_description, BY_LENGTH, listOf(Pink, Purple)),
-    HANGMAN("hangman", "🎯", R.string.hangman_title, R.string.hangman_description, BY_LENGTH, listOf(Warn, Danger)),
-    WORD("word", "🔠", R.string.word_title, R.string.word_description, BY_LENGTH, listOf(Accent, Teal)),
-    WORD_SEARCH("wordsearch", "🔍", R.string.wordsearch_title, R.string.wordsearch_description, BY_DIFFICULTY, listOf(Purple, Pink)),
-    CROSSWORD("crossword", "🧩", R.string.crossword_title, R.string.crossword_description, BY_DIFFICULTY, listOf(Warn, Purple)),
-    SUDOKU("sudoku", "🔢", R.string.sudoku_title, R.string.sudoku_description, BY_DIFFICULTY, listOf(Accent, Pink)),
-    GARDEN("garden", "🌻", R.string.garden_title, R.string.garden_description, BY_DIFFICULTY, listOf(Accent, Warn)),
-    PATH("path", "🔗", R.string.path_title, R.string.path_description, BY_DIFFICULTY, listOf(Pink, Accent)),
-    KAKURO("kakuro", "➕", R.string.kakuro_title, R.string.kakuro_description, BY_DIFFICULTY, listOf(Purple, Accent)),
-    MEMORAMA("memorama", "🃏", R.string.memorama_title, R.string.memorama_description, BY_DIFFICULTY, listOf(Purple, Warn)),
+    RACE("race", "🏁", R.string.race_title, R.string.race_description, BY_LENGTH, listOf(Pink, Purple), GameGroup.LETTERS),
+    HANGMAN("hangman", "🎯", R.string.hangman_title, R.string.hangman_description, BY_LENGTH, listOf(Warn, Danger), GameGroup.LETTERS),
+    WORD("word", "🔠", R.string.word_title, R.string.word_description, BY_LENGTH, listOf(Accent, Teal), GameGroup.LETTERS),
+    WORD_SEARCH("wordsearch", "🔍", R.string.wordsearch_title, R.string.wordsearch_description, BY_DIFFICULTY, listOf(Purple, Pink), GameGroup.LETTERS),
+    CROSSWORD("crossword", "🧩", R.string.crossword_title, R.string.crossword_description, BY_DIFFICULTY, listOf(Warn, Purple), GameGroup.LETTERS),
+    SUDOKU("sudoku", "🔢", R.string.sudoku_title, R.string.sudoku_description, BY_DIFFICULTY, listOf(Accent, Pink), GameGroup.NUMBERS),
+    GARDEN("garden", "🌻", R.string.garden_title, R.string.garden_description, BY_DIFFICULTY, listOf(Accent, Warn), GameGroup.VARIOUS),
+    PATH("path", "🔗", R.string.path_title, R.string.path_description, BY_DIFFICULTY, listOf(Pink, Accent), GameGroup.VARIOUS),
+    KAKURO("kakuro", "➕", R.string.kakuro_title, R.string.kakuro_description, BY_DIFFICULTY, listOf(Purple, Accent), GameGroup.NUMBERS),
+    MEMORAMA("memorama", "🃏", R.string.memorama_title, R.string.memorama_description, BY_DIFFICULTY, listOf(Purple, Warn), GameGroup.VARIOUS),
     // Provisional, to try the purchases out on the compras branch.
-    SLIDING("sliding", "🔀", R.string.sliding_title, R.string.sliding_description, BY_DIFFICULTY, listOf(Danger, Accent), paid = true),
+    SLIDING("sliding", "🔀", R.string.sliding_title, R.string.sliding_description, BY_DIFFICULTY, listOf(Danger, Accent), GameGroup.NUMBERS, paid = true),
+}
+
+/**
+ * The groups the home screen sorts the games into, in its order. [VARIOUS] takes those that fit none of
+ * the others. A group may have no games yet, as [CARDS]: it shows as coming soon.
+ */
+enum class GameGroup(@param:StringRes val title: Int, val icon: String, val gradient: List<Color>) {
+    LETTERS(R.string.group_letters, "🔤", listOf(Purple, Pink)),
+    NUMBERS(R.string.group_numbers, "🔢", listOf(Accent, Teal)),
+    CARDS(R.string.group_cards, "🃏", listOf(Danger, Warn)),
+    VARIOUS(R.string.group_various, "🎲", listOf(Warn, Accent)),
+    ;
+
+    val games: List<GameInfo> get() = GameInfo.entries.filter { it.group == this }
 }
 
 /** The Google Play product that opens this game; null for a free one. */

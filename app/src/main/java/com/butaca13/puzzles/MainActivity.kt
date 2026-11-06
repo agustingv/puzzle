@@ -40,6 +40,9 @@ import com.butaca13.puzzles.ui.menu.PAID_GAME_PRODUCTS
 import com.butaca13.puzzles.ui.menu.GameShop
 import com.butaca13.puzzles.data.Products
 import com.butaca13.puzzles.data.Billing
+import com.butaca13.puzzles.data.Favorites
+import com.butaca13.puzzles.ui.menu.GameGroup
+import com.butaca13.puzzles.ui.menu.GroupScreen
 import com.butaca13.puzzles.ui.menu.FakeStoreSheet
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.activity.compose.LocalActivity
@@ -111,6 +114,9 @@ private fun PuzzlesApp() {
     // Home, then a game's page, then playing it. A game in progress skips its page both ways: its
     // card goes straight to it and leaving it goes home. Its page comes back once no game is running.
     var opened by rememberSaveable { mutableStateOf<GameInfo?>(null) }
+    // The group whose games are listed, if one was opened: a game's page goes back to it. A favourite,
+    // opened from home, goes back home.
+    var group by rememberSaveable { mutableStateOf<GameGroup?>(null) }
     var playing by rememberSaveable { mutableStateOf(false) }
     var showPrivacy by rememberSaveable { mutableStateOf(false) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
@@ -141,6 +147,7 @@ private fun PuzzlesApp() {
     val secret = remember { SecretProgress(storage) }
     val account = remember { PlayerAccount.of(context) }
     val prizes = remember { AvatarPrizes(storage) }
+    val favorites = remember { Favorites(storage) }
     val billing = remember { Billing.of(context) }
     val entitlements = remember { Billing.entitlementsOf(context) }
     val activity = LocalActivity.current
@@ -191,6 +198,12 @@ private fun PuzzlesApp() {
         GameInfo.KAKURO -> kakuro.session.saved
         GameInfo.MEMORAMA -> memorama.session.saved
         GameInfo.SLIDING -> sliding.session.saved
+    }
+
+    fun openGame(info: GameInfo) {
+        opened = info
+        // A game no longer owned, refunded say, opens on its page, which offers to buy it.
+        playing = savedGame(info) != null && shop.unlocked(info)
     }
 
     fun stopPlaying() {
@@ -295,15 +308,20 @@ private fun PuzzlesApp() {
             ),
         ) {
             when {
-                game == null -> HomeScreen(
+                game == null && group == null -> HomeScreen(
                     saved = ::savedGame,
-                    onOpen = {
-                        opened = it
-                        // A game no longer owned, refunded say, opens on its page, which offers to buy it.
-                        playing = savedGame(it) != null && shop.unlocked(it)
-                    },
+                    onOpenGroup = { group = it },
+                    onOpen = ::openGame,
+                    favorites = favorites.ids.mapNotNull { id -> GameInfo.entries.find { it.id == id } },
                     secretSolved = secretSolved,
                     onSecret = { showSecret = true },
+                    shop = shop,
+                )
+                game == null -> GroupScreen(
+                    group = group!!,
+                    saved = ::savedGame,
+                    onOpen = ::openGame,
+                    onBack = { group = null },
                     shop = shop,
                 )
                 !playing -> GameDetailScreen(
@@ -315,6 +333,8 @@ private fun PuzzlesApp() {
                     onPlay = { variant -> startGame(game, variant) },
                     onBack = { opened = null },
                     shop = shop,
+                    favorite = game.id in favorites,
+                    onFavorite = { favorites.toggle(game.id) },
                 )
                 else -> when (game) {
                     GameInfo.RACE -> RaceScreen(race, ::stopPlaying)

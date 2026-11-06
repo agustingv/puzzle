@@ -60,8 +60,8 @@ class SecretMessageTest {
     }
 
     @Test
-    fun `an unknown title lights its first letter`() {
-        assertEquals(0, SecretMessage.letterIndexOf("Otro juego"))
+    fun `a title that is not a game's lights no letter, so that it is not taken for a clue`() {
+        assertEquals(-1, SecretMessage.letterIndexOf("Letras"))
         assertEquals(1, SecretMessage.letterIndexOf("Sudoku"))
     }
 

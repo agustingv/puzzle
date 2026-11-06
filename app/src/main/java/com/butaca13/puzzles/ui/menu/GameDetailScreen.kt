@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -56,6 +57,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -98,6 +100,9 @@ fun GameDetailScreen(
     onPlay: (variant: String) -> Unit,
     onBack: () -> Unit,
     shop: GameShop = GameShop.Free,
+    favorite: Boolean = false,
+    /** Adds the game to the favourites or takes it away; null where there are none, as in previews. */
+    onFavorite: (() -> Unit)? = null,
 ) {
     BackHandler(onBack = onBack)
 
@@ -133,6 +138,7 @@ fun GameDetailScreen(
                     .background(Brush.linearGradient(info.gradient)),
             ) {
                 Text(text = info.icon, fontSize = 56.sp, modifier = Modifier.clearAndSetSemantics {})
+                if (onFavorite != null) FavoriteButton(favorite, onFavorite, Modifier.align(Alignment.TopEnd))
             }
 
             Text(text = stringResource(info.description), color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -455,5 +461,36 @@ private fun updatedAgo(fetchedAt: Long): String {
         ago < DateUtils.HOUR_IN_MILLIS -> (ago / DateUtils.MINUTE_IN_MILLIS).toInt().let { pluralStringResource(R.plurals.ranking_minutes_ago, it, it) }
         ago < DateUtils.DAY_IN_MILLIS -> (ago / DateUtils.HOUR_IN_MILLIS).toInt().let { pluralStringResource(R.plurals.ranking_hours_ago, it, it) }
         else -> (ago / DateUtils.DAY_IN_MILLIS).toInt().let { pluralStringResource(R.plurals.ranking_days_ago, it, it) }
+    }
+}
+
+/** The star on a game's picture that keeps it among the favourites on the home screen. */
+@Composable
+private fun FavoriteButton(favorite: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val label = stringResource(if (favorite) R.string.favorite_remove else R.string.favorite_add)
+
+    IconButton(
+        onClick = onClick,
+        modifier = modifier
+            .padding(4.dp)
+            .semantics {
+                contentDescription = label
+                role = Role.Button
+            },
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(36.dp)
+                .clip(CircleShape)
+                .background(Color.Black.copy(alpha = 0.3f)),
+        ) {
+            Text(
+                text = if (favorite) "⭐" else "☆",
+                color = Color.White,
+                fontSize = if (favorite) 18.sp else 22.sp,
+                modifier = Modifier.clearAndSetSemantics {},
+            )
+        }
     }
 }

@@ -123,6 +123,23 @@
     <string name="settings_volume_value">%1$d %%</string>
     <string name="settings_volume_hint">Es una parte del volumen multimedia del móvil: si este está bajo, sonará bajo.</string>
     <string name="game_in_progress">En curso</string>
+    <string name="group_letters">Letras</string>
+    <string name="group_numbers">Números</string>
+    <string name="group_cards">Cartas</string>
+    <string name="group_various">Varios</string>
+    <string name="group_soon">Próximamente</string>
+    <plurals name="group_games">
+        <item quantity="one">%1$d juego</item>
+        <item quantity="other">%1$d juegos</item>
+    </plurals>
+    <plurals name="group_in_progress">
+        <item quantity="one">%1$d en curso</item>
+        <item quantity="other">%1$d en curso</item>
+    </plurals>
+    <string name="favorites_title">⭐ Favoritos</string>
+    <string name="favorites_empty">Marca un juego con ☆ en su página para tenerlo aquí a mano.</string>
+    <string name="favorite_add">Añadir a favoritos</string>
+    <string name="favorite_remove">Quitar de favoritos</string>
     <string name="records_mine">🏅 Tus mejores tiempos</string>
     <string name="ranking_global">🌍 Ranking global</string>
     <string name="ranking_empty">Nadie ha ganado todavía en este nivel.</string>

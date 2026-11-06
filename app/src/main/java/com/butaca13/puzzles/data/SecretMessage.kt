@@ -32,8 +32,11 @@ object SecretMessage {
     /** Spaces, capitals and accents do not matter. */
     fun isAnswer(guess: String): Boolean = normalised(guess) == normalised(ANSWER)
 
-    /** Which letter of this title is lit up, counting only letters. */
-    fun letterIndexOf(title: String): Int = clues.firstOrNull { it.title == title }?.letterIndex ?: 0
+    /**
+     * Which letter of this title is lit up, counting only letters: none (-1) for a title that is not a
+     * game's, as a group's, which would otherwise pass for a clue.
+     */
+    fun letterIndexOf(title: String): Int = clues.firstOrNull { it.title == title }?.letterIndex ?: -1
 
     internal fun normalised(text: String): String =
         Normalizer.normalize(text, Normalizer.Form.NFD)
