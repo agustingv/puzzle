@@ -70,6 +70,7 @@ fun HomeScreen(
     secretSolved: Boolean,
     onSecret: () -> Unit,
     shop: GameShop = GameShop.Free,
+    onStarfall: () -> Unit = {},
 ) {
     val widest = widestTitle(GameGroup.entries.map { stringResource(it.title) })
 
@@ -81,7 +82,7 @@ fun HomeScreen(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 12.dp),
         ) {
-            AppTitle(secretSolved, onSecret, Modifier.weight(1f))
+            AppTitle(secretSolved, onSecret, Modifier.weight(1f), onSolvedTile = onStarfall)
             AvatarButton(modifier = Modifier.padding(start = 4.dp))
             SettingsButton(modifier = Modifier.padding(start = 4.dp))
         }

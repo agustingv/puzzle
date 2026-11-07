@@ -31,6 +31,9 @@ import com.butaca13.puzzles.R
 import com.butaca13.puzzles.data.AppStorage
 import com.butaca13.puzzles.data.AvatarCatalog
 import com.butaca13.puzzles.data.AvatarPrizes
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.ui.unit.dp
 import com.butaca13.puzzles.data.GameEvent
 import com.butaca13.puzzles.data.PlayerAccount
 import com.butaca13.puzzles.data.GlobalRankings
@@ -89,6 +92,8 @@ import com.butaca13.puzzles.ui.menu.GameDetailScreen
 import com.butaca13.puzzles.ui.menu.HomeScreen
 import com.butaca13.puzzles.ui.menu.PrivacyScreen
 import com.butaca13.puzzles.ui.menu.SecretDialog
+import com.butaca13.puzzles.ui.starfall.StarfallScreen
+import com.butaca13.puzzles.ui.starfall.StarfallViewModel
 import com.butaca13.puzzles.ui.menu.SettingsScreen
 import com.butaca13.puzzles.ui.path.PathScreen
 import com.butaca13.puzzles.ui.path.PathViewModel
@@ -135,6 +140,7 @@ private fun PuzzlesApp() {
     var playing by rememberSaveable { mutableStateOf(false) }
     var showPrivacy by rememberSaveable { mutableStateOf(false) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
+    var showStarfall by rememberSaveable { mutableStateOf(false) }
     var showAvatar by rememberSaveable { mutableStateOf(false) }
     var showSecret by rememberSaveable { mutableStateOf(false) }
     // A prize won outside a game, by solving the message: shown on its own, as there is no result.
@@ -274,6 +280,13 @@ private fun PuzzlesApp() {
         return
     }
 
+    // The secret message's prize: a game of its own, over everything, from home or the Various group.
+    if (showStarfall) {
+        val starfall: StarfallViewModel = viewModel()
+        StarfallScreen(starfall, onExit = { showStarfall = false })
+        return
+    }
+
     // The privacy policy opens from the settings and goes back to them.
     if (showPrivacy) {
         PrivacyScreen(onExit = { showPrivacy = false })
@@ -347,6 +360,7 @@ private fun PuzzlesApp() {
                     secretSolved = secretSolved,
                     onSecret = { showSecret = true },
                     shop = shop,
+                    onStarfall = { showStarfall = true },
                 )
                 game == null -> GroupScreen(
                     group = group!!,
@@ -354,6 +368,7 @@ private fun PuzzlesApp() {
                     onOpen = ::openGame,
                     onBack = { group = null },
                     shop = shop,
+                    onStarfall = { showStarfall = true }.takeIf { secretSolved && group == GameGroup.VARIOUS },
                 )
                 !playing -> GameDetailScreen(
                     info = game,
@@ -395,11 +410,30 @@ private fun PuzzlesApp() {
                 )
             }
             newPrize?.let(AvatarCatalog::accessory)?.let { piece ->
+                // The crown comes with Starfall: the dialog says so, and can go straight to it.
+                val withStarfall = piece.id == AvatarPrizes.CROWN
                 AlertDialog(
                     onDismissRequest = { newPrize = null },
-                    text = { PrizeNote(piece) },
+                    text = {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            PrizeNote(piece)
+                            if (withStarfall) Text(stringResource(R.string.starfall_unlocked))
+                        }
+                    },
                     confirmButton = {
-                        TextButton(onClick = { newPrize = null }) { Text(stringResource(R.string.secret_close)) }
+                        if (withStarfall) {
+                            TextButton(onClick = {
+                                newPrize = null
+                                showStarfall = true
+                            }) { Text(stringResource(R.string.starfall_go)) }
+                        } else {
+                            TextButton(onClick = { newPrize = null }) { Text(stringResource(R.string.secret_close)) }
+                        }
+                    },
+                    dismissButton = if (withStarfall) {
+                        { TextButton(onClick = { newPrize = null }) { Text(stringResource(R.string.secret_close)) } }
+                    } else {
+                        null
                     },
                 )
             }

@@ -1,6 +1,25 @@
 package com.butaca13.puzzles.ui.menu
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Text
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.sp
+import com.butaca13.puzzles.R
+import com.butaca13.puzzles.ui.common.CardTitle
+import com.butaca13.puzzles.ui.theme.Card as CardColor
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -27,6 +46,8 @@ fun GroupScreen(
     onOpen: (GameInfo) -> Unit,
     onBack: () -> Unit,
     shop: GameShop = GameShop.Free,
+    /** The secret message's prize, listed here once it is solved; null until then. */
+    onStarfall: (() -> Unit)? = null,
 ) {
     BackHandler(onBack = onBack)
     // Measured over every game, not just this group's: a game's title tiles are the same size in all.
@@ -51,6 +72,38 @@ fun GroupScreen(
                     onClick = { onOpen(info) },
                 )
             }
+            if (onStarfall != null) {
+                item(key = "starfall") { StarfallCard(widest, onStarfall) }
+            }
         }
+    }
+}
+
+/** Starfall's card: like a game's, on the night sky it is played in. */
+@Composable
+private fun StarfallCard(widestTitle: Float, onClick: () -> Unit) {
+    val title = stringResource(R.string.starfall_card_title)
+    Card(
+        onClick = onClick,
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = CardColor),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        modifier = Modifier.fillMaxWidth().semantics { contentDescription = title },
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(92.dp)
+                .background(Brush.verticalGradient(listOf(Color(0xFF080A18), Color(0xFF26214A)))),
+        ) {
+            Text(text = "🚀", fontSize = 42.sp, modifier = Modifier.clearAndSetSemantics {})
+            Text(
+                text = "👑",
+                fontSize = 16.sp,
+                modifier = Modifier.align(Alignment.TopEnd).padding(8.dp).clearAndSetSemantics {},
+            )
+        }
+        CardTitle(title, widestTitle, Modifier.padding(horizontal = 12.dp, vertical = 10.dp))
     }
 }

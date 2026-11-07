@@ -93,7 +93,13 @@ internal fun lineWidth(line: String): Float =
 /** How many tiles wide the widest of these titles is: all cards share one tile size. */
 internal fun widestTitle(titles: List<String>): Float = titles.flatMap(::titleLines).maxOf(::lineWidth)
 
-private enum class TileStyle { RAISED, ON_CARD, LIT, PENDING }
+private enum class TileStyle { RAISED, ON_CARD, LIT, PENDING, GOLD }
+
+/** The secret message's tile once solved: gold, with dark letters that read on it. */
+private val GoldLight = Color(0xFFFFE07A)
+private val Gold = Color(0xFFF2B630)
+private val GoldDark = Color(0xFFC98B12)
+private val GoldInk = Color(0xFF5C3B00)
 
 @Composable
 private fun LetterTile(
@@ -118,6 +124,9 @@ private fun LetterTile(
         TileStyle.LIT -> Modifier
             .shadow(size / 7, shape, ambientColor = Accent, spotColor = Accent)
             .background(Brush.linearGradient(listOf(Accent, AccentDark)))
+        TileStyle.GOLD -> Modifier
+            .shadow(size / 7, shape, ambientColor = Gold, spotColor = Gold)
+            .background(Brush.linearGradient(listOf(GoldLight, Gold, GoldDark)))
         TileStyle.PENDING -> Modifier.drawBehind {
             val dash = size.toPx() * 0.11f
             drawRoundRect(
@@ -144,6 +153,7 @@ private fun LetterTile(
             color = when (style) {
                 TileStyle.RAISED, TileStyle.ON_CARD -> Ink
                 TileStyle.LIT -> Color.White
+                TileStyle.GOLD -> GoldInk
                 TileStyle.PENDING -> InkSoft
             },
         )
@@ -193,11 +203,13 @@ private fun TileLines(
 /**
  * The app's name as a row of letter tiles. Its last tile is the piece still to be placed: tapping it
  * leads to the secret message, with no visible hint that it can be tapped, and [solved] fills it in.
+ * Filled in, the tile opens the prize the message hides, [onSolvedTile].
  */
 @Composable
-internal fun AppTitle(solved: Boolean, onLastTile: () -> Unit, modifier: Modifier = Modifier) {
+internal fun AppTitle(solved: Boolean, onLastTile: () -> Unit, modifier: Modifier = Modifier, onSolvedTile: (() -> Unit)? = null) {
     val name = stringResource(R.string.app_name)
     val solveLabel = stringResource(R.string.secret_title)
+    val prizeLabel = stringResource(R.string.starfall_open)
 
     BoxWithConstraints(
         contentAlignment = Alignment.Center,
@@ -209,6 +221,11 @@ internal fun AppTitle(solved: Boolean, onLastTile: () -> Unit, modifier: Modifie
                 if (!solved) {
                     onClick(label = solveLabel) {
                         onLastTile()
+                        true
+                    }
+                } else if (onSolvedTile != null) {
+                    onClick(label = prizeLabel) {
+                        onSolvedTile()
                         true
                     }
                 }
@@ -224,9 +241,17 @@ internal fun AppTitle(solved: Boolean, onLastTile: () -> Unit, modifier: Modifie
             gap = AppTitleTileGap,
             plain = TileStyle.RAISED,
             letterRatio = APP_TITLE_LETTER_RATIO,
-            last = if (solved) TileStyle.LIT else TileStyle.PENDING,
+            last = if (solved) TileStyle.GOLD else TileStyle.PENDING,
             lastModifier = if (solved) {
-                Modifier
+                if (onSolvedTile == null) {
+                    Modifier
+                } else {
+                    Modifier.clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = onSolvedTile,
+                    )
+                }
             } else {
                 Modifier.clickable(
                     interactionSource = remember { MutableInteractionSource() },
