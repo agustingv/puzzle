@@ -34,7 +34,8 @@ fun avatarColor(color: AvatarPiece): Color {
 /**
  * The player's avatar, drawn like the title's tiles: the animal on a raised pastel tile, and each
  * accessory in its place: the free one over the top right corner, a hat on top, glasses over the eyes,
- * and the trophy at the bottom right, those outside the tile sticking out a little. It says nothing to
+ * the trophy at the bottom right and the medal at the bottom left, those outside the tile sticking out
+ * a little. It says nothing to
  * screen readers: whatever holds it describes it.
  */
 @Composable
@@ -58,6 +59,9 @@ fun AvatarTile(avatar: Avatar, size: Dp, modifier: Modifier = Modifier) {
         }
         avatar.accessoryIn(AccessorySlot.HAND)?.let {
             Emoji(it.emoji, size * 0.36f, Modifier.align(Alignment.BottomEnd).offset(x = size * 0.12f, y = size * 0.08f))
+        }
+        avatar.accessoryIn(AccessorySlot.CHEST)?.let {
+            Emoji(it.emoji, size * 0.36f, Modifier.align(Alignment.BottomStart).offset(x = -size * 0.12f, y = size * 0.08f))
         }
         avatar.accessoryIn(AccessorySlot.CORNER)?.let {
             Emoji(it.emoji, size * 0.4f, Modifier.align(Alignment.TopEnd).offset(x = size * 0.14f, y = -size * 0.14f))

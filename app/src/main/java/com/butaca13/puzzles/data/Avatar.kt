@@ -4,9 +4,10 @@ import java.text.Normalizer
 
 /**
  * Where an accessory goes on the avatar. One accessory per place: a free one in the corner, and the
- * prizes on the head, the face or at the side, so that they can be worn together.
+ * prizes on the head, the face, at the side or pinned on the other side, so that they can be worn
+ * together.
  */
-enum class AccessorySlot { CORNER, HEAD, FACE, HAND }
+enum class AccessorySlot { CORNER, HEAD, FACE, HAND, CHEST }
 
 /**
  * One piece of an avatar. [id] is what the server stores: lowercase letters only, never changed once
@@ -65,6 +66,7 @@ object AvatarCatalog {
         AvatarPiece("gafas", "Gafas", "🕶️", prize = true, slot = AccessorySlot.FACE),
         AvatarPiece("trofeo", "Trofeo", "🏆", prize = true, slot = AccessorySlot.HAND),
         AvatarPiece("birrete", "Birrete", "🎓", prize = true, slot = AccessorySlot.HEAD),
+        AvatarPiece("medalla", "Medalla", "🎖️", prize = true, slot = AccessorySlot.CHEST),
     )
 
     fun animal(id: String) = animals.find { it.id == id }

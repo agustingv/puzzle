@@ -283,7 +283,19 @@ private fun PuzzlesApp() {
     // The secret message's prize: a game of its own, over everything, from home or the Various group.
     if (showStarfall) {
         val starfall: StarfallViewModel = viewModel()
-        StarfallScreen(starfall, onExit = { showStarfall = false })
+        // The medal won at the end can be put on straight away, as any prize.
+        CompositionLocalProvider(
+            LocalAvatarShortcut provides AvatarShortcut(
+                avatar = account.avatar,
+                open = { showAvatar = true },
+                wear = { piece ->
+                    account.changeAvatar(account.avatar.wear(piece))
+                    PlayerSyncScheduler.request(context)
+                },
+            ),
+        ) {
+            StarfallScreen(starfall, onExit = { showStarfall = false })
+        }
         return
     }
 

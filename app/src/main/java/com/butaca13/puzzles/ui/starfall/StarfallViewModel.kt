@@ -7,6 +7,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import com.butaca13.puzzles.data.AppStorage
+import com.butaca13.puzzles.data.AvatarPiece
+import com.butaca13.puzzles.data.AvatarPrizes
+import com.butaca13.puzzles.game.starfall.Phase
 import com.butaca13.puzzles.game.starfall.Config
 import com.butaca13.puzzles.game.starfall.HighScores
 import com.butaca13.puzzles.game.starfall.ScoreEntry
@@ -28,6 +31,11 @@ class StarfallViewModel(application: Application) : AndroidViewModel(application
     val audio = StarfallAudio(application, GameSounds.of(application))
     val atlas = StarfallAtlas.load(application)
     val scores = HighScores(AppStorage.of(application))
+    private val prizes = AvatarPrizes(AppStorage.of(application))
+
+    /** The avatar prize the run just ended won: the medal, for freeing the Earth the first time. */
+    var prize: AvatarPiece? by mutableStateOf(null)
+        private set
 
     var stage by mutableStateOf(StarfallStage.TITLE)
         private set
@@ -55,6 +63,7 @@ class StarfallViewModel(application: Application) : AndroidViewModel(application
 
     fun play() {
         audio.play(Sfx.UI_SELECT, 0f, 1f)
+        prize = null
         world = World(Random.Default, audio)
         paused = false
         stage = StarfallStage.PLAYING
@@ -62,6 +71,7 @@ class StarfallViewModel(application: Application) : AndroidViewModel(application
 
     fun showScores() {
         audio.play(Sfx.UI_SELECT, 0f, 1f)
+        prize = null
         lastRow = -1
         lastScore = 0
         stage = StarfallStage.SCORES
@@ -106,6 +116,7 @@ class StarfallViewModel(application: Application) : AndroidViewModel(application
     private fun finish(w: World) {
         lastScore = w.score
         lastRow = scores.add(ScoreEntry(w.score, w.level, System.currentTimeMillis()))
+        prize = if (w.phase == Phase.VICTORY) prizes.recordStarfallWon() else null
         world = null
         stage = StarfallStage.SCORES
     }

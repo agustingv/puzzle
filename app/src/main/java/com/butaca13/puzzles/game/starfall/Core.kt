@@ -54,6 +54,9 @@ enum class Sfx(val file: String) {
     POWERUP("powerup"),
     UI_MOVE("ui_move"),
     UI_SELECT("ui_select"),
+
+    /** Not the original's: the victory fanfare, made by tools/generate_starfall_fanfare.py. */
+    FANFARE("fanfare"),
 }
 
 /**

@@ -34,6 +34,7 @@ fun prizeReason(piece: AvatarPiece): String = when (piece.id) {
     AvatarPrizes.CAP -> stringResource(R.string.prize_reason_birrete)
     AvatarPrizes.GLASSES -> stringResource(R.string.prize_reason_gafas)
     AvatarPrizes.TOP_HAT -> stringResource(R.string.prize_reason_chistera, AvatarPrizes.WINS_FOR_TOP_HAT)
+    AvatarPrizes.MEDAL -> stringResource(R.string.prize_reason_medalla)
     else -> ""
 }
 
@@ -47,6 +48,8 @@ fun prizeGoal(piece: AvatarPiece, prizes: AvatarPrizes): String {
         AvatarPrizes.TROPHY -> { goal = R.string.prize_goal_trofeo; args = arrayOf(prizes.gamesWon, AvatarPrizes.GAMES.size) }
         AvatarPrizes.CAP -> { goal = R.string.prize_goal_birrete; args = emptyArray() }
         AvatarPrizes.GLASSES -> { goal = R.string.prize_goal_gafas; args = emptyArray() }
+        // Not a word about Starfall: it stays a surprise until the message is solved.
+        AvatarPrizes.MEDAL -> { goal = R.string.prize_goal_medalla; args = emptyArray() }
         AvatarPrizes.TOP_HAT -> {
             goal = R.string.prize_goal_chistera
             args = arrayOf(minOf(prizes.wins, AvatarPrizes.WINS_FOR_TOP_HAT), AvatarPrizes.WINS_FOR_TOP_HAT)

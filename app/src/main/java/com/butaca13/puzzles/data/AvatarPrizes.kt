@@ -9,7 +9,8 @@ import com.butaca13.puzzles.game.word.WordList
  * - trofeo: winning every game at least once;
  * - birrete: winning a game on [Difficulty.EXPERT];
  * - gafas: beating one's own best time;
- * - chistera: winning [WINS_FOR_TOP_HAT] games.
+ * - chistera: winning [WINS_FOR_TOP_HAT] games;
+ * - medalla: freeing the Earth in Starfall, the secret message's prize.
  *
  * Kept on the phone, like the records it is worked out from. Once won, a prize stays.
  */
@@ -56,6 +57,9 @@ class AvatarPrizes(private val store: KeyValueStore) {
     /** The crown, if solving the message has just won it. */
     fun recordSecretSolved(): AvatarPiece? = prize(CROWN).takeIf(::win)
 
+    /** The medal, if finishing Starfall has just won it. */
+    fun recordStarfallWon(): AvatarPiece? = prize(MEDAL).takeIf(::win)
+
     /**
      * Once, for a player from before prizes: what their records and the message already earn. A best
      * time beaten can not be told from the records, and wins that fell out of them are not counted.
@@ -80,6 +84,7 @@ class AvatarPrizes(private val store: KeyValueStore) {
         const val CAP = "birrete"
         const val GLASSES = "gafas"
         const val TOP_HAT = "chistera"
+        const val MEDAL = "medalla"
         const val WINS_FOR_TOP_HAT = 50
 
         /** Every game: each one has its letter in the message. */

@@ -67,6 +67,8 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import com.butaca13.puzzles.R
 import com.butaca13.puzzles.game.starfall.Config
 import com.butaca13.puzzles.game.starfall.Palette
+import com.butaca13.puzzles.game.starfall.Phase
+import com.butaca13.puzzles.ui.common.PrizeNote
 import com.butaca13.puzzles.game.starfall.WeaponType
 import java.text.DateFormat
 import java.util.Date
@@ -304,7 +306,7 @@ private fun PlayControls(viewModel: StarfallViewModel, unit: Dp, frame: Long, bo
         }
 
         // The world is not Compose state: read again on every frame.
-        if (bombHere && frame > 0 && !viewModel.paused) {
+        if (bombHere && frame > 0 && !viewModel.paused && world.phase != Phase.DEAD && world.phase != Phase.VICTORY) {
             BombButton(viewModel, frame, unit * 76, Modifier.align(Alignment.BottomEnd).padding(unit * 16))
         }
 
@@ -326,6 +328,9 @@ private fun PlayControls(viewModel: StarfallViewModel, unit: Dp, frame: Long, bo
 /** Below the game on a tall phone: room for the finger, and the bomb button. */
 @Composable
 private fun Panel(viewModel: StarfallViewModel, frame: Long, modifier: Modifier) {
+    // Nothing to steer or throw once the run is over. The world is not Compose state: [frame] has it read again.
+    val phase = viewModel.world?.phase
+    if (frame < 0 || phase == Phase.DEAD || phase == Phase.VICTORY) return
     BoxWithConstraints(modifier = modifier.padding(horizontal = 24.dp)) {
         val size = min(maxHeight * 0.7f, 120.dp)
         Text(
@@ -379,6 +384,10 @@ private fun Scores(viewModel: StarfallViewModel, unit: Dp) {
         if (viewModel.lastScore > 0 || viewModel.lastRow >= 0) {
             Spacer(Modifier.height(unit * 8))
             PixelText(stringResource(R.string.starfall_your_score, viewModel.lastScore), unit.sp(18f), Palette.LIGHTGRAY)
+        }
+        viewModel.prize?.let { piece ->
+            Spacer(Modifier.height(unit * 16))
+            PrizeNote(piece, Modifier.padding(horizontal = unit * 28))
         }
         Spacer(Modifier.height(unit * 28))
         if (entries.isEmpty()) {

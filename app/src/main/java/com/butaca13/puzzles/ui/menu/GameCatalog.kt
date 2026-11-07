@@ -58,8 +58,7 @@ enum class GameInfo(
     PATH("path", "🔗", R.string.path_title, R.string.path_description, BY_DIFFICULTY, listOf(PastelPink, PastelMint), GameGroup.VARIOUS),
     KAKURO("kakuro", "➕", R.string.kakuro_title, R.string.kakuro_description, BY_DIFFICULTY, listOf(PastelLilac, PastelMint), GameGroup.NUMBERS),
     MEMORAMA("memorama", "🃏", R.string.memorama_title, R.string.memorama_description, BY_DIFFICULTY, listOf(PastelLilac, PastelPeach), GameGroup.VARIOUS),
-    // Provisional, to try the purchases out on the compras branch.
-    SLIDING("sliding", "🔀", R.string.sliding_title, R.string.sliding_description, BY_DIFFICULTY, listOf(PastelCoral, PastelMint), GameGroup.NUMBERS, paid = true),
+    SLIDING("sliding", "🔀", R.string.sliding_title, R.string.sliding_description, BY_DIFFICULTY, listOf(PastelCoral, PastelMint), GameGroup.NUMBERS),
     KLONDIKE("klondike", "♠️", R.string.klondike_title, R.string.klondike_description, BY_DRAW, listOf(PastelLime, PastelTeal), GameGroup.CARDS),
     FREECELL("freecell", "♣️", R.string.freecell_title, R.string.freecell_description, BY_CELLS, listOf(PastelSky, PastelLilac), GameGroup.CARDS),
     SPIDER("spider", "🕷️", R.string.spider_title, R.string.spider_description, BY_SUITS, listOf(PastelSand, PastelCoral), GameGroup.CARDS),

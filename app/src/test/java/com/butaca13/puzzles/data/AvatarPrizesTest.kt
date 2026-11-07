@@ -30,8 +30,18 @@ class AvatarPrizesTest {
 
     @Test
     fun `every prize rule names a prize of the catalog, and every prize has a rule`() {
-        val rules = setOf(AvatarPrizes.CROWN, AvatarPrizes.TROPHY, AvatarPrizes.CAP, AvatarPrizes.GLASSES, AvatarPrizes.TOP_HAT)
+        val rules = setOf(AvatarPrizes.CROWN, AvatarPrizes.TROPHY, AvatarPrizes.CAP, AvatarPrizes.GLASSES, AvatarPrizes.TOP_HAT, AvatarPrizes.MEDAL)
         assertEquals(AvatarCatalog.accessories.filter { it.prize }.map { it.id }.toSet(), rules)
+    }
+
+    @Test
+    fun `freeing the Earth in Starfall wins the medal, once`() {
+        val prizes = AvatarPrizes(store)
+
+        assertFalse(prizes.has(piece("medalla")))
+        assertEquals("medalla", prizes.recordStarfallWon()?.id)
+        assertTrue(prizes.has(piece("medalla")))
+        assertNull(prizes.recordStarfallWon())
     }
 
     @Test

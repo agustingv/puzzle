@@ -255,10 +255,16 @@ private fun DrawScope.drawPhase(world: World, text: StarfallText, texts: Starfal
         }
         Phase.LEVEL_CLEAR -> banner(texts.levelClear(world.level), text)
         Phase.DEAD -> overlay(texts.gameOver, texts.gameOverHint, text)
-        Phase.VICTORY -> overlay(texts.victory, texts.victoryHint, text)
+        Phase.VICTORY -> {
+            overlay(texts.victory, texts.victoryHint, text)
+            // The medal the ending wins, over the title.
+            centered(MEDAL, Config.SCREEN_H / 2 - 150f, 80f, Palette.WHITE)
+        }
         Phase.SECTION -> Unit
     }
 }
+
+private const val MEDAL = "🎖️"
 
 private fun DrawScope.banner(message: String, text: StarfallText) = with(text) {
     val stripY = Config.SCREEN_H / 2 - 34f

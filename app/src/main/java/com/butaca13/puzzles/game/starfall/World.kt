@@ -139,6 +139,7 @@ class World(
             Phase.LEVEL_CLEAR -> if (phaseT >= 2.6f) {
                 if (level >= Config.LEVELS) {
                     setPhase(Phase.VICTORY)
+                    sounds.play(Sfx.FANFARE)
                 } else {
                     level++
                     section = 1
@@ -174,6 +175,9 @@ class World(
         stepWorld(dt)
         if (player.alive && !boss.active) {
             score += 1000 * level
+            // The boss's last shots go with it, rather than hang still over the banner.
+            bullets.clearEnemy()
+            beams.clear()
             setPhase(Phase.LEVEL_CLEAR)
         }
     }

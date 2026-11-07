@@ -106,12 +106,14 @@
     <string name="prize_goal_trofeo">gana al menos una partida de cada juego (%1$d de %2$d).</string>
     <string name="prize_goal_birrete">gana una partida en dificultad Experto.</string>
     <string name="prize_goal_gafas">bate tu mejor tiempo en un juego.</string>
+    <string name="prize_goal_medalla">libera la Tierra.</string>
     <string name="prize_goal_chistera">gana %2$d partidas (%1$d de %2$d).</string>
     <string name="prize_won">¡Nuevo accesorio: %1$s!</string>
     <string name="prize_reason_corona">Por descifrar el mensaje secreto.</string>
     <string name="prize_reason_trofeo">Por ganar en todos los juegos.</string>
     <string name="prize_reason_birrete">Por ganar en dificultad Experto.</string>
     <string name="prize_reason_gafas">Por batir tu mejor tiempo.</string>
+    <string name="prize_reason_medalla">Por liberar la Tierra en Starfall.</string>
     <string name="prize_reason_chistera">Por ganar %1$d partidas.</string>
     <string name="prize_wear">Ponérmelo</string>
     <string name="prize_wearing">Lo llevas puesto</string>
