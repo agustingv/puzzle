@@ -374,6 +374,14 @@
         <item quantity="one">¡Yukon completado en %1$d movimiento!</item>
         <item quantity="other">¡Yukon completado en %1$d movimientos!</item>
     </plurals>
+    <string name="fortythieves_title">Cuarenta Ladrones</string>
+    <string name="fortythieves_description">Dos barajas, diez columnas de cuatro cartas a la vista y ocho casillas que se suben por palo, del as al rey. En las columnas las cartas bajan del mismo palo y se mueven de una en una, y en una columna vacía puede ir cualquier carta. Toca el mazo para destapar cartas de una en una; la de arriba del descarte también se puede jugar. Pide paciencia y planear bien cada jugada. Arrastra las cartas, o tócalas para mandarlas a su mejor sitio.</string>
+    <string name="fortythieves_one_deal">1 vuelta</string>
+    <string name="fortythieves_two_deals">2 vueltas</string>
+    <plurals name="fortythieves_won">
+        <item quantity="one">¡Cuarenta Ladrones completado en %1$d movimiento!</item>
+        <item quantity="other">¡Cuarenta Ladrones completado en %1$d movimientos!</item>
+    </plurals>
     <string name="card_name">%1$s de %2$s</string>
     <string name="card_spades">picas</string>
     <string name="card_hearts">corazones</string>
