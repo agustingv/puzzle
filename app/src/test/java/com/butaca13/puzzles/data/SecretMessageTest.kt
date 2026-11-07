@@ -39,10 +39,12 @@ class SecretMessageTest {
     }
 
     @Test
-    fun `every game has exactly one letter, and its title is the one the app shows`() {
+    fun `every game but the newer ones has exactly one letter, and its title is the one the app shows`() {
         val games = Regex("""^\s+[A-Z_]+\("(\w+)",""", RegexOption.MULTILINE).findAll(catalog).map { it.groupValues[1] }.toList()
+        // The message was made for the first eleven games: those that came later have no letter.
+        val outside = setOf("klondike")
 
-        assertEquals(games.sorted(), SecretMessage.clues.map { it.gameId }.sorted())
+        assertEquals((games - outside).sorted(), SecretMessage.clues.map { it.gameId }.sorted())
         for (clue in SecretMessage.clues) assertEquals(clue.gameId, titleOf(clue.gameId), clue.title)
     }
 

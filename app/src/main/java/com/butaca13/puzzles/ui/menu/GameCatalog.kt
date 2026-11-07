@@ -7,9 +7,11 @@ import androidx.compose.ui.res.stringResource
 import com.butaca13.puzzles.R
 import com.butaca13.puzzles.data.Products
 import com.butaca13.puzzles.game.Difficulty
+import com.butaca13.puzzles.game.klondike.KlondikeGame
 import com.butaca13.puzzles.game.word.WordList
 import com.butaca13.puzzles.ui.theme.PastelCoral
 import com.butaca13.puzzles.ui.theme.PastelLilac
+import com.butaca13.puzzles.ui.theme.PastelLime
 import com.butaca13.puzzles.ui.theme.PastelMint
 import com.butaca13.puzzles.ui.theme.PastelPeach
 import com.butaca13.puzzles.ui.theme.PastelPink
@@ -17,11 +19,12 @@ import com.butaca13.puzzles.ui.theme.PastelTeal
 
 private val BY_DIFFICULTY = Difficulty.entries.map { it.name }
 private val BY_LENGTH = WordList.LENGTHS.map { it.toString() }
+private val BY_DRAW = listOf(KlondikeGame.DRAW_ONE, KlondikeGame.DRAW_THREE)
 
 /**
  * Every game, in menu order. [id] names its saved game and records. Icons are kept to old emoji:
- * minSdk 24 has no glyph for newer ones like 🟩, 🪢 or 🧠. [variants] are a game's difficulties or
- * word lengths. [gradient] is its pair of pastels, the web's colour pair made pastel. A [paid] game
+ * minSdk 24 has no glyph for newer ones like 🟩, 🪢 or 🧠. [variants] are a game's difficulties, word
+ * lengths, or for the patience how many cards a draw turns over. [gradient] is its pair of pastels, the web's colour pair made pastel. A [paid] game
  * is bought on its own (its [productId]) or with all of them, see [Products]. [group] is where the
  * home screen lists it.
  */
@@ -47,11 +50,12 @@ enum class GameInfo(
     MEMORAMA("memorama", "🃏", R.string.memorama_title, R.string.memorama_description, BY_DIFFICULTY, listOf(PastelLilac, PastelPeach), GameGroup.VARIOUS),
     // Provisional, to try the purchases out on the compras branch.
     SLIDING("sliding", "🔀", R.string.sliding_title, R.string.sliding_description, BY_DIFFICULTY, listOf(PastelCoral, PastelMint), GameGroup.NUMBERS, paid = true),
+    KLONDIKE("klondike", "♠️", R.string.klondike_title, R.string.klondike_description, BY_DRAW, listOf(PastelLime, PastelTeal), GameGroup.CARDS),
 }
 
 /**
  * The groups the home screen sorts the games into, in its order. [VARIOUS] takes those that fit none of
- * the others. A group may have no games yet, as [CARDS]: it shows as coming soon.
+ * the others. A group may have no games yet: it shows as coming soon.
  */
 enum class GameGroup(@param:StringRes val title: Int, val icon: String, val gradient: List<Color>) {
     LETTERS(R.string.group_letters, "🔤", listOf(PastelLilac, PastelPink)),
@@ -74,10 +78,22 @@ val PAID_GAME_PRODUCTS: List<String> by lazy { GameInfo.entries.mapNotNull { it.
 
 val GameInfo.usesWordLengths: Boolean get() = variants === BY_LENGTH
 
+/** What a game's levels are, as the heading of their selector says. */
+@get:StringRes
+val GameInfo.variantsTitle: Int
+    get() = when {
+        variants === BY_LENGTH -> R.string.option_letters
+        variants === BY_DRAW -> R.string.option_draw
+        else -> R.string.option_difficulty
+    }
+
 /** Short label for a selector: "Fácil", or just "5" where the context says what it counts. */
 @Composable
-fun variantShortLabel(variant: String): String =
-    variant.toDifficultyOrNull()?.let { stringResource(it.labelRes) } ?: variant
+fun variantShortLabel(variant: String): String = when (variant) {
+    KlondikeGame.DRAW_ONE -> stringResource(R.string.klondike_draw_one)
+    KlondikeGame.DRAW_THREE -> stringResource(R.string.klondike_draw_three)
+    else -> variant.toDifficultyOrNull()?.let { stringResource(it.labelRes) } ?: variant
+}
 
 private fun String.toDifficultyOrNull() = Difficulty.entries.firstOrNull { it.name == this }
 

@@ -248,7 +248,7 @@ private fun UnlockButtons(productId: String, shop: GameShop) {
 private fun VariantSelector(info: GameInfo, selected: String, onSelect: (String) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
-            text = stringResource(if (info.usesWordLengths) R.string.option_letters else R.string.option_difficulty),
+            text = stringResource(info.variantsTitle),
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold,
         )

@@ -184,9 +184,10 @@ private fun RowScope.Key(
 
 /** Secondary action during a game. Opaque, because the background's tree shows behind it. */
 @Composable
-fun GameActionButton(label: String, onClick: () -> Unit) {
+fun GameActionButton(label: String, onClick: () -> Unit, enabled: Boolean = true) {
     OutlinedButton(
         onClick = onClick,
+        enabled = enabled,
         colors = ButtonDefaults.outlinedButtonColors(containerColor = Card, contentColor = Ink),
     ) {
         Text(label)

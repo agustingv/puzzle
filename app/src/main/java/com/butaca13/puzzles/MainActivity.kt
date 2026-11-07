@@ -68,6 +68,9 @@ import com.butaca13.puzzles.ui.kakuro.KakuroScreen
 import com.butaca13.puzzles.ui.kakuro.KakuroViewModel
 import com.butaca13.puzzles.ui.memorama.MemoramaScreen
 import com.butaca13.puzzles.ui.memorama.MemoramaViewModel
+import com.butaca13.puzzles.ui.klondike.KlondikeScreen
+import com.butaca13.puzzles.ui.klondike.KlondikeViewModel
+import com.butaca13.puzzles.game.klondike.KlondikeGame
 import com.butaca13.puzzles.ui.menu.AvatarScreen
 import com.butaca13.puzzles.ui.menu.GameInfo
 import com.butaca13.puzzles.ui.menu.GameDetailScreen
@@ -137,6 +140,7 @@ private fun PuzzlesApp() {
     val path: PathViewModel = viewModel()
     val kakuro: KakuroViewModel = viewModel()
     val memorama: MemoramaViewModel = viewModel()
+    val klondike: KlondikeViewModel = viewModel()
     val sliding: SlidingViewModel = viewModel()
 
     val context = LocalContext.current
@@ -180,7 +184,7 @@ private fun PuzzlesApp() {
     // so the next one counts again even with the same values.
     val rankedWins = listOf(
         race.session, hangman.session, word.session, wordSearch.session, crossword.session, sudoku.session,
-        garden.session, path.session, kakuro.session, memorama.session, sliding.session,
+        garden.session, path.session, kakuro.session, memorama.session, sliding.session, klondike.session,
     ).map { session -> session.lastRecord?.takeIf { it.rank != null } }
     LaunchedEffect(rankedWins) {
         if (rankedWins.any { it != null }) PlayerSyncScheduler.request(context)
@@ -197,6 +201,7 @@ private fun PuzzlesApp() {
         GameInfo.PATH -> path.session.saved
         GameInfo.KAKURO -> kakuro.session.saved
         GameInfo.MEMORAMA -> memorama.session.saved
+        GameInfo.KLONDIKE -> klondike.session.saved
         GameInfo.SLIDING -> sliding.session.saved
     }
 
@@ -223,6 +228,7 @@ private fun PuzzlesApp() {
             GameInfo.PATH -> path.newGame(Difficulty.valueOf(variant))
             GameInfo.KAKURO -> kakuro.newGame(Difficulty.valueOf(variant))
             GameInfo.MEMORAMA -> memorama.newGame(Difficulty.valueOf(variant))
+            GameInfo.KLONDIKE -> klondike.newGame(KlondikeGame.drawCountOf(variant))
             GameInfo.SLIDING -> sliding.newGame(Difficulty.valueOf(variant))
         }
         playing = true
@@ -347,6 +353,7 @@ private fun PuzzlesApp() {
                     GameInfo.PATH -> PathScreen(path, ::stopPlaying)
                     GameInfo.KAKURO -> KakuroScreen(kakuro, ::stopPlaying)
                     GameInfo.MEMORAMA -> MemoramaScreen(memorama, ::stopPlaying)
+                    GameInfo.KLONDIKE -> KlondikeScreen(klondike, ::stopPlaying)
                     GameInfo.SLIDING -> SlidingScreen(sliding, ::stopPlaying)
                 }
             }
