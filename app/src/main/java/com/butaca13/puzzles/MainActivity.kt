@@ -73,6 +73,9 @@ import com.butaca13.puzzles.ui.klondike.KlondikeViewModel
 import com.butaca13.puzzles.game.klondike.KlondikeGame
 import com.butaca13.puzzles.game.freecell.FreeCellGame
 import com.butaca13.puzzles.game.spider.SpiderGame
+import com.butaca13.puzzles.game.pyramid.PyramidGame
+import com.butaca13.puzzles.ui.pyramid.PyramidScreen
+import com.butaca13.puzzles.ui.pyramid.PyramidViewModel
 import com.butaca13.puzzles.ui.spider.SpiderScreen
 import com.butaca13.puzzles.ui.spider.SpiderViewModel
 import com.butaca13.puzzles.ui.freecell.FreeCellScreen
@@ -149,6 +152,7 @@ private fun PuzzlesApp() {
     val klondike: KlondikeViewModel = viewModel()
     val freeCell: FreeCellViewModel = viewModel()
     val spider: SpiderViewModel = viewModel()
+    val pyramid: PyramidViewModel = viewModel()
     val sliding: SlidingViewModel = viewModel()
 
     val context = LocalContext.current
@@ -193,7 +197,7 @@ private fun PuzzlesApp() {
     val rankedWins = listOf(
         race.session, hangman.session, word.session, wordSearch.session, crossword.session, sudoku.session,
         garden.session, path.session, kakuro.session, memorama.session, sliding.session, klondike.session,
-        freeCell.session, spider.session,
+        freeCell.session, spider.session, pyramid.session,
     ).map { session -> session.lastRecord?.takeIf { it.rank != null } }
     LaunchedEffect(rankedWins) {
         if (rankedWins.any { it != null }) PlayerSyncScheduler.request(context)
@@ -213,6 +217,7 @@ private fun PuzzlesApp() {
         GameInfo.KLONDIKE -> klondike.session.saved
         GameInfo.FREECELL -> freeCell.session.saved
         GameInfo.SPIDER -> spider.session.saved
+        GameInfo.PYRAMID -> pyramid.session.saved
         GameInfo.SLIDING -> sliding.session.saved
     }
 
@@ -242,6 +247,7 @@ private fun PuzzlesApp() {
             GameInfo.KLONDIKE -> klondike.newGame(KlondikeGame.drawCountOf(variant))
             GameInfo.FREECELL -> freeCell.newGame(FreeCellGame.cellCountOf(variant))
             GameInfo.SPIDER -> spider.newGame(SpiderGame.suitsOf(variant))
+            GameInfo.PYRAMID -> pyramid.newGame(PyramidGame.passesOf(variant))
             GameInfo.SLIDING -> sliding.newGame(Difficulty.valueOf(variant))
         }
         playing = true
@@ -369,6 +375,7 @@ private fun PuzzlesApp() {
                     GameInfo.KLONDIKE -> KlondikeScreen(klondike, ::stopPlaying)
                     GameInfo.FREECELL -> FreeCellScreen(freeCell, ::stopPlaying)
                     GameInfo.SPIDER -> SpiderScreen(spider, ::stopPlaying)
+                    GameInfo.PYRAMID -> PyramidScreen(pyramid, ::stopPlaying)
                     GameInfo.SLIDING -> SlidingScreen(sliding, ::stopPlaying)
                 }
             }

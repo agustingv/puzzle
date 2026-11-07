@@ -43,6 +43,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -56,6 +57,7 @@ import com.butaca13.puzzles.game.cards.Card
 import com.butaca13.puzzles.game.cards.Suit
 import com.butaca13.puzzles.ui.common.FeltChalk
 import com.butaca13.puzzles.ui.common.FeltTable
+import com.butaca13.puzzles.ui.theme.Accent
 import com.butaca13.puzzles.ui.theme.GardenInk
 import kotlin.math.roundToInt
 
@@ -131,6 +133,8 @@ fun <P> CardTable(
     onDrop: (from: P, index: Int, to: P) -> Unit,
     describe: @Composable (CardSpot<P>) -> String,
     onTapEmpty: (CardLayout<P>, Offset) -> Unit = { _, _ -> },
+    /** Cards picked to play, by id, which stand out with a ring. */
+    selected: Set<Int> = emptySet(),
     slots: @Composable BoxScope.(CardLayout<P>, cardWidth: Dp, cardHeight: Dp) -> Unit,
 ) = FeltTable(Modifier.width(side).fillMaxHeight()) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -211,6 +215,7 @@ fun <P> CardTable(
                         width = cardWidth,
                         height = cardHeight,
                         description = describe(spot),
+                        selected = spot.card.id in selected,
                         onClick = { onTap(spot) },
                         modifier = Modifier
                             .offset { position }
@@ -320,6 +325,7 @@ private fun PlayingCard(
     description: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    selected: Boolean = false,
 ) {
     val density = LocalDensity.current
     val shape = RoundedCornerShape(width * 0.12f)
@@ -330,10 +336,11 @@ private fun PlayingCard(
             .size(width, height)
             .shadow(1.5.dp, shape)
             .background(CardFace, shape)
-            .border(0.5.dp, CardEdge, shape)
+            .border(if (selected) 3.dp else 0.5.dp, if (selected) Accent else CardEdge, shape)
             .clearAndSetSemantics {
                 if (description.isNotEmpty()) {
                     contentDescription = description
+                    this.selected = selected
                     onClick { onClick(); true }
                 }
             },

@@ -9,6 +9,7 @@ import com.butaca13.puzzles.data.Products
 import com.butaca13.puzzles.game.Difficulty
 import com.butaca13.puzzles.game.freecell.FreeCellGame
 import com.butaca13.puzzles.game.klondike.KlondikeGame
+import com.butaca13.puzzles.game.pyramid.PyramidGame
 import com.butaca13.puzzles.game.spider.SpiderGame
 import com.butaca13.puzzles.game.word.WordList
 import com.butaca13.puzzles.ui.theme.PastelCoral
@@ -25,12 +26,13 @@ private val BY_DIFFICULTY = Difficulty.entries.map { it.name }
 private val BY_LENGTH = WordList.LENGTHS.map { it.toString() }
 private val BY_DRAW = listOf(KlondikeGame.DRAW_ONE, KlondikeGame.DRAW_THREE)
 private val BY_CELLS = listOf(FreeCellGame.FOUR_CELLS, FreeCellGame.TWO_CELLS)
+private val BY_PASSES = listOf(PyramidGame.ONE_PASS, PyramidGame.THREE_PASSES)
 private val BY_SUITS = listOf(SpiderGame.ONE_SUIT, SpiderGame.TWO_SUITS, SpiderGame.FOUR_SUITS)
 
 /**
  * Every game, in menu order. [id] names its saved game and records. Icons are kept to old emoji:
  * minSdk 24 has no glyph for newer ones like 🟩, 🪢 or 🧠. [variants] are a game's difficulties, word
- * lengths, for the patience how many cards a draw turns over, for FreeCell how many free cells, for Spider how many suits. [gradient] is its pair of pastels, the web's colour pair made pastel. A [paid] game
+ * lengths, for the patience how many cards a draw turns over, for FreeCell how many free cells, for Spider how many suits, for Pyramid how many times round the stock. [gradient] is its pair of pastels, the web's colour pair made pastel. A [paid] game
  * is bought on its own (its [productId]) or with all of them, see [Products]. [group] is where the
  * home screen lists it.
  */
@@ -59,6 +61,7 @@ enum class GameInfo(
     KLONDIKE("klondike", "♠️", R.string.klondike_title, R.string.klondike_description, BY_DRAW, listOf(PastelLime, PastelTeal), GameGroup.CARDS),
     FREECELL("freecell", "♣️", R.string.freecell_title, R.string.freecell_description, BY_CELLS, listOf(PastelSky, PastelLilac), GameGroup.CARDS),
     SPIDER("spider", "🕷️", R.string.spider_title, R.string.spider_description, BY_SUITS, listOf(PastelSand, PastelCoral), GameGroup.CARDS),
+    PYRAMID("pyramid", "🔺", R.string.pyramid_title, R.string.pyramid_description, BY_PASSES, listOf(PastelPeach, PastelSand), GameGroup.CARDS),
 }
 
 /**
@@ -94,6 +97,7 @@ val GameInfo.variantsTitle: Int
         variants === BY_DRAW -> R.string.option_draw
         variants === BY_CELLS -> R.string.option_cells
         variants === BY_SUITS -> R.string.option_suits
+        variants === BY_PASSES -> R.string.option_passes
         else -> R.string.option_difficulty
     }
 
@@ -107,6 +111,8 @@ fun variantShortLabel(variant: String): String = when (variant) {
     SpiderGame.ONE_SUIT -> stringResource(R.string.spider_one_suit)
     SpiderGame.TWO_SUITS -> stringResource(R.string.spider_two_suits)
     SpiderGame.FOUR_SUITS -> stringResource(R.string.spider_four_suits)
+    PyramidGame.ONE_PASS -> stringResource(R.string.pyramid_one_pass)
+    PyramidGame.THREE_PASSES -> stringResource(R.string.pyramid_three_passes)
     else -> variant.toDifficultyOrNull()?.let { stringResource(it.labelRes) } ?: variant
 }
 
