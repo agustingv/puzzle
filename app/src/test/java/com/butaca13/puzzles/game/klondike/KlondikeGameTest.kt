@@ -1,5 +1,7 @@
 package com.butaca13.puzzles.game.klondike
 
+import com.butaca13.puzzles.game.cards.Card
+import com.butaca13.puzzles.game.cards.Suit
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals

@@ -1,20 +1,10 @@
 package com.butaca13.puzzles.game.klondike
 
+import com.butaca13.puzzles.game.cards.Card
+import com.butaca13.puzzles.game.cards.stacksOn
 import org.json.JSONArray
 import org.json.JSONObject
 import kotlin.random.Random
-
-enum class Suit(val red: Boolean) { SPADES(false), HEARTS(true), DIAMONDS(true), CLUBS(false) }
-
-/** One of the 52 cards: [id] says which, 13 per suit in [Suit]'s order. [rank] 1 is the ace, 13 the king. */
-data class Card(val id: Int, val faceUp: Boolean = true) {
-    val suit: Suit get() = Suit.entries[id / 13]
-    val rank: Int get() = id % 13 + 1
-
-    companion object {
-        fun of(suit: Suit, rank: Int, faceUp: Boolean = true) = Card(suit.ordinal * 13 + rank - 1, faceUp)
-    }
-}
 
 /** Where cards lie: the stock, the waste beside it, the four foundations and the seven columns. */
 sealed interface Pile {
@@ -57,7 +47,7 @@ data class KlondikeGame(
         return when (from) {
             Pile.Stock -> false
             Pile.Waste, is Pile.Foundation -> index == cards.lastIndex
-            is Pile.Tableau -> (index + 1..cards.lastIndex).all { stacksOn(cards[it], cards[it - 1]) }
+            is Pile.Tableau -> (index + 1..cards.lastIndex).all { cards[it].stacksOn(cards[it - 1]) }
         }
     }
 
@@ -68,7 +58,7 @@ data class KlondikeGame(
             Pile.Stock, Pile.Waste -> false
             is Pile.Foundation -> cards.size == 1 &&
                 if (top == null) first.rank == 1 else first.suit == top.suit && first.rank == top.rank + 1
-            is Pile.Tableau -> if (top == null) first.rank == 13 else stacksOn(first, top)
+            is Pile.Tableau -> if (top == null) first.rank == 13 else first.stacksOn(top)
         }
     }
 
@@ -236,8 +226,5 @@ data class KlondikeGame(
             val n = array.getInt(it)
             Card(kotlin.math.abs(n) - 1, faceUp = n > 0)
         }
-
-        /** Tableau rule: one rank lower, the other colour. */
-        private fun stacksOn(card: Card, onto: Card) = onto.faceUp && card.rank == onto.rank - 1 && card.suit.red != onto.suit.red
     }
 }

@@ -71,6 +71,9 @@ import com.butaca13.puzzles.ui.memorama.MemoramaViewModel
 import com.butaca13.puzzles.ui.klondike.KlondikeScreen
 import com.butaca13.puzzles.ui.klondike.KlondikeViewModel
 import com.butaca13.puzzles.game.klondike.KlondikeGame
+import com.butaca13.puzzles.game.freecell.FreeCellGame
+import com.butaca13.puzzles.ui.freecell.FreeCellScreen
+import com.butaca13.puzzles.ui.freecell.FreeCellViewModel
 import com.butaca13.puzzles.ui.menu.AvatarScreen
 import com.butaca13.puzzles.ui.menu.GameInfo
 import com.butaca13.puzzles.ui.menu.GameDetailScreen
@@ -141,6 +144,7 @@ private fun PuzzlesApp() {
     val kakuro: KakuroViewModel = viewModel()
     val memorama: MemoramaViewModel = viewModel()
     val klondike: KlondikeViewModel = viewModel()
+    val freeCell: FreeCellViewModel = viewModel()
     val sliding: SlidingViewModel = viewModel()
 
     val context = LocalContext.current
@@ -185,6 +189,7 @@ private fun PuzzlesApp() {
     val rankedWins = listOf(
         race.session, hangman.session, word.session, wordSearch.session, crossword.session, sudoku.session,
         garden.session, path.session, kakuro.session, memorama.session, sliding.session, klondike.session,
+        freeCell.session,
     ).map { session -> session.lastRecord?.takeIf { it.rank != null } }
     LaunchedEffect(rankedWins) {
         if (rankedWins.any { it != null }) PlayerSyncScheduler.request(context)
@@ -202,6 +207,7 @@ private fun PuzzlesApp() {
         GameInfo.KAKURO -> kakuro.session.saved
         GameInfo.MEMORAMA -> memorama.session.saved
         GameInfo.KLONDIKE -> klondike.session.saved
+        GameInfo.FREECELL -> freeCell.session.saved
         GameInfo.SLIDING -> sliding.session.saved
     }
 
@@ -229,6 +235,7 @@ private fun PuzzlesApp() {
             GameInfo.KAKURO -> kakuro.newGame(Difficulty.valueOf(variant))
             GameInfo.MEMORAMA -> memorama.newGame(Difficulty.valueOf(variant))
             GameInfo.KLONDIKE -> klondike.newGame(KlondikeGame.drawCountOf(variant))
+            GameInfo.FREECELL -> freeCell.newGame(FreeCellGame.cellCountOf(variant))
             GameInfo.SLIDING -> sliding.newGame(Difficulty.valueOf(variant))
         }
         playing = true
@@ -354,6 +361,7 @@ private fun PuzzlesApp() {
                     GameInfo.KAKURO -> KakuroScreen(kakuro, ::stopPlaying)
                     GameInfo.MEMORAMA -> MemoramaScreen(memorama, ::stopPlaying)
                     GameInfo.KLONDIKE -> KlondikeScreen(klondike, ::stopPlaying)
+                    GameInfo.FREECELL -> FreeCellScreen(freeCell, ::stopPlaying)
                     GameInfo.SLIDING -> SlidingScreen(sliding, ::stopPlaying)
                 }
             }
