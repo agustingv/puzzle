@@ -365,6 +365,15 @@
     <string name="starfall_game_over_hint">la Tierra sigue bajo su sombra</string>
     <string name="starfall_victory">TIERRA LIBERADA</string>
     <string name="starfall_victory_hint">toca para continuar</string>
+    <string name="yukon_title">Yukon</string>
+    <string name="yukon_description">Como el Solitario, pero sin mazo: todas las cartas están repartidas desde el principio. Ordena cada palo del as al rey en las casillas de arriba. En las columnas, cualquier carta boca arriba se mueve con todas las que tenga encima, estén en orden o no, sobre otra un número mayor y de color contrario; en el Ruso, del mismo palo. En una columna vacía solo puede ir un rey. Arrastra las cartas, o tócalas para mandarlas a su mejor sitio.</string>
+    <string name="option_rules">Variante</string>
+    <string name="yukon_classic">Clásico</string>
+    <string name="yukon_russian">Ruso</string>
+    <plurals name="yukon_won">
+        <item quantity="one">¡Yukon completado en %1$d movimiento!</item>
+        <item quantity="other">¡Yukon completado en %1$d movimientos!</item>
+    </plurals>
     <string name="card_name">%1$s de %2$s</string>
     <string name="card_spades">picas</string>
     <string name="card_hearts">corazones</string>
