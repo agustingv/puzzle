@@ -74,6 +74,9 @@ import com.butaca13.puzzles.game.klondike.KlondikeGame
 import com.butaca13.puzzles.game.freecell.FreeCellGame
 import com.butaca13.puzzles.game.spider.SpiderGame
 import com.butaca13.puzzles.game.pyramid.PyramidGame
+import com.butaca13.puzzles.game.tripeaks.TriPeaksGame
+import com.butaca13.puzzles.ui.tripeaks.TriPeaksScreen
+import com.butaca13.puzzles.ui.tripeaks.TriPeaksViewModel
 import com.butaca13.puzzles.ui.pyramid.PyramidScreen
 import com.butaca13.puzzles.ui.pyramid.PyramidViewModel
 import com.butaca13.puzzles.ui.spider.SpiderScreen
@@ -153,6 +156,7 @@ private fun PuzzlesApp() {
     val freeCell: FreeCellViewModel = viewModel()
     val spider: SpiderViewModel = viewModel()
     val pyramid: PyramidViewModel = viewModel()
+    val triPeaks: TriPeaksViewModel = viewModel()
     val sliding: SlidingViewModel = viewModel()
 
     val context = LocalContext.current
@@ -197,7 +201,7 @@ private fun PuzzlesApp() {
     val rankedWins = listOf(
         race.session, hangman.session, word.session, wordSearch.session, crossword.session, sudoku.session,
         garden.session, path.session, kakuro.session, memorama.session, sliding.session, klondike.session,
-        freeCell.session, spider.session, pyramid.session,
+        freeCell.session, spider.session, pyramid.session, triPeaks.session,
     ).map { session -> session.lastRecord?.takeIf { it.rank != null } }
     LaunchedEffect(rankedWins) {
         if (rankedWins.any { it != null }) PlayerSyncScheduler.request(context)
@@ -218,6 +222,7 @@ private fun PuzzlesApp() {
         GameInfo.FREECELL -> freeCell.session.saved
         GameInfo.SPIDER -> spider.session.saved
         GameInfo.PYRAMID -> pyramid.session.saved
+        GameInfo.TRIPEAKS -> triPeaks.session.saved
         GameInfo.SLIDING -> sliding.session.saved
     }
 
@@ -248,6 +253,7 @@ private fun PuzzlesApp() {
             GameInfo.FREECELL -> freeCell.newGame(FreeCellGame.cellCountOf(variant))
             GameInfo.SPIDER -> spider.newGame(SpiderGame.suitsOf(variant))
             GameInfo.PYRAMID -> pyramid.newGame(PyramidGame.passesOf(variant))
+            GameInfo.TRIPEAKS -> triPeaks.newGame(TriPeaksGame.wrapsOf(variant))
             GameInfo.SLIDING -> sliding.newGame(Difficulty.valueOf(variant))
         }
         playing = true
@@ -376,6 +382,7 @@ private fun PuzzlesApp() {
                     GameInfo.FREECELL -> FreeCellScreen(freeCell, ::stopPlaying)
                     GameInfo.SPIDER -> SpiderScreen(spider, ::stopPlaying)
                     GameInfo.PYRAMID -> PyramidScreen(pyramid, ::stopPlaying)
+                    GameInfo.TRIPEAKS -> TriPeaksScreen(triPeaks, ::stopPlaying)
                     GameInfo.SLIDING -> SlidingScreen(sliding, ::stopPlaying)
                 }
             }

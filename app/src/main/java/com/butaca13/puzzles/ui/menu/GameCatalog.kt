@@ -11,6 +11,7 @@ import com.butaca13.puzzles.game.freecell.FreeCellGame
 import com.butaca13.puzzles.game.klondike.KlondikeGame
 import com.butaca13.puzzles.game.pyramid.PyramidGame
 import com.butaca13.puzzles.game.spider.SpiderGame
+import com.butaca13.puzzles.game.tripeaks.TriPeaksGame
 import com.butaca13.puzzles.game.word.WordList
 import com.butaca13.puzzles.ui.theme.PastelCoral
 import com.butaca13.puzzles.ui.theme.PastelLilac
@@ -27,12 +28,13 @@ private val BY_LENGTH = WordList.LENGTHS.map { it.toString() }
 private val BY_DRAW = listOf(KlondikeGame.DRAW_ONE, KlondikeGame.DRAW_THREE)
 private val BY_CELLS = listOf(FreeCellGame.FOUR_CELLS, FreeCellGame.TWO_CELLS)
 private val BY_PASSES = listOf(PyramidGame.ONE_PASS, PyramidGame.THREE_PASSES)
+private val BY_WRAP = listOf(TriPeaksGame.EASY, TriPeaksGame.HARD)
 private val BY_SUITS = listOf(SpiderGame.ONE_SUIT, SpiderGame.TWO_SUITS, SpiderGame.FOUR_SUITS)
 
 /**
  * Every game, in menu order. [id] names its saved game and records. Icons are kept to old emoji:
  * minSdk 24 has no glyph for newer ones like 🟩, 🪢 or 🧠. [variants] are a game's difficulties, word
- * lengths, for the patience how many cards a draw turns over, for FreeCell how many free cells, for Spider how many suits, for Pyramid how many times round the stock. [gradient] is its pair of pastels, the web's colour pair made pastel. A [paid] game
+ * lengths, for the patience how many cards a draw turns over, for FreeCell how many free cells, for Spider how many suits, for Pyramid how many times round the stock, for TriPeaks whether king and ace follow each other (easy) or not (hard). [gradient] is its pair of pastels, the web's colour pair made pastel. A [paid] game
  * is bought on its own (its [productId]) or with all of them, see [Products]. [group] is where the
  * home screen lists it.
  */
@@ -62,6 +64,7 @@ enum class GameInfo(
     FREECELL("freecell", "♣️", R.string.freecell_title, R.string.freecell_description, BY_CELLS, listOf(PastelSky, PastelLilac), GameGroup.CARDS),
     SPIDER("spider", "🕷️", R.string.spider_title, R.string.spider_description, BY_SUITS, listOf(PastelSand, PastelCoral), GameGroup.CARDS),
     PYRAMID("pyramid", "🔺", R.string.pyramid_title, R.string.pyramid_description, BY_PASSES, listOf(PastelPeach, PastelSand), GameGroup.CARDS),
+    TRIPEAKS("tripeaks", "⛰️", R.string.tripeaks_title, R.string.tripeaks_description, BY_WRAP, listOf(PastelMint, PastelSky), GameGroup.CARDS),
 }
 
 /**

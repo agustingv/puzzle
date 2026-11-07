@@ -298,6 +298,13 @@
     <string name="pyramid_covered">Pirámide, fila %1$d: %2$s, tapada</string>
     <string name="pyramid_discard">Cartas quitadas: %1$d</string>
     <string name="pyramid_discard_empty">Aún no has quitado cartas</string>
+    <string name="tripeaks_title">TriPeaks</string>
+    <string name="tripeaks_description">Despeja los tres picos llevando sus cartas al descarte. Una carta va al descarte si es un número más o uno menos que la de arriba, sea del palo que sea, y solo si no tiene otra encima; las cartas boca abajo se destapan en cuanto quedan libres. Cuando no puedas mover, toca el mazo para destapar otra. En fácil, el as y el rey también van seguidos. Toca las cartas, o arrástralas al descarte.</string>
+    <plurals name="tripeaks_won">
+        <item quantity="one">¡TriPeaks despejado en %1$d movimiento!</item>
+        <item quantity="other">¡TriPeaks despejado en %1$d movimientos!</item>
+    </plurals>
+    <string name="tripeaks_card">Pico: %1$s</string>
     <string name="card_name">%1$s de %2$s</string>
     <string name="card_spades">picas</string>
     <string name="card_hearts">corazones</string>

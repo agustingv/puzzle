@@ -72,8 +72,8 @@ private val BackRedDark = Color(0xFF8E1422)
 class CardSpot<P>(val card: Card, val pile: P, val index: Int, val x: Float, val y: Float, val order: Int)
 
 /** A card game's table measured for the space it has: where every card lies, and where cards let go fall. */
-abstract class CardLayout<P>(width: Float, columns: Int) {
-    val gap = width * 0.018f
+abstract class CardLayout<P>(width: Float, columns: Int, gapRatio: Float = 0.018f) {
+    val gap = width * gapRatio
     val cardWidth = (width - gap * (columns - 1)) / columns
     val cardHeight = cardWidth * 1.42f
 
