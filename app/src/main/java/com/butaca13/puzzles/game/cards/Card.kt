@@ -2,13 +2,18 @@ package com.butaca13.puzzles.game.cards
 
 enum class Suit(val red: Boolean) { SPADES(false), HEARTS(true), DIAMONDS(true), CLUBS(false) }
 
-/** One of the 52 cards: [id] says which, 13 per suit in [Suit]'s order. [rank] 1 is the ace, 13 the king. */
+/**
+ * One card: [id] says which, 13 per suit in [Suit]'s order, so 0 to 51 for one deck. Games that play
+ * with several copies of a card, like Spider, give each copy its own id 52 further on, so that every
+ * card on the table is still told apart. [rank] 1 is the ace, 13 the king.
+ */
 data class Card(val id: Int, val faceUp: Boolean = true) {
-    val suit: Suit get() = Suit.entries[id / 13]
+    val suit: Suit get() = Suit.entries[id / 13 % 4]
     val rank: Int get() = id % 13 + 1
 
     companion object {
-        fun of(suit: Suit, rank: Int, faceUp: Boolean = true) = Card(suit.ordinal * 13 + rank - 1, faceUp)
+        /** The card of [suit] and [rank], its [copy]-th one where a game has several. */
+        fun of(suit: Suit, rank: Int, faceUp: Boolean = true, copy: Int = 0) = Card(copy * 52 + suit.ordinal * 13 + rank - 1, faceUp)
     }
 }
 

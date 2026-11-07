@@ -9,6 +9,7 @@ import com.butaca13.puzzles.data.Products
 import com.butaca13.puzzles.game.Difficulty
 import com.butaca13.puzzles.game.freecell.FreeCellGame
 import com.butaca13.puzzles.game.klondike.KlondikeGame
+import com.butaca13.puzzles.game.spider.SpiderGame
 import com.butaca13.puzzles.game.word.WordList
 import com.butaca13.puzzles.ui.theme.PastelCoral
 import com.butaca13.puzzles.ui.theme.PastelLilac
@@ -16,6 +17,7 @@ import com.butaca13.puzzles.ui.theme.PastelLime
 import com.butaca13.puzzles.ui.theme.PastelMint
 import com.butaca13.puzzles.ui.theme.PastelPeach
 import com.butaca13.puzzles.ui.theme.PastelPink
+import com.butaca13.puzzles.ui.theme.PastelSand
 import com.butaca13.puzzles.ui.theme.PastelSky
 import com.butaca13.puzzles.ui.theme.PastelTeal
 
@@ -23,11 +25,12 @@ private val BY_DIFFICULTY = Difficulty.entries.map { it.name }
 private val BY_LENGTH = WordList.LENGTHS.map { it.toString() }
 private val BY_DRAW = listOf(KlondikeGame.DRAW_ONE, KlondikeGame.DRAW_THREE)
 private val BY_CELLS = listOf(FreeCellGame.FOUR_CELLS, FreeCellGame.TWO_CELLS)
+private val BY_SUITS = listOf(SpiderGame.ONE_SUIT, SpiderGame.TWO_SUITS, SpiderGame.FOUR_SUITS)
 
 /**
  * Every game, in menu order. [id] names its saved game and records. Icons are kept to old emoji:
  * minSdk 24 has no glyph for newer ones like 🟩, 🪢 or 🧠. [variants] are a game's difficulties, word
- * lengths, for the patience how many cards a draw turns over, for FreeCell how many free cells. [gradient] is its pair of pastels, the web's colour pair made pastel. A [paid] game
+ * lengths, for the patience how many cards a draw turns over, for FreeCell how many free cells, for Spider how many suits. [gradient] is its pair of pastels, the web's colour pair made pastel. A [paid] game
  * is bought on its own (its [productId]) or with all of them, see [Products]. [group] is where the
  * home screen lists it.
  */
@@ -55,6 +58,7 @@ enum class GameInfo(
     SLIDING("sliding", "🔀", R.string.sliding_title, R.string.sliding_description, BY_DIFFICULTY, listOf(PastelCoral, PastelMint), GameGroup.NUMBERS, paid = true),
     KLONDIKE("klondike", "♠️", R.string.klondike_title, R.string.klondike_description, BY_DRAW, listOf(PastelLime, PastelTeal), GameGroup.CARDS),
     FREECELL("freecell", "♣️", R.string.freecell_title, R.string.freecell_description, BY_CELLS, listOf(PastelSky, PastelLilac), GameGroup.CARDS),
+    SPIDER("spider", "🕷️", R.string.spider_title, R.string.spider_description, BY_SUITS, listOf(PastelSand, PastelCoral), GameGroup.CARDS),
 }
 
 /**
@@ -89,6 +93,7 @@ val GameInfo.variantsTitle: Int
         variants === BY_LENGTH -> R.string.option_letters
         variants === BY_DRAW -> R.string.option_draw
         variants === BY_CELLS -> R.string.option_cells
+        variants === BY_SUITS -> R.string.option_suits
         else -> R.string.option_difficulty
     }
 
@@ -99,6 +104,9 @@ fun variantShortLabel(variant: String): String = when (variant) {
     KlondikeGame.DRAW_THREE -> stringResource(R.string.klondike_draw_three)
     FreeCellGame.FOUR_CELLS -> stringResource(R.string.freecell_four_cells)
     FreeCellGame.TWO_CELLS -> stringResource(R.string.freecell_two_cells)
+    SpiderGame.ONE_SUIT -> stringResource(R.string.spider_one_suit)
+    SpiderGame.TWO_SUITS -> stringResource(R.string.spider_two_suits)
+    SpiderGame.FOUR_SUITS -> stringResource(R.string.spider_four_suits)
     else -> variant.toDifficultyOrNull()?.let { stringResource(it.labelRes) } ?: variant
 }
 

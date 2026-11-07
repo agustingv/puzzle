@@ -263,6 +263,24 @@
     <string name="freecell_cell">Celda %1$d: %2$s</string>
     <string name="freecell_cell_empty">Celda %1$d, vacía</string>
     <string name="freecell_column">Columna %1$d: %2$s</string>
+    <string name="spider_title">Spider</string>
+    <string name="spider_description">Dos barajas en diez columnas. Sobre una carta puede ir cualquier otra un número menor, sea del palo que sea, pero solo se mueven juntas las cartas seguidas del mismo palo. Cuando juntas una escalera completa de un palo, del rey al as, sale de la mesa; saca las ocho para ganar. Toca el mazo para repartir una carta más en cada columna, siempre que no haya ninguna vacía. Arrastra las cartas, o tócalas para mandarlas a su mejor sitio.</string>
+    <string name="option_suits">Palos</string>
+    <string name="spider_one_suit">1 palo</string>
+    <string name="spider_two_suits">2 palos</string>
+    <string name="spider_four_suits">4 palos</string>
+    <string name="spider_deal_hint">reparte del mazo</string>
+    <string name="spider_fill_hint">llena las columnas vacías para repartir</string>
+    <plurals name="spider_won">
+        <item quantity="one">¡Spider completado en %1$d movimiento!</item>
+        <item quantity="other">¡Spider completado en %1$d movimientos!</item>
+    </plurals>
+    <plurals name="spider_stock">
+        <item quantity="one">Mazo, queda %1$d reparto. Repartir</item>
+        <item quantity="other">Mazo, quedan %1$d repartos. Repartir</item>
+    </plurals>
+    <string name="spider_done">Escalera %1$d completada: %2$s</string>
+    <string name="spider_done_empty">Hueco para una escalera completa</string>
     <string name="card_name">%1$s de %2$s</string>
     <string name="card_spades">picas</string>
     <string name="card_hearts">corazones</string>

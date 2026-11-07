@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -42,7 +43,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -335,14 +339,22 @@ private fun PlayingCard(
             },
     ) {
         if (card.faceUp) {
+            val cornerSize = with(density) { (width * 0.30f).toSp() }
             Text(
                 text = card.rankLabel + card.suit.symbol,
                 color = ink,
-                fontSize = with(density) { (width * 0.30f).toSp() },
+                fontSize = cornerSize,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 softWrap = false,
-                modifier = Modifier.padding(start = width * 0.07f, top = height * 0.01f),
+                // Trimmed to the letters themselves, so that the corner shows whole on a card fanned
+                // under another, however narrow the cards.
+                style = LocalTextStyle.current.merge(
+                    platformStyle = PlatformTextStyle(includeFontPadding = false),
+                    lineHeight = cornerSize,
+                    lineHeightStyle = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.Both),
+                ),
+                modifier = Modifier.padding(start = width * 0.07f, top = height * 0.05f),
             )
             Text(
                 text = card.suit.symbol,
