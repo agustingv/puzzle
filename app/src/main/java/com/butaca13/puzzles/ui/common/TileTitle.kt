@@ -334,11 +334,15 @@ fun SecretBoard(found: List<SecretClue>) {
 
 /** What a first win reveals, under the game that was just won. */
 @Composable
-fun SecretClueNote(clue: SecretClue) {
+fun SecretClueNote(clue: SecretClue, completes: Boolean = false) {
     val shape = RoundedCornerShape(12.dp)
 
     Text(
-        text = stringResource(R.string.secret_clue, clue.letter.toString(), clue.title, clue.position, SecretMessage.clues.size),
+        text = if (completes) {
+            stringResource(R.string.secret_clue_last, clue.letter.toString(), clue.title)
+        } else {
+            stringResource(R.string.secret_clue, clue.letter.toString(), clue.title, clue.position, SecretMessage.clues.size)
+        },
         style = MaterialTheme.typography.bodySmall,
         textAlign = TextAlign.Center,
         modifier = Modifier

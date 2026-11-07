@@ -29,8 +29,8 @@ object SecretMessage {
         Triple("kakuro", "Kakuro", 1),
     ).mapIndexed { index, (id, title, letter) -> SecretClue(id, title, letter, index + 1) }
 
-    /** Spaces, capitals and accents do not matter. */
-    fun isAnswer(guess: String): Boolean = normalised(guess) == normalised(ANSWER)
+    /** The message itself, shown whole once every clue is found. */
+    const val TEXT = ANSWER
 
     /**
      * Which letter of this title is lit up, counting only letters: none (-1) for a title that is not a
@@ -65,11 +65,25 @@ class SecretProgress(private val store: KeyValueStore) {
         return clue
     }
 
-    /** Whether the guess was right, in which case the message stays solved. */
-    fun solve(guess: String): Boolean {
-        val right = SecretMessage.isAnswer(guess)
-        if (right) store.put(SOLVED_KEY, "yes")
-        return right
+    /**
+     * Whether every clue has been found, every game won once: only then can the message be given. Read
+     * somewhere, it is no use to anyone who has not played them all.
+     */
+    val complete: Boolean
+        get() = found.size == SecretMessage.clues.size
+
+    /** The games still to win for their clue, in the message's order. */
+    val missing: List<SecretClue>
+        get() = SecretMessage.clues - found.toSet()
+
+    /**
+     * Uncovers the message, which stays solved: only with every clue found, when the clues already spell
+     * it out in order, so there is nothing left to type. Says whether it was uncovered just now.
+     */
+    fun reveal(): Boolean {
+        if (solved || !complete) return false
+        store.put(SOLVED_KEY, "yes")
+        return true
     }
 
     private companion object {

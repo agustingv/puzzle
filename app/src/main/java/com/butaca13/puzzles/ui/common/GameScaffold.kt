@@ -86,7 +86,7 @@ fun GameScaffold(
     }
 
     val actionsWithClue: @Composable ColumnScope.() -> Unit = {
-        session.lastClue?.let { SecretClueNote(it) }
+        session.lastClue?.let { SecretClueNote(it, completes = session.lastClueCompletes) }
         session.lastPrizes.forEach { PrizeNote(it) }
         actions()
     }

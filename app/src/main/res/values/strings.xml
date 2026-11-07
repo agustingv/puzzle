@@ -34,10 +34,14 @@
     <string name="secret_title">Mensaje secreto</string>
     <string name="secret_intro">Cada juego esconde una letra verde. Puestas en orden, forman un mensaje.</string>
     <string name="secret_found">Pistas: %1$d de %2$d</string>
-    <string name="secret_guess">El mensaje</string>
-    <string name="secret_wrong">Ese no es el mensaje.</string>
-    <string name="secret_check">Comprobar</string>
+    <string name="secret_complete">¡Ya tienes todas las pistas! El mensaje está completo.</string>
+    <string name="secret_reveal">Descubrir el mensaje</string>
+    <plurals name="secret_missing">
+        <item quantity="one">Te falta %1$d pista para completar el mensaje. Gana una vez a: %2$s.</item>
+        <item quantity="other">Te faltan %1$d pistas para completar el mensaje. Gana una vez a: %2$s.</item>
+    </plurals>
     <string name="secret_close">Cerrar</string>
+    <string name="secret_clue_last">🔑 ¡Última pista! La %1$s verde de %2$s completa el mensaje secreto. Toca la casilla discontinua de PUZZLES para descubrirlo.</string>
     <string name="secret_clue">🔑 Pista secreta: la %1$s verde de %2$s es la letra %3$d de %4$d de un mensaje. Para descifrarlo, toca la casilla discontinua de PUZZLES.</string>
     <string name="settings_player">Jugador</string>
     <string name="settings_rename">Cambiar</string>

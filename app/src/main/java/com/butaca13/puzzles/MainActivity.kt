@@ -323,20 +323,14 @@ private fun PuzzlesApp() {
         return
     }
 
-    fun guessSecret(guess: String): Boolean {
-        val right = secret.solve(guess)
-        if (right) {
-            showSecret = false
-            secretSolved = true
-            sounds.play(GameEvent.WIN)
-            haptics.performHapticFeedback(HapticFeedbackType.Confirm)
-            if (animate) secretBursts++
-            newPrize = prizes.recordSecretSolved()?.id
-        } else {
-            sounds.play(GameEvent.MISS)
-            haptics.performHapticFeedback(HapticFeedbackType.Reject)
-        }
-        return right
+    fun revealSecret() {
+        showSecret = false
+        if (!secret.reveal()) return
+        secretSolved = true
+        sounds.play(GameEvent.WIN)
+        haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+        if (animate) secretBursts++
+        newPrize = prizes.recordSecretSolved()?.id
     }
 
     screens.SaveableStateProvider("screens") {
@@ -405,7 +399,7 @@ private fun PuzzlesApp() {
             if (showSecret) {
                 SecretDialog(
                     found = secret.found,
-                    onGuess = ::guessSecret,
+                    onReveal = ::revealSecret,
                     onDismiss = { showSecret = false },
                 )
             }

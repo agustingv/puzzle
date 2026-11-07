@@ -68,13 +68,8 @@ class SecretMessageTest {
     }
 
     @Test
-    fun `spaces, capitals and accents do not matter in the answer`() {
-        for (guess in listOf("ERA LA ÚLTIMA", "era la última", "eralaultima", "  Era  la Ultima ")) {
-            assertTrue(guess, SecretMessage.isAnswer(guess))
-        }
-        for (guess in listOf("", "era la", "era la ultimas", "es la ultima")) {
-            assertFalse(guess, SecretMessage.isAnswer(guess))
-        }
+    fun `the clues in order spell the message`() {
+        assertEquals(SecretMessage.normalised(SecretMessage.TEXT), SecretMessage.clues.joinToString("") { it.letter.toString() })
     }
 
     @Test
@@ -103,17 +98,28 @@ class SecretMessageTest {
     }
 
     @Test
-    fun `a wrong guess changes nothing and a right one stays solved`() {
-        assertFalse(progress.solve("no es"))
+    fun `the message can only be uncovered with every clue found, and then stays solved`() {
+        SecretMessage.clues.dropLast(1).forEach { progress.recordWin(it.gameId) }
+
+        assertFalse(progress.complete)
+        assertEquals(listOf("kakuro"), progress.missing.map { it.gameId })
+        assertFalse(progress.reveal())
         assertFalse(progress.solved)
 
-        assertTrue(progress.solve("era la última"))
+        progress.recordWin("kakuro")
+        assertTrue(progress.complete)
+        assertTrue(progress.missing.isEmpty())
+        assertTrue(progress.reveal())
         assertTrue(SecretProgress(store).solved)
+        // Only once.
+        assertFalse(progress.reveal())
     }
 
     @Test
     fun `once solved, wins give no more clues`() {
-        progress.solve("eralaultima")
+        SecretMessage.clues.filter { it.gameId != "sudoku" }.forEach { progress.recordWin(it.gameId) }
+        store.values["secret/solved"] = "yes"
+
 
         assertNull(progress.recordWin("sudoku"))
     }

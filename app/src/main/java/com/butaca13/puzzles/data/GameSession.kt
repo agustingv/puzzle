@@ -55,6 +55,10 @@ class GameSession<G : Any>(private val store: KeyValueStore, private val rules: 
     var lastClue by mutableStateOf<SecretClue?>(null)
         private set
 
+    /** Whether [lastClue] was the last one missing: the message is whole, waiting to be uncovered. */
+    var lastClueCompletes by mutableStateOf(false)
+        private set
+
     /** The avatar prizes this win earned. Not saved, like [lastClue]: the avatar keeps them. */
     var lastPrizes by mutableStateOf<List<AvatarPiece>>(emptyList())
         private set
@@ -98,6 +102,7 @@ class GameSession<G : Any>(private val store: KeyValueStore, private val rules: 
             val record = records.add(rules.id, variant, elapsedSeconds)
             lastRecord = record
             lastClue = secret.recordWin(rules.id)
+            lastClueCompletes = lastClue != null && secret.complete
             lastPrizes = prizes.recordWin(variant, record)
         }
 
@@ -133,6 +138,7 @@ class GameSession<G : Any>(private val store: KeyValueStore, private val rules: 
         game = null
         lastRecord = null
         lastClue = null
+        lastClueCompletes = false
         lastPrizes = emptyList()
         elapsedSeconds = 0
         store.remove(key(GAME))

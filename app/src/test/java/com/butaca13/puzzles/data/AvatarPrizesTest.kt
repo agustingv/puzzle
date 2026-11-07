@@ -107,7 +107,7 @@ class AvatarPrizesTest {
     fun `a player from before prizes gets what their records and the message already earn`() {
         for (game in AvatarPrizes.GAMES) records.add(game, "MEDIUM", 30)
         records.add("kakuro", "EXPERT", 300)
-        SecretProgress(store).solve("era la última")
+        SecretProgress(store).apply { SecretMessage.clues.forEach { recordWin(it.gameId) } }.reveal()
 
         val prizes = AvatarPrizes(store)
 
