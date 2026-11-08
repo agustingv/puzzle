@@ -39,7 +39,7 @@ class GameCatalogTest {
             GameGroup.LETTERS.games,
         )
         assertEquals(setOf(GameInfo.SUDOKU, GameInfo.KAKURO, GameInfo.SLIDING), GameGroup.NUMBERS.games.toSet())
-        assertEquals(listOf(GameInfo.KLONDIKE, GameInfo.FREECELL, GameInfo.SPIDER, GameInfo.PYRAMID, GameInfo.TRIPEAKS, GameInfo.YUKON, GameInfo.FORTY_THIEVES, GameInfo.SCORPION, GameInfo.BAKERS_DOZEN), GameGroup.CARDS.games)
+        assertEquals(listOf(GameInfo.KLONDIKE, GameInfo.FREECELL, GameInfo.SPIDER, GameInfo.PYRAMID, GameInfo.TRIPEAKS, GameInfo.YUKON, GameInfo.FORTY_THIEVES, GameInfo.SCORPION, GameInfo.BAKERS_DOZEN, GameInfo.GOLF), GameGroup.CARDS.games)
         assertEquals(setOf(GameInfo.GARDEN, GameInfo.PATH, GameInfo.MEMORAMA), GameGroup.VARIOUS.games.toSet())
     }
 }

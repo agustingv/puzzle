@@ -399,6 +399,16 @@
         <item quantity="one">¡Panadero completado en %1$d movimiento!</item>
         <item quantity="other">¡Panadero completado en %1$d movimientos!</item>
     </plurals>
+    <string name="golf_title">Golf</string>
+    <string name="golf_description">Siete columnas de cinco cartas, todas a la vista. Lleva al descarte la carta de arriba de una columna si es un número más o uno menos que la del descarte, sea del palo que sea, y despeja las siete columnas. Cuando no puedas, toca el mazo para destapar otra. En difícil no se puede poner nada sobre un rey; en fácil, el as y el rey van seguidos. Partidas cortas para un rato. Toca las cartas, o arrástralas al descarte.</string>
+    <plurals name="golf_won">
+        <item quantity="one">¡Golf completado en %1$d movimiento!</item>
+        <item quantity="other">¡Golf completado en %1$d movimientos!</item>
+    </plurals>
+    <plurals name="golf_stuck">
+        <item quantity="one">sin salida, queda %1$d carta</item>
+        <item quantity="other">sin salida, quedan %1$d cartas</item>
+    </plurals>
     <string name="card_name">%1$s de %2$s</string>
     <string name="card_spades">picas</string>
     <string name="card_hearts">corazones</string>

@@ -42,7 +42,7 @@ private val BY_SUITS = listOf(SpiderGame.ONE_SUIT, SpiderGame.TWO_SUITS, SpiderG
 /**
  * Every game, in menu order. [id] names its saved game and records. Icons are kept to old emoji:
  * minSdk 24 has no glyph for newer ones like 🟩, 🪢 or 🧠. [variants] are a game's difficulties, word
- * lengths, for the patience how many cards a draw turns over, for FreeCell how many free cells, for Spider how many suits, for Pyramid how many times round the stock, for TriPeaks whether king and ace follow each other (easy) or not (hard), for Yukon whether columns build by colour or by suit, for Forty Thieves how many times round the stock, for Scorpion whether only kings go to an empty column, for Baker's Dozen whether an empty column takes a king. [gradient] is its pair of pastels, the web's colour pair made pastel. A [paid] game
+ * lengths, for the patience how many cards a draw turns over, for FreeCell how many free cells, for Spider how many suits, for Pyramid how many times round the stock, for TriPeaks whether king and ace follow each other (easy) or not (hard), for Yukon whether columns build by colour or by suit, for Forty Thieves how many times round the stock, for Scorpion whether only kings go to an empty column, for Baker's Dozen whether an empty column takes a king, for Golf as for TriPeaks. [gradient] is its pair of pastels, the web's colour pair made pastel. A [paid] game
  * is bought on its own (its [productId]) or with all of them, see [Products]. [group] is where the
  * home screen lists it.
  */
@@ -76,6 +76,7 @@ enum class GameInfo(
     FORTY_THIEVES("fortythieves", "🗝️", R.string.fortythieves_title, R.string.fortythieves_description, BY_DEALS, listOf(PastelSand, PastelLilac), GameGroup.CARDS),
     SCORPION("scorpion", "🦂", R.string.scorpion_title, R.string.scorpion_description, BY_EMPTY, listOf(PastelCoral, PastelSand), GameGroup.CARDS),
     BAKERS_DOZEN("bakersdozen", "🥖", R.string.bakersdozen_title, R.string.bakersdozen_description, BY_KINGS, listOf(PastelPeach, PastelLime), GameGroup.CARDS),
+    GOLF("golf", "⛳", R.string.golf_title, R.string.golf_description, BY_WRAP, listOf(PastelLime, PastelMint), GameGroup.CARDS),
 }
 
 /**
