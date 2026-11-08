@@ -65,6 +65,7 @@ enum class GameInfo(
     ANAGRAM("anagram", "🔡", R.string.anagram_title, R.string.anagram_description, BY_LENGTH, listOf(PastelSky, PastelPink), GameGroup.LETTERS),
     LADDER("ladder", "📶", R.string.ladder_title, R.string.ladder_description, BY_THREE_LEVELS, listOf(PastelLime, PastelPeach), GameGroup.LETTERS),
     PANAL("panal", "🐝", R.string.panal_title, R.string.panal_description, BY_THREE_LEVELS, listOf(PastelSand, PastelPeach), GameGroup.LETTERS),
+    CRYPTOGRAM("cryptogram", "🔐", R.string.cryptogram_title, R.string.cryptogram_description, BY_THREE_LEVELS, listOf(PastelLilac, PastelSky), GameGroup.LETTERS),
     SUDOKU("sudoku", "🔢", R.string.sudoku_title, R.string.sudoku_description, BY_DIFFICULTY, listOf(PastelMint, PastelPink), GameGroup.NUMBERS),
     GARDEN("garden", "🌻", R.string.garden_title, R.string.garden_description, BY_DIFFICULTY, listOf(PastelMint, PastelPeach), GameGroup.VARIOUS),
     PATH("path", "🔗", R.string.path_title, R.string.path_description, BY_DIFFICULTY, listOf(PastelPink, PastelMint), GameGroup.VARIOUS),

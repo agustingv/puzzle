@@ -472,6 +472,15 @@
     <string name="panal_no_center">Tiene que llevar la letra del centro</string>
     <string name="panal_already_found">Ya la habías encontrado</string>
     <string name="panal_not_a_word">No está en la lista</string>
+    <string name="cryptogram_title">Criptograma</string>
+    <string name="cryptogram_description">Un refrán escrito en clave: cada letra se ha cambiado por otra, siempre la misma. Toca una letra y elige en el teclado cuál crees que es; se escribirá en todos los sitios donde aparece esa clave. Cada letra solo puede ser una. Algunas vienen ya puestas, más cuanto más fácil es el nivel, y la pista te da otra. Las tildes no cuentan.</string>
+    <plurals name="cryptogram_left">
+        <item quantity="one">falta %1$d letra</item>
+        <item quantity="other">faltan %1$d letras</item>
+    </plurals>
+    <string name="cryptogram_won">¡Refrán descifrado!</string>
+    <string name="cryptogram_clear">Borrar</string>
+    <string name="cryptogram_cell">Clave %1$s, leída como %2$s</string>
     <string name="card_name">%1$s de %2$s</string>
     <string name="card_spades">picas</string>
     <string name="card_hearts">corazones</string>
