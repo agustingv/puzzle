@@ -392,6 +392,13 @@
         <item quantity="one">¡Escorpión completado en %1$d movimiento!</item>
         <item quantity="other">¡Escorpión completado en %1$d movimientos!</item>
     </plurals>
+    <string name="bakersdozen_title">Panadero</string>
+    <string name="bakersdozen_description">La docena del panadero: trece columnas de cuatro cartas, todas a la vista, con los reyes siempre al fondo. Ordena cada palo del as al rey en las casillas de arriba. Solo se mueve la carta de arriba de cada columna, sobre otra un número mayor, sea del palo que sea. No hay mazo ni huecos libres, y una columna vacía no se puede volver a llenar; en el Portugués admite un rey. Casi todas las partidas tienen solución si piensas bien el orden. Arrastra las cartas, o tócalas para mandarlas a su mejor sitio.</string>
+    <string name="bakersdozen_portuguese">Portugués</string>
+    <plurals name="bakersdozen_won">
+        <item quantity="one">¡Panadero completado en %1$d movimiento!</item>
+        <item quantity="other">¡Panadero completado en %1$d movimientos!</item>
+    </plurals>
     <string name="card_name">%1$s de %2$s</string>
     <string name="card_spades">picas</string>
     <string name="card_hearts">corazones</string>
