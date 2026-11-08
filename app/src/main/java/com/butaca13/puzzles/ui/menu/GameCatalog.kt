@@ -29,6 +29,7 @@ import com.butaca13.puzzles.ui.theme.PastelTeal
 
 private val BY_DIFFICULTY = Difficulty.entries.map { it.name }
 private val BY_LENGTH = WordList.LENGTHS.map { it.toString() }
+private val BY_THREE_LEVELS = listOf(Difficulty.EASY, Difficulty.MEDIUM, Difficulty.HARD).map { it.name }
 private val BY_DRAW = listOf(KlondikeGame.DRAW_ONE, KlondikeGame.DRAW_THREE)
 private val BY_CELLS = listOf(FreeCellGame.FOUR_CELLS, FreeCellGame.TWO_CELLS)
 private val BY_PASSES = listOf(PyramidGame.ONE_PASS, PyramidGame.THREE_PASSES)
@@ -62,6 +63,7 @@ enum class GameInfo(
     WORD_SEARCH("wordsearch", "🔍", R.string.wordsearch_title, R.string.wordsearch_description, BY_DIFFICULTY, listOf(PastelLilac, PastelPink), GameGroup.LETTERS),
     CROSSWORD("crossword", "🧩", R.string.crossword_title, R.string.crossword_description, BY_DIFFICULTY, listOf(PastelPeach, PastelLilac), GameGroup.LETTERS),
     ANAGRAM("anagram", "🔡", R.string.anagram_title, R.string.anagram_description, BY_LENGTH, listOf(PastelSky, PastelPink), GameGroup.LETTERS),
+    LADDER("ladder", "📶", R.string.ladder_title, R.string.ladder_description, BY_THREE_LEVELS, listOf(PastelLime, PastelPeach), GameGroup.LETTERS),
     SUDOKU("sudoku", "🔢", R.string.sudoku_title, R.string.sudoku_description, BY_DIFFICULTY, listOf(PastelMint, PastelPink), GameGroup.NUMBERS),
     GARDEN("garden", "🌻", R.string.garden_title, R.string.garden_description, BY_DIFFICULTY, listOf(PastelMint, PastelPeach), GameGroup.VARIOUS),
     PATH("path", "🔗", R.string.path_title, R.string.path_description, BY_DIFFICULTY, listOf(PastelPink, PastelMint), GameGroup.VARIOUS),

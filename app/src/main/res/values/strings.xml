@@ -432,6 +432,25 @@
     <string name="anagram_won">¡Era %1$s!</string>
     <string name="anagram_take_back">quitar</string>
     <string name="anagram_put">poner</string>
+    <string name="ladder_title">Escalera</string>
+    <string name="ladder_description">Llega de una palabra a otra cambiando una sola letra en cada paso, y que cada paso sea una palabra: de PATO a GATO, de GATO a GALO… Toca la letra que quieres cambiar y elige la nueva en el teclado. Toca una palabra anterior para volver a ella. Si te atascas, la pista da el siguiente paso del camino más corto. En fácil y medio las palabras son de cuatro letras; en difícil, de cinco.</string>
+    <plurals name="ladder_steps">
+        <item quantity="one">%1$d paso de %2$d</item>
+        <item quantity="other">%1$d pasos de %2$d</item>
+    </plurals>
+    <plurals name="ladder_hints">
+        <item quantity="one">%1$d pista</item>
+        <item quantity="other">%1$d pistas</item>
+    </plurals>
+    <plurals name="ladder_won">
+        <item quantity="one">¡Escalera completada en %1$d paso!</item>
+        <item quantity="other">¡Escalera completada en %1$d pasos!</item>
+    </plurals>
+    <string name="ladder_undo">Atrás</string>
+    <string name="ladder_hint">Pista</string>
+    <string name="ladder_target">HASTA</string>
+    <string name="ladder_pick">tocar para cambiarla</string>
+    <string name="ladder_back_to">volver a esta palabra</string>
     <string name="card_name">%1$s de %2$s</string>
     <string name="card_spades">picas</string>
     <string name="card_hearts">corazones</string>
