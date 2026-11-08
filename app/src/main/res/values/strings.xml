@@ -451,6 +451,27 @@
     <string name="ladder_target">HASTA</string>
     <string name="ladder_pick">tocar para cambiarla</string>
     <string name="ladder_back_to">volver a esta palabra</string>
+    <string name="panal_title">Panal</string>
+    <string name="panal_description">Forma palabras de al menos cuatro letras con las siete del panal. Todas tienen que llevar la letra del centro, y cada letra se puede repetir. Una palabra de cuatro letras vale un punto; las más largas, tantos como letras. La que usa las siete es la palabra panal y vale siete más. Llega a los puntos que pide el nivel para ganar. Las tildes no cuentan.</string>
+    <string name="panal_status">%1$d de %2$d puntos</string>
+    <plurals name="panal_words">
+        <item quantity="one">%1$d palabra</item>
+        <item quantity="other">%1$d palabras</item>
+    </plurals>
+    <plurals name="panal_won">
+        <item quantity="one">¡Panal completado con %1$d palabra y %2$d puntos!</item>
+        <item quantity="other">¡Panal completado con %1$d palabras y %2$d puntos!</item>
+    </plurals>
+    <string name="panal_delete">Borrar</string>
+    <string name="panal_shuffle">Mezclar</string>
+    <string name="panal_submit">Enviar</string>
+    <string name="panal_type">Toca una letra para escribirla</string>
+    <string name="panal_pangram">¡Palabra panal! +%1$d</string>
+    <string name="panal_too_short">Tiene que tener al menos 4 letras</string>
+    <string name="panal_wrong_letter">Usa solo las letras del panal</string>
+    <string name="panal_no_center">Tiene que llevar la letra del centro</string>
+    <string name="panal_already_found">Ya la habías encontrado</string>
+    <string name="panal_not_a_word">No está en la lista</string>
     <string name="card_name">%1$s de %2$s</string>
     <string name="card_spades">picas</string>
     <string name="card_hearts">corazones</string>
