@@ -94,6 +94,8 @@ import com.butaca13.puzzles.ui.panal.PanalScreen
 import com.butaca13.puzzles.ui.panal.PanalViewModel
 import com.butaca13.puzzles.ui.cryptogram.CryptogramScreen
 import com.butaca13.puzzles.ui.cryptogram.CryptogramViewModel
+import com.butaca13.puzzles.ui.crossletters.CrossLettersScreen
+import com.butaca13.puzzles.ui.crossletters.CrossLettersViewModel
 import com.butaca13.puzzles.ui.canfield.CanfieldScreen
 import com.butaca13.puzzles.ui.canfield.CanfieldViewModel
 import com.butaca13.puzzles.ui.golf.GolfScreen
@@ -201,6 +203,7 @@ private fun PuzzlesApp() {
     val ladder: LadderViewModel = viewModel()
     val panal: PanalViewModel = viewModel()
     val cryptogram: CryptogramViewModel = viewModel()
+    val crossLetters: CrossLettersViewModel = viewModel()
     val sliding: SlidingViewModel = viewModel()
 
     val context = LocalContext.current
@@ -249,7 +252,7 @@ private fun PuzzlesApp() {
         yukon.session, fortyThieves.session, scorpion.session,
         bakersDozen.session, golf.session, canfield.session,
         anagram.session, ladder.session, panal.session,
-        cryptogram.session,
+        cryptogram.session, crossLetters.session,
     ).map { session -> session.lastRecord?.takeIf { it.rank != null } }
     LaunchedEffect(rankedWins) {
         if (rankedWins.any { it != null }) PlayerSyncScheduler.request(context)
@@ -281,6 +284,7 @@ private fun PuzzlesApp() {
         GameInfo.LADDER -> ladder.session.saved
         GameInfo.PANAL -> panal.session.saved
         GameInfo.CRYPTOGRAM -> cryptogram.session.saved
+        GameInfo.CROSS_LETTERS -> crossLetters.session.saved
         GameInfo.SLIDING -> sliding.session.saved
     }
 
@@ -322,6 +326,7 @@ private fun PuzzlesApp() {
             GameInfo.LADDER -> ladder.newGame(Difficulty.valueOf(variant))
             GameInfo.PANAL -> panal.newGame(Difficulty.valueOf(variant))
             GameInfo.CRYPTOGRAM -> cryptogram.newGame(Difficulty.valueOf(variant))
+            GameInfo.CROSS_LETTERS -> crossLetters.newGame(Difficulty.valueOf(variant))
             GameInfo.SLIDING -> sliding.newGame(Difficulty.valueOf(variant))
         }
         playing = true
@@ -511,6 +516,7 @@ private fun PuzzlesApp() {
                     GameInfo.LADDER -> LadderScreen(ladder, ::stopPlaying)
                     GameInfo.PANAL -> PanalScreen(panal, ::stopPlaying)
                     GameInfo.CRYPTOGRAM -> CryptogramScreen(cryptogram, ::stopPlaying)
+                    GameInfo.CROSS_LETTERS -> CrossLettersScreen(crossLetters, ::stopPlaying)
                     GameInfo.SLIDING -> SlidingScreen(sliding, ::stopPlaying)
                 }
             }

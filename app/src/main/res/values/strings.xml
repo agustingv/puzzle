@@ -481,6 +481,9 @@
     <string name="cryptogram_won">¡Refrán descifrado!</string>
     <string name="cryptogram_clear">Borrar</string>
     <string name="cryptogram_cell">Clave %1$s, leída como %2$s</string>
+    <string name="crossletters_title">Letras Cruzadas</string>
+    <string name="crossletters_description">Coloca las letras en la cuadrícula para que cada fila y cada columna sea una palabra. Algunas letras ya están en su sitio. Toca una casilla y luego la letra que quieres poner; toca una casilla llena para devolver su letra. Vale cualquier solución en la que todas las filas y columnas sean palabras. En fácil y medio la cuadrícula es de cuatro por cuatro; en difícil, de cinco por cinco.</string>
+    <string name="crossletters_won">¡Todas las filas y columnas son palabras!</string>
     <string name="card_name">%1$s de %2$s</string>
     <string name="card_spades">picas</string>
     <string name="card_hearts">corazones</string>
