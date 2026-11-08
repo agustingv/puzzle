@@ -409,6 +409,15 @@
         <item quantity="one">sin salida, queda %1$d carta</item>
         <item quantity="other">sin salida, quedan %1$d cartas</item>
     </plurals>
+    <string name="canfield_title">Canfield</string>
+    <string name="canfield_description">El clásico de casino. Las casillas de arriba no empiezan por el as sino por el número de la primera carta, y suben por palo dando la vuelta del rey al as. En las cuatro columnas las cartas bajan alternando rojo y negro, también del as al rey. Vacía la reserva de la izquierda: sus cartas llenan solas las columnas que quedan vacías, y la de arriba también se puede jugar. Toca el mazo para robar, tantas vueltas como quieras. Arrastra las cartas, o tócalas para mandarlas a su mejor sitio.</string>
+    <string name="canfield_reserve">Reserva, %1$d cartas: %2$s</string>
+    <string name="canfield_reserve_empty">Reserva vacía</string>
+    <string name="canfield_foundation_empty">Casilla %1$d, vacía: empieza por %2$s</string>
+    <plurals name="canfield_won">
+        <item quantity="one">¡Canfield completado en %1$d movimiento!</item>
+        <item quantity="other">¡Canfield completado en %1$d movimientos!</item>
+    </plurals>
     <string name="card_name">%1$s de %2$s</string>
     <string name="card_spades">picas</string>
     <string name="card_hearts">corazones</string>

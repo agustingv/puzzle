@@ -77,6 +77,7 @@ enum class GameInfo(
     SCORPION("scorpion", "🦂", R.string.scorpion_title, R.string.scorpion_description, BY_EMPTY, listOf(PastelCoral, PastelSand), GameGroup.CARDS),
     BAKERS_DOZEN("bakersdozen", "🥖", R.string.bakersdozen_title, R.string.bakersdozen_description, BY_KINGS, listOf(PastelPeach, PastelLime), GameGroup.CARDS),
     GOLF("golf", "⛳", R.string.golf_title, R.string.golf_description, BY_WRAP, listOf(PastelLime, PastelMint), GameGroup.CARDS),
+    CANFIELD("canfield", "🎰", R.string.canfield_title, R.string.canfield_description, BY_DRAW, listOf(PastelCoral, PastelLilac), GameGroup.CARDS),
 }
 
 /**
