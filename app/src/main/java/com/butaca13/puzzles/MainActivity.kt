@@ -60,6 +60,8 @@ import com.butaca13.puzzles.ui.common.GameSounds
 import com.butaca13.puzzles.ui.common.AvatarShortcut
 import com.butaca13.puzzles.ui.common.LocalAvatarShortcut
 import com.butaca13.puzzles.ui.common.LocalOpenSettings
+import com.butaca13.puzzles.ui.common.LocalOnSettings
+import com.butaca13.puzzles.ui.common.LocalSecretSolved
 import com.butaca13.puzzles.ui.common.PrizeNote
 import com.butaca13.puzzles.ui.crossword.CrosswordScreen
 import com.butaca13.puzzles.ui.crossword.CrosswordViewModel
@@ -303,18 +305,40 @@ private fun PuzzlesApp() {
         playing = true
     }
 
+    // The header's avatar and settings, on every screen. On their own screen each shows disabled, and
+    // each leads to the other: from the avatar to the settings, and from the settings, or the privacy
+    // policy they open, to the avatar.
+    fun avatarShortcut(open: (() -> Unit)?) = AvatarShortcut(
+        avatar = account.avatar,
+        open = open,
+        wear = { piece ->
+            account.changeAvatar(account.avatar.wear(piece))
+            PlayerSyncScheduler.request(context)
+        },
+    )
+
     // The avatar comes over the home screen or the settings, and goes back to the one it came from.
     if (showAvatar) {
-        AvatarScreen(
-            avatar = account.avatar,
-            name = account.name,
-            prizes = prizes,
-            onChange = { avatar ->
-                account.changeAvatar(avatar)
-                PlayerSyncScheduler.request(context)
+        CompositionLocalProvider(
+            LocalSecretSolved provides secretSolved,
+            LocalAvatarShortcut provides avatarShortcut(open = null),
+            LocalOpenSettings provides {
+                showAvatar = false
+                showPrivacy = false
+                showSettings = true
             },
-            onExit = { showAvatar = false },
-        )
+        ) {
+            AvatarScreen(
+                avatar = account.avatar,
+                name = account.name,
+                prizes = prizes,
+                onChange = { avatar ->
+                    account.changeAvatar(avatar)
+                    PlayerSyncScheduler.request(context)
+                },
+                onExit = { showAvatar = false },
+            )
+        }
         return
     }
 
@@ -339,37 +363,49 @@ private fun PuzzlesApp() {
 
     // The privacy policy opens from the settings and goes back to them.
     if (showPrivacy) {
-        PrivacyScreen(onExit = { showPrivacy = false })
+        CompositionLocalProvider(
+            LocalSecretSolved provides secretSolved,
+            LocalAvatarShortcut provides avatarShortcut(open = { showAvatar = true }),
+            LocalOpenSettings provides { showPrivacy = false },
+        ) {
+            PrivacyScreen(onExit = { showPrivacy = false })
+        }
         return
     }
 
     // The settings replace whatever is on screen, which stops its clocks. That screen comes back as
     // it was, because its state stays in the holder while it is gone.
     if (showSettings) {
-        SettingsScreen(
-            sounds = sounds,
-            account = account,
-            serverConfigured = PlayerSyncScheduler.serverConfigured,
-            onRename = { name -> account.rename(name).also { if (it) PlayerSyncScheduler.request(context) } },
-            onOfflineChange = { offline ->
-                account.changeOffline(offline)
-                PlayerSyncScheduler.request(context)
-            },
-            onAvatar = { showAvatar = true },
-            onDeletePlayer = {
-                PlayerSyncScheduler.cancel(context)
-                val gone = withContext(Dispatchers.IO) {
-                    PlayerDeletion(account, ScoreUploads(storage), PlayerSyncScheduler.deletionApi()).run()
-                }
-                // Not deleted: whatever was waiting to be sent still is.
-                if (!gone) PlayerSyncScheduler.request(context)
-                gone
-            },
-            onPrivacy = { showPrivacy = true },
-            onExit = { showSettings = false },
-            shop = shop,
-            fakeStore = Billing.fakeStore,
-        )
+        CompositionLocalProvider(
+            LocalSecretSolved provides secretSolved,
+            LocalAvatarShortcut provides avatarShortcut(open = { showAvatar = true }),
+            LocalOnSettings provides true,
+        ) {
+            SettingsScreen(
+                sounds = sounds,
+                account = account,
+                serverConfigured = PlayerSyncScheduler.serverConfigured,
+                onRename = { name -> account.rename(name).also { if (it) PlayerSyncScheduler.request(context) } },
+                onOfflineChange = { offline ->
+                    account.changeOffline(offline)
+                    PlayerSyncScheduler.request(context)
+                },
+                onAvatar = { showAvatar = true },
+                onDeletePlayer = {
+                    PlayerSyncScheduler.cancel(context)
+                    val gone = withContext(Dispatchers.IO) {
+                        PlayerDeletion(account, ScoreUploads(storage), PlayerSyncScheduler.deletionApi()).run()
+                    }
+                    // Not deleted: whatever was waiting to be sent still is.
+                    if (!gone) PlayerSyncScheduler.request(context)
+                    gone
+                },
+                onPrivacy = { showPrivacy = true },
+                onExit = { showSettings = false },
+                shop = shop,
+                fakeStore = Billing.fakeStore,
+            )
+        }
         return
     }
 
@@ -386,6 +422,7 @@ private fun PuzzlesApp() {
     screens.SaveableStateProvider("screens") {
         CompositionLocalProvider(
             LocalOpenSettings provides { showSettings = true },
+            LocalSecretSolved provides secretSolved,
             LocalAvatarShortcut provides AvatarShortcut(
                 avatar = account.avatar,
                 open = { showAvatar = true },

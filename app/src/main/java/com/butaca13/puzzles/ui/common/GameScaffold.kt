@@ -76,8 +76,9 @@ fun GameScaffold(
             subtitle = status,
             titleInTiles = true,
             onBack = onExit,
-            trailing = { TimerPill(session.elapsedSeconds, Modifier.padding(horizontal = 4.dp)) },
+            // The clock beside the status, so that the title has the whole line to itself.
             subtitleAction = {
+                TimerPill(session.elapsedSeconds, Modifier.padding(horizontal = 4.dp))
                 if (running) {
                     TextButton(onClick = { confirmDiscard = true }) { Text(stringResource(R.string.end_game)) }
                 }

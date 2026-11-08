@@ -68,6 +68,9 @@ private val BarTitleMaxTile = 26.dp
 /** Two lines of these still fit the height of the top bar. */
 private val BarTitleMaxTileOnTwoLines = 20.dp
 
+/** A screen's own title, under the app's: smaller, as a subtitle, always on one line. */
+private val SubtitleMaxTile = 22.dp
+
 /** Space between tiles, as a share of a tile. */
 private const val TILE_GAP = 0.18f
 
@@ -206,7 +209,7 @@ private fun TileLines(
  * Filled in, the tile opens the prize the message hides, [onSolvedTile].
  */
 @Composable
-internal fun AppTitle(solved: Boolean, onLastTile: () -> Unit, modifier: Modifier = Modifier, onSolvedTile: (() -> Unit)? = null) {
+internal fun AppTitle(solved: Boolean, onLastTile: (() -> Unit)?, modifier: Modifier = Modifier, onSolvedTile: (() -> Unit)? = null) {
     val name = stringResource(R.string.app_name)
     val solveLabel = stringResource(R.string.secret_title)
     val prizeLabel = stringResource(R.string.starfall_open)
@@ -218,12 +221,12 @@ internal fun AppTitle(solved: Boolean, onLastTile: () -> Unit, modifier: Modifie
             .clearAndSetSemantics {
                 contentDescription = name
                 heading()
-                if (!solved) {
+                if (!solved && onLastTile != null) {
                     onClick(label = solveLabel) {
                         onLastTile()
                         true
                     }
-                } else if (onSolvedTile != null) {
+                } else if (solved && onSolvedTile != null) {
                     onClick(label = prizeLabel) {
                         onSolvedTile()
                         true
@@ -252,6 +255,8 @@ internal fun AppTitle(solved: Boolean, onLastTile: () -> Unit, modifier: Modifie
                         onClick = onSolvedTile,
                     )
                 }
+            } else if (onLastTile == null) {
+                Modifier
             } else {
                 Modifier.clickable(
                     interactionSource = remember { MutableInteractionSource() },
@@ -291,16 +296,21 @@ internal fun CardTitle(title: String, widest: Float, modifier: Modifier = Modifi
  * has room for, instead of sharing a size like the cards do.
  */
 @Composable
-internal fun BarTitle(title: String, modifier: Modifier = Modifier) {
+internal fun BarTitle(title: String, modifier: Modifier = Modifier, small: Boolean = false, alignment: Alignment = Alignment.Center) {
     BoxWithConstraints(
-        contentAlignment = Alignment.Center,
+        contentAlignment = alignment,
         modifier = modifier.clearAndSetSemantics {
             contentDescription = title
             heading()
         },
     ) {
-        val lines = titleLines(title)
-        val largest = if (lines.size > 1) BarTitleMaxTileOnTwoLines else BarTitleMaxTile
+        // A subtitle stays on one line, its tiles as small as that takes.
+        val lines = if (small) listOf(title) else titleLines(title)
+        val largest = when {
+            small -> SubtitleMaxTile
+            lines.size > 1 -> BarTitleMaxTileOnTwoLines
+            else -> BarTitleMaxTile
+        }
         val tile = min(largest, maxWidth / lines.maxOf(::lineWidth))
 
         TileLines(lines, SecretMessage.letterIndexOf(title), tile, tile * TILE_GAP, TileStyle.RAISED, SMALL_TILE_LETTER_RATIO)
