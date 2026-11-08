@@ -418,6 +418,20 @@
         <item quantity="one">¡Canfield completado en %1$d movimiento!</item>
         <item quantity="other">¡Canfield completado en %1$d movimientos!</item>
     </plurals>
+    <string name="anagram_title">Anagrama</string>
+    <string name="anagram_description">Las letras de una palabra, desordenadas. Tócalas en orden para escribirla en las casillas de arriba; toca una casilla para devolver esa letra y las que la siguen. Si te atascas, mezcla las letras para verlas de otra forma o pide la pista: la definición de la palabra. Las tildes no cuentan, y vale cualquier palabra que se forme con todas las letras.</string>
+    <string name="anagram_status">%1$d letras</string>
+    <plurals name="anagram_misses">
+        <item quantity="one">%1$d fallo</item>
+        <item quantity="other">%1$d fallos</item>
+    </plurals>
+    <string name="anagram_clue_used">con pista</string>
+    <string name="anagram_clue">Pista</string>
+    <string name="anagram_shuffle">Mezclar</string>
+    <string name="anagram_clear">Borrar</string>
+    <string name="anagram_won">¡Era %1$s!</string>
+    <string name="anagram_take_back">quitar</string>
+    <string name="anagram_put">poner</string>
     <string name="card_name">%1$s de %2$s</string>
     <string name="card_spades">picas</string>
     <string name="card_hearts">corazones</string>

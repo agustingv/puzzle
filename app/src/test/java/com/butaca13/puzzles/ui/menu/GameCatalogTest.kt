@@ -35,7 +35,7 @@ class GameCatalogTest {
     @Test
     fun `the groups hold the games they were made for`() {
         assertEquals(
-            listOf(GameInfo.RACE, GameInfo.HANGMAN, GameInfo.WORD, GameInfo.WORD_SEARCH, GameInfo.CROSSWORD),
+            listOf(GameInfo.RACE, GameInfo.HANGMAN, GameInfo.WORD, GameInfo.WORD_SEARCH, GameInfo.CROSSWORD, GameInfo.ANAGRAM),
             GameGroup.LETTERS.games,
         )
         assertEquals(setOf(GameInfo.SUDOKU, GameInfo.KAKURO, GameInfo.SLIDING), GameGroup.NUMBERS.games.toSet())

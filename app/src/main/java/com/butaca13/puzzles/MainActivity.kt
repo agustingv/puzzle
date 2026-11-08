@@ -86,6 +86,8 @@ import com.butaca13.puzzles.game.scorpion.ScorpionGame
 import com.butaca13.puzzles.game.bakersdozen.BakersDozenGame
 import com.butaca13.puzzles.game.golf.GolfGame
 import com.butaca13.puzzles.game.canfield.CanfieldGame
+import com.butaca13.puzzles.ui.anagram.AnagramScreen
+import com.butaca13.puzzles.ui.anagram.AnagramViewModel
 import com.butaca13.puzzles.ui.canfield.CanfieldScreen
 import com.butaca13.puzzles.ui.canfield.CanfieldViewModel
 import com.butaca13.puzzles.ui.golf.GolfScreen
@@ -189,6 +191,7 @@ private fun PuzzlesApp() {
     val bakersDozen: BakersDozenViewModel = viewModel()
     val golf: GolfViewModel = viewModel()
     val canfield: CanfieldViewModel = viewModel()
+    val anagram: AnagramViewModel = viewModel()
     val sliding: SlidingViewModel = viewModel()
 
     val context = LocalContext.current
@@ -236,6 +239,7 @@ private fun PuzzlesApp() {
         freeCell.session, spider.session, pyramid.session, triPeaks.session,
         yukon.session, fortyThieves.session, scorpion.session,
         bakersDozen.session, golf.session, canfield.session,
+        anagram.session,
     ).map { session -> session.lastRecord?.takeIf { it.rank != null } }
     LaunchedEffect(rankedWins) {
         if (rankedWins.any { it != null }) PlayerSyncScheduler.request(context)
@@ -263,6 +267,7 @@ private fun PuzzlesApp() {
         GameInfo.BAKERS_DOZEN -> bakersDozen.session.saved
         GameInfo.GOLF -> golf.session.saved
         GameInfo.CANFIELD -> canfield.session.saved
+        GameInfo.ANAGRAM -> anagram.session.saved
         GameInfo.SLIDING -> sliding.session.saved
     }
 
@@ -300,6 +305,7 @@ private fun PuzzlesApp() {
             GameInfo.BAKERS_DOZEN -> bakersDozen.newGame(BakersDozenGame.kingsOnEmptyOf(variant))
             GameInfo.GOLF -> golf.newGame(GolfGame.wrapsOf(variant))
             GameInfo.CANFIELD -> canfield.newGame(CanfieldGame.drawCountOf(variant))
+            GameInfo.ANAGRAM -> anagram.newGame(variant.toInt())
             GameInfo.SLIDING -> sliding.newGame(Difficulty.valueOf(variant))
         }
         playing = true
@@ -485,6 +491,7 @@ private fun PuzzlesApp() {
                     GameInfo.BAKERS_DOZEN -> BakersDozenScreen(bakersDozen, ::stopPlaying)
                     GameInfo.GOLF -> GolfScreen(golf, ::stopPlaying)
                     GameInfo.CANFIELD -> CanfieldScreen(canfield, ::stopPlaying)
+                    GameInfo.ANAGRAM -> AnagramScreen(anagram, ::stopPlaying)
                     GameInfo.SLIDING -> SlidingScreen(sliding, ::stopPlaying)
                 }
             }
