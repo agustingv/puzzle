@@ -382,6 +382,16 @@
         <item quantity="one">¡Cuarenta Ladrones completado en %1$d movimiento!</item>
         <item quantity="other">¡Cuarenta Ladrones completado en %1$d movimientos!</item>
     </plurals>
+    <string name="scorpion_title">Escorpión</string>
+    <string name="scorpion_description">Una baraja en siete columnas, algunas cartas boca abajo y tres en reserva. Cualquier carta boca arriba se mueve con todas las que tenga encima, estén en orden o no, sobre otra del mismo palo un número mayor; en una columna vacía solo puede ir un rey, o cualquier carta en la Avispa. Cuando juntas una escalera de un palo del rey al as, sale de la mesa; saca las cuatro para ganar. Toca la reserva para repartir sus tres cartas en las primeras columnas, solo una vez. Arrastra las cartas, o tócalas para mandarlas a su mejor sitio.</string>
+    <string name="scorpion_wasp">Avispa</string>
+    <string name="scorpion_deal_hint">reparte la reserva</string>
+    <string name="scorpion_reserve">Reserva, 3 cartas. Repartir</string>
+    <string name="scorpion_reserve_empty">Reserva repartida</string>
+    <plurals name="scorpion_won">
+        <item quantity="one">¡Escorpión completado en %1$d movimiento!</item>
+        <item quantity="other">¡Escorpión completado en %1$d movimientos!</item>
+    </plurals>
     <string name="card_name">%1$s de %2$s</string>
     <string name="card_spades">picas</string>
     <string name="card_hearts">corazones</string>

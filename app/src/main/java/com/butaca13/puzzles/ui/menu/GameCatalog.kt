@@ -11,6 +11,7 @@ import com.butaca13.puzzles.game.fortythieves.FortyThievesGame
 import com.butaca13.puzzles.game.freecell.FreeCellGame
 import com.butaca13.puzzles.game.klondike.KlondikeGame
 import com.butaca13.puzzles.game.pyramid.PyramidGame
+import com.butaca13.puzzles.game.scorpion.ScorpionGame
 import com.butaca13.puzzles.game.spider.SpiderGame
 import com.butaca13.puzzles.game.tripeaks.TriPeaksGame
 import com.butaca13.puzzles.game.yukon.YukonGame
@@ -33,12 +34,13 @@ private val BY_PASSES = listOf(PyramidGame.ONE_PASS, PyramidGame.THREE_PASSES)
 private val BY_WRAP = listOf(TriPeaksGame.EASY, TriPeaksGame.HARD)
 private val BY_RULES = listOf(YukonGame.CLASSIC, YukonGame.RUSSIAN)
 private val BY_DEALS = listOf(FortyThievesGame.ONE_DEAL, FortyThievesGame.TWO_DEALS)
+private val BY_EMPTY = listOf(ScorpionGame.CLASSIC, ScorpionGame.WASP)
 private val BY_SUITS = listOf(SpiderGame.ONE_SUIT, SpiderGame.TWO_SUITS, SpiderGame.FOUR_SUITS)
 
 /**
  * Every game, in menu order. [id] names its saved game and records. Icons are kept to old emoji:
  * minSdk 24 has no glyph for newer ones like 🟩, 🪢 or 🧠. [variants] are a game's difficulties, word
- * lengths, for the patience how many cards a draw turns over, for FreeCell how many free cells, for Spider how many suits, for Pyramid how many times round the stock, for TriPeaks whether king and ace follow each other (easy) or not (hard), for Yukon whether columns build by colour or by suit, for Forty Thieves how many times round the stock. [gradient] is its pair of pastels, the web's colour pair made pastel. A [paid] game
+ * lengths, for the patience how many cards a draw turns over, for FreeCell how many free cells, for Spider how many suits, for Pyramid how many times round the stock, for TriPeaks whether king and ace follow each other (easy) or not (hard), for Yukon whether columns build by colour or by suit, for Forty Thieves how many times round the stock, for Scorpion whether only kings go to an empty column. [gradient] is its pair of pastels, the web's colour pair made pastel. A [paid] game
  * is bought on its own (its [productId]) or with all of them, see [Products]. [group] is where the
  * home screen lists it.
  */
@@ -70,6 +72,7 @@ enum class GameInfo(
     TRIPEAKS("tripeaks", "⛰️", R.string.tripeaks_title, R.string.tripeaks_description, BY_WRAP, listOf(PastelMint, PastelSky), GameGroup.CARDS),
     YUKON("yukon", "❄️", R.string.yukon_title, R.string.yukon_description, BY_RULES, listOf(PastelSky, PastelMint), GameGroup.CARDS),
     FORTY_THIEVES("fortythieves", "🗝️", R.string.fortythieves_title, R.string.fortythieves_description, BY_DEALS, listOf(PastelSand, PastelLilac), GameGroup.CARDS),
+    SCORPION("scorpion", "🦂", R.string.scorpion_title, R.string.scorpion_description, BY_EMPTY, listOf(PastelCoral, PastelSand), GameGroup.CARDS),
 }
 
 /**
@@ -106,7 +109,7 @@ val GameInfo.variantsTitle: Int
         variants === BY_CELLS -> R.string.option_cells
         variants === BY_SUITS -> R.string.option_suits
         variants === BY_PASSES || variants === BY_DEALS -> R.string.option_passes
-        variants === BY_RULES -> R.string.option_rules
+        variants === BY_RULES || variants === BY_EMPTY -> R.string.option_rules
         else -> R.string.option_difficulty
     }
 
@@ -126,6 +129,7 @@ fun variantShortLabel(variant: String): String = when (variant) {
     FortyThievesGame.ONE_DEAL -> stringResource(R.string.fortythieves_one_deal)
     FortyThievesGame.TWO_DEALS -> stringResource(R.string.fortythieves_two_deals)
     YukonGame.RUSSIAN -> stringResource(R.string.yukon_russian)
+    ScorpionGame.WASP -> stringResource(R.string.scorpion_wasp)
     else -> variant.toDifficultyOrNull()?.let { stringResource(it.labelRes) } ?: variant
 }
 

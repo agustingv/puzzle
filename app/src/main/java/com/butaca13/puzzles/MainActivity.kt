@@ -80,6 +80,9 @@ import com.butaca13.puzzles.game.pyramid.PyramidGame
 import com.butaca13.puzzles.game.tripeaks.TriPeaksGame
 import com.butaca13.puzzles.game.yukon.YukonGame
 import com.butaca13.puzzles.game.fortythieves.FortyThievesGame
+import com.butaca13.puzzles.game.scorpion.ScorpionGame
+import com.butaca13.puzzles.ui.scorpion.ScorpionScreen
+import com.butaca13.puzzles.ui.scorpion.ScorpionViewModel
 import com.butaca13.puzzles.ui.fortythieves.FortyThievesScreen
 import com.butaca13.puzzles.ui.fortythieves.FortyThievesViewModel
 import com.butaca13.puzzles.ui.yukon.YukonScreen
@@ -171,6 +174,7 @@ private fun PuzzlesApp() {
     val triPeaks: TriPeaksViewModel = viewModel()
     val yukon: YukonViewModel = viewModel()
     val fortyThieves: FortyThievesViewModel = viewModel()
+    val scorpion: ScorpionViewModel = viewModel()
     val sliding: SlidingViewModel = viewModel()
 
     val context = LocalContext.current
@@ -216,7 +220,7 @@ private fun PuzzlesApp() {
         race.session, hangman.session, word.session, wordSearch.session, crossword.session, sudoku.session,
         garden.session, path.session, kakuro.session, memorama.session, sliding.session, klondike.session,
         freeCell.session, spider.session, pyramid.session, triPeaks.session,
-        yukon.session, fortyThieves.session,
+        yukon.session, fortyThieves.session, scorpion.session,
     ).map { session -> session.lastRecord?.takeIf { it.rank != null } }
     LaunchedEffect(rankedWins) {
         if (rankedWins.any { it != null }) PlayerSyncScheduler.request(context)
@@ -240,6 +244,7 @@ private fun PuzzlesApp() {
         GameInfo.TRIPEAKS -> triPeaks.session.saved
         GameInfo.YUKON -> yukon.session.saved
         GameInfo.FORTY_THIEVES -> fortyThieves.session.saved
+        GameInfo.SCORPION -> scorpion.session.saved
         GameInfo.SLIDING -> sliding.session.saved
     }
 
@@ -273,6 +278,7 @@ private fun PuzzlesApp() {
             GameInfo.TRIPEAKS -> triPeaks.newGame(TriPeaksGame.wrapsOf(variant))
             GameInfo.YUKON -> yukon.newGame(YukonGame.sameSuitOf(variant))
             GameInfo.FORTY_THIEVES -> fortyThieves.newGame(FortyThievesGame.passesOf(variant))
+            GameInfo.SCORPION -> scorpion.newGame(ScorpionGame.anyOnEmptyOf(variant))
             GameInfo.SLIDING -> sliding.newGame(Difficulty.valueOf(variant))
         }
         playing = true
@@ -419,6 +425,7 @@ private fun PuzzlesApp() {
                     GameInfo.TRIPEAKS -> TriPeaksScreen(triPeaks, ::stopPlaying)
                     GameInfo.YUKON -> YukonScreen(yukon, ::stopPlaying)
                     GameInfo.FORTY_THIEVES -> FortyThievesScreen(fortyThieves, ::stopPlaying)
+                    GameInfo.SCORPION -> ScorpionScreen(scorpion, ::stopPlaying)
                     GameInfo.SLIDING -> SlidingScreen(sliding, ::stopPlaying)
                 }
             }
