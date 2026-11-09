@@ -85,8 +85,9 @@ class StarfallViewModel(application: Application) : AndroidViewModel(application
     }
 
     /** Freezes the run where it is: from its button, the back gesture, or leaving the app. */
+    /** Not once the run is over: the game over or the ending is showing, and back skips it instead. */
     fun pause() {
-        if (stage == StarfallStage.PLAYING && !paused) {
+        if (stage == StarfallStage.PLAYING && !paused && world?.ended != true) {
             paused = true
             audio.play(Sfx.UI_SELECT, 0f, 1f)
         }

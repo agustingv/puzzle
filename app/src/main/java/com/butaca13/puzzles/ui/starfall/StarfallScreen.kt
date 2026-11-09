@@ -16,6 +16,8 @@ import androidx.core.view.WindowCompat
 import kotlin.math.roundToInt
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -45,6 +47,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
@@ -87,6 +91,8 @@ fun StarfallScreen(viewModel: StarfallViewModel, onExit: () -> Unit) {
     BackHandler {
         when {
             viewModel.stage == StarfallStage.PLAYING && viewModel.paused -> viewModel.resume()
+            // On the game over or the ending, back goes on to the scores, as a tap does.
+            viewModel.stage == StarfallStage.PLAYING && viewModel.world?.ended == true -> viewModel.world?.skipEnding()
             viewModel.stage == StarfallStage.PLAYING -> viewModel.pause()
             viewModel.stage == StarfallStage.SCORES -> viewModel.toTitle()
             else -> onExit()
@@ -188,12 +194,13 @@ fun StarfallScreen(viewModel: StarfallViewModel, onExit: () -> Unit) {
                     clipRect(0f, 0f, Config.SCREEN_W, Config.SCREEN_H) {
                         if (playing) {
                             drawWorld(world!!, viewModel.atlas, text, texts)
-                            // Above the panel, things fade out rather than stop at a line.
-                            if (withPanel) {
+                            // Above the panel, things fade out rather than stop at a line. Not once the run
+                            // is over: the whole screen dims then, and the fade would leave a band.
+                            if (withPanel && !world.ended) {
                                 drawRect(
                                     Brush.verticalGradient(listOf(Color.Transparent, Bg), startY = Config.SCREEN_H - 24f, endY = Config.SCREEN_H),
                                     topLeft = Offset(0f, Config.SCREEN_H - 24f),
-                                    size = androidx.compose.ui.geometry.Size(Config.SCREEN_W, 24f),
+                                    size = Size(Config.SCREEN_W, 24f),
                                 )
                             }
                         } else {
@@ -206,10 +213,28 @@ fun StarfallScreen(viewModel: StarfallViewModel, onExit: () -> Unit) {
                     }
                 }
             }
+            // The game over and the ending dim the play area; the rest of the screen dims with it.
+            val world = viewModel.world
+            if (world != null && viewModel.stage == StarfallStage.PLAYING && world.ended) {
+                dimOutside(left, top, Config.SCREEN_W * scale, Config.SCREEN_H * scale, END_DIM)
+            }
         }
 
         val unit = width / Config.SCREEN_W
-        Box(modifier = Modifier.offset { IntOffset(left.roundToInt(), top.roundToInt()) }.size(width, height)) {
+        // The scores and the pause menu dim the whole screen, not only the play area they sit in.
+        val dim = when {
+            viewModel.stage == StarfallStage.SCORES -> SCORES_DIM
+            viewModel.stage == StarfallStage.PLAYING && viewModel.paused -> PAUSE_DIM
+            else -> 0f
+        }
+        if (dim > 0f) Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = dim)))
+        // The scores reach down to the navigation bar on a tall phone: the table and the prize take room.
+        val boxHeight = if (viewModel.stage == StarfallStage.SCORES) {
+            maxOf(height, with(density) { (constraints.maxHeight - top - navigationBar).toDp() })
+        } else {
+            height
+        }
+        Box(modifier = Modifier.offset { IntOffset(left.roundToInt(), top.roundToInt()) }.size(width, boxHeight)) {
             when (viewModel.stage) {
                 StarfallStage.TITLE -> Title(unit, onPlay = viewModel::play, onScores = viewModel::showScores, onExit = onExit)
                 StarfallStage.PLAYING -> PlayControls(viewModel, unit, frame, bombHere = !withPanel)
@@ -220,6 +245,19 @@ fun StarfallScreen(viewModel: StarfallViewModel, onExit: () -> Unit) {
             Panel(viewModel, frame, modifier = Modifier.offset { IntOffset(0, (top + Config.SCREEN_H * scale).roundToInt()) }.fillMaxWidth().height(panelHeight))
         }
     }
+}
+
+private const val SCORES_DIM = 0.55f
+private const val PAUSE_DIM = 0.65f
+
+/** Black at [alpha] over the whole canvas but the play area at ([left], [top]), [width] × [height]. */
+private fun DrawScope.dimOutside(left: Float, top: Float, width: Float, height: Float, alpha: Float) {
+    val dim = Color.Black.copy(alpha = alpha)
+    val bottom = top + height
+    drawRect(dim, size = Size(size.width, top))
+    drawRect(dim, Offset(0f, bottom), Size(size.width, size.height - bottom))
+    drawRect(dim, Offset(0f, top), Size(left, height))
+    drawRect(dim, Offset(left + width, top), Size(size.width - left - width, height))
 }
 
 /** Sizes in the game's own units, so that the menus scale with it. */
@@ -294,7 +332,9 @@ private fun PlayControls(viewModel: StarfallViewModel, unit: Dp, frame: Long, bo
     val pauseLabel = stringResource(R.string.starfall_pause)
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Box(
+        // Paused, the button would show over the dimmed screen; the menu takes its place. Once the run is
+        // over there is nothing to pause.
+        if (!viewModel.paused && !(frame > 0 && world.ended)) Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
                 .align(Alignment.TopEnd)
@@ -314,7 +354,7 @@ private fun PlayControls(viewModel: StarfallViewModel, unit: Dp, frame: Long, bo
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.65f)),
+                modifier = Modifier.fillMaxSize(),
             ) {
                 PixelText(stringResource(R.string.starfall_paused), unit.sp(44f), Palette.RAYWHITE)
                 Spacer(Modifier.height(unit * 40))
@@ -377,40 +417,46 @@ private fun Scores(viewModel: StarfallViewModel, unit: Dp) {
     val dates = remember { DateFormat.getDateInstance(DateFormat.SHORT) }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.55f)),
+        modifier = Modifier.fillMaxSize(),
     ) {
-        Spacer(Modifier.height(unit * 60))
-        PixelText(stringResource(R.string.starfall_high_scores), unit.sp(34f), Palette.YELLOW)
-        if (viewModel.lastScore > 0 || viewModel.lastRow >= 0) {
-            Spacer(Modifier.height(unit * 8))
-            PixelText(stringResource(R.string.starfall_your_score, viewModel.lastScore), unit.sp(18f), Palette.LIGHTGRAY)
-        }
-        viewModel.prize?.let { piece ->
-            Spacer(Modifier.height(unit * 16))
-            PrizeNote(piece, Modifier.padding(horizontal = unit * 28))
-        }
-        Spacer(Modifier.height(unit * 28))
-        if (entries.isEmpty()) {
-            PixelText(stringResource(R.string.starfall_no_scores), unit.sp(16f), Palette.GRAY)
-        }
-        entries.forEachIndexed { i, entry ->
-            val lit = i == viewModel.lastRow
-            val color = if (lit) Palette.YELLOW else Palette.RAYWHITE
-            val level = stringResource(R.string.starfall_level_short, entry.level)
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = unit * 36, vertical = unit * 5)
-                    .semantics(mergeDescendants = true) {},
-            ) {
-                ScoreCell("${i + 1}.", unit, color, Modifier.width(unit * 44), TextAlign.End)
-                ScoreCell("%08d".format(entry.score), unit, color, Modifier.weight(1f))
-                ScoreCell(level, unit, Palette.SKYBLUE, Modifier.width(unit * 90))
-                ScoreCell(dates.format(Date(entry.playedAt)), unit, Palette.GRAY, Modifier.width(unit * 110), TextAlign.End, small = true)
+        // The table scrolls if the prize note makes it taller than the room left: the buttons always show.
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),
+        ) {
+            Spacer(Modifier.height(unit * 60))
+            PixelText(stringResource(R.string.starfall_high_scores), unit.sp(34f), Palette.YELLOW)
+            if (viewModel.lastScore > 0 || viewModel.lastRow >= 0) {
+                Spacer(Modifier.height(unit * 8))
+                PixelText(stringResource(R.string.starfall_your_score, viewModel.lastScore), unit.sp(18f), Palette.LIGHTGRAY)
+            }
+            viewModel.prize?.let { piece ->
+                Spacer(Modifier.height(unit * 16))
+                PrizeNote(piece, Modifier.padding(horizontal = unit * 28))
+            }
+            Spacer(Modifier.height(unit * 28))
+            if (entries.isEmpty()) {
+                PixelText(stringResource(R.string.starfall_no_scores), unit.sp(16f), Palette.GRAY)
+            }
+            entries.forEachIndexed { i, entry ->
+                val lit = i == viewModel.lastRow
+                val color = if (lit) Palette.YELLOW else Palette.RAYWHITE
+                val level = stringResource(R.string.starfall_level_short, entry.level)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = unit * 36, vertical = unit * 5)
+                        .semantics(mergeDescendants = true) {},
+                ) {
+                    ScoreCell("${i + 1}.", unit, color, Modifier.width(unit * 44), TextAlign.End)
+                    ScoreCell("%08d".format(entry.score), unit, color, Modifier.weight(1f))
+                    ScoreCell(level, unit, Palette.SKYBLUE, Modifier.width(unit * 90))
+                    ScoreCell(dates.format(Date(entry.playedAt)), unit, Palette.GRAY, Modifier.width(unit * 110), TextAlign.End, small = true)
+                }
             }
         }
-        Spacer(Modifier.weight(1f))
+        Spacer(Modifier.height(unit * 12))
         MenuButton(stringResource(R.string.starfall_play_again), unit, viewModel::play, primary = true)
         MenuButton(stringResource(R.string.starfall_back), unit, viewModel::toTitle)
         Spacer(Modifier.height(unit * 40))

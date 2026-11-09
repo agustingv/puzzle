@@ -272,8 +272,14 @@ private fun DrawScope.banner(message: String, text: StarfallText) = with(text) {
     centered(message, stripY + 15f, 34f, Palette.RAYWHITE)
 }
 
+/** How dark the game over and the ending make the screen; the screen dims beyond the play area by as much. */
+const val END_DIM = 0.65f
+
+/** Whether the run is over, with the game over or the ending showing. */
+val World.ended: Boolean get() = phase == Phase.DEAD || phase == Phase.VICTORY
+
 private fun DrawScope.overlay(title: String, hint: String, text: StarfallText) = with(text) {
-    drawRect(c(Palette.BLACK, 0.65f), size = Size(Config.SCREEN_W, Config.SCREEN_H))
+    drawRect(c(Palette.BLACK, END_DIM), size = Size(Config.SCREEN_W, Config.SCREEN_H))
     centered(title, Config.SCREEN_H / 2 - 40f, 44f, Palette.RAYWHITE)
     centered(hint, Config.SCREEN_H / 2 + 18f, 18f, Palette.LIGHTGRAY)
 }
