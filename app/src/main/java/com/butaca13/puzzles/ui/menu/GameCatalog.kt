@@ -1,8 +1,8 @@
 package com.butaca13.puzzles.ui.menu
 
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import com.butaca13.puzzles.R
 import com.butaca13.puzzles.data.Products
@@ -15,15 +15,6 @@ import com.butaca13.puzzles.game.scorpion.ScorpionGame
 import com.butaca13.puzzles.game.tripeaks.TriPeaksGame
 import com.butaca13.puzzles.game.yukon.YukonGame
 import com.butaca13.puzzles.game.word.WordList
-import com.butaca13.puzzles.ui.theme.PastelCoral
-import com.butaca13.puzzles.ui.theme.PastelLilac
-import com.butaca13.puzzles.ui.theme.PastelLime
-import com.butaca13.puzzles.ui.theme.PastelMint
-import com.butaca13.puzzles.ui.theme.PastelPeach
-import com.butaca13.puzzles.ui.theme.PastelPink
-import com.butaca13.puzzles.ui.theme.PastelSand
-import com.butaca13.puzzles.ui.theme.PastelSky
-import com.butaca13.puzzles.ui.theme.PastelTeal
 
 private val BY_DIFFICULTY = Difficulty.entries.map { it.name }
 private val BY_LENGTH = WordList.LENGTHS.map { it.toString() }
@@ -37,53 +28,53 @@ private val BY_EMPTY = listOf(ScorpionGame.CLASSIC, ScorpionGame.WASP)
 private val BY_KINGS = listOf(BakersDozenGame.CLASSIC, BakersDozenGame.PORTUGUESE)
 
 /**
- * Every game, in menu order. [id] names its saved game and records. Icons are kept to old emoji:
- * minSdk 24 has no glyph for newer ones like 🟩, 🪢 or 🧠. [variants] are a game's difficulties, word
- * lengths, for the patience how many cards a draw turns over, for FreeCell how many free cells, for Pyramid how many times round the stock, for TriPeaks whether king and ace follow each other (easy) or not (hard), for Yukon whether columns build by colour or by suit, for Scorpion whether only kings go to an empty column, for Baker's Dozen whether an empty column takes a king. [gradient] is its pair of pastels, the web's colour pair made pastel. A [paid] game
+ * Every game, in menu order. [id] names its saved game and records. [icon] is its pictogram, drawn in
+ * white on its [tone], see GameIcon. [variants] are a game's difficulties, word
+ * lengths, for the patience how many cards a draw turns over, for FreeCell how many free cells, for Pyramid how many times round the stock, for TriPeaks whether king and ace follow each other (easy) or not (hard), for Yukon whether columns build by colour or by suit, for Scorpion whether only kings go to an empty column, for Baker's Dozen whether an empty column takes a king. A [paid] game
  * is bought on its own (its [productId]) or with all of them, see [Products]. [group] is where the
  * home screen lists it.
  */
 enum class GameInfo(
     val id: String,
-    val icon: String,
+    @param:DrawableRes val icon: Int,
+    val tone: GameTone,
     @param:StringRes val title: Int,
     @param:StringRes val description: Int,
     val variants: List<String>,
-    val gradient: List<Color>,
     val group: GameGroup,
     val paid: Boolean = false,
 ) {
-    RACE("race", "🏁", R.string.race_title, R.string.race_description, BY_LENGTH, listOf(PastelPink, PastelLilac), GameGroup.LETTERS),
-    HANGMAN("hangman", "🎯", R.string.hangman_title, R.string.hangman_description, BY_LENGTH, listOf(PastelPeach, PastelCoral), GameGroup.LETTERS),
-    WORD("word", "🔠", R.string.word_title, R.string.word_description, BY_LENGTH, listOf(PastelMint, PastelTeal), GameGroup.LETTERS),
-    WORD_SEARCH("wordsearch", "🔍", R.string.wordsearch_title, R.string.wordsearch_description, BY_DIFFICULTY, listOf(PastelLilac, PastelPink), GameGroup.LETTERS),
-    CROSSWORD("crossword", "🧩", R.string.crossword_title, R.string.crossword_description, BY_DIFFICULTY, listOf(PastelPeach, PastelLilac), GameGroup.LETTERS),
-    PANAL("panal", "🐝", R.string.panal_title, R.string.panal_description, BY_THREE_LEVELS, listOf(PastelSand, PastelPeach), GameGroup.LETTERS),
-    CROSS_LETTERS("crossletters", "🔲", R.string.crossletters_title, R.string.crossletters_description, BY_THREE_LEVELS, listOf(PastelMint, PastelLilac), GameGroup.LETTERS),
-    SUDOKU("sudoku", "🔢", R.string.sudoku_title, R.string.sudoku_description, BY_DIFFICULTY, listOf(PastelMint, PastelPink), GameGroup.NUMBERS),
-    GARDEN("garden", "🌻", R.string.garden_title, R.string.garden_description, BY_DIFFICULTY, listOf(PastelMint, PastelPeach), GameGroup.VARIOUS),
-    PATH("path", "🔗", R.string.path_title, R.string.path_description, BY_DIFFICULTY, listOf(PastelPink, PastelMint), GameGroup.VARIOUS),
-    KAKURO("kakuro", "➕", R.string.kakuro_title, R.string.kakuro_description, BY_DIFFICULTY, listOf(PastelLilac, PastelMint), GameGroup.NUMBERS),
-    MEMORAMA("memorama", "🃏", R.string.memorama_title, R.string.memorama_description, BY_DIFFICULTY, listOf(PastelLilac, PastelPeach), GameGroup.VARIOUS),
-    SLIDING("sliding", "🔀", R.string.sliding_title, R.string.sliding_description, BY_DIFFICULTY, listOf(PastelCoral, PastelMint), GameGroup.NUMBERS),
-    KLONDIKE("klondike", "♠️", R.string.klondike_title, R.string.klondike_description, BY_DRAW, listOf(PastelLime, PastelTeal), GameGroup.CARDS),
-    FREECELL("freecell", "♣️", R.string.freecell_title, R.string.freecell_description, BY_CELLS, listOf(PastelSky, PastelLilac), GameGroup.CARDS),
-    PYRAMID("pyramid", "🔺", R.string.pyramid_title, R.string.pyramid_description, BY_PASSES, listOf(PastelPeach, PastelSand), GameGroup.CARDS),
-    TRIPEAKS("tripeaks", "⛰️", R.string.tripeaks_title, R.string.tripeaks_description, BY_WRAP, listOf(PastelMint, PastelSky), GameGroup.CARDS),
-    YUKON("yukon", "❄️", R.string.yukon_title, R.string.yukon_description, BY_RULES, listOf(PastelSky, PastelMint), GameGroup.CARDS),
-    SCORPION("scorpion", "🦂", R.string.scorpion_title, R.string.scorpion_description, BY_EMPTY, listOf(PastelCoral, PastelSand), GameGroup.CARDS),
-    BAKERS_DOZEN("bakersdozen", "🥖", R.string.bakersdozen_title, R.string.bakersdozen_description, BY_KINGS, listOf(PastelPeach, PastelLime), GameGroup.CARDS),
+    RACE("race", R.drawable.ic_game_race, GameTone.PINK, R.string.race_title, R.string.race_description, BY_LENGTH, GameGroup.LETTERS),
+    HANGMAN("hangman", R.drawable.ic_game_hangman, GameTone.PEACH, R.string.hangman_title, R.string.hangman_description, BY_LENGTH, GameGroup.LETTERS),
+    WORD("word", R.drawable.ic_game_word, GameTone.MINT, R.string.word_title, R.string.word_description, BY_LENGTH, GameGroup.LETTERS),
+    WORD_SEARCH("wordsearch", R.drawable.ic_game_wordsearch, GameTone.LILAC, R.string.wordsearch_title, R.string.wordsearch_description, BY_DIFFICULTY, GameGroup.LETTERS),
+    CROSSWORD("crossword", R.drawable.ic_game_crossword, GameTone.CORAL, R.string.crossword_title, R.string.crossword_description, BY_DIFFICULTY, GameGroup.LETTERS),
+    PANAL("panal", R.drawable.ic_game_panal, GameTone.SAND, R.string.panal_title, R.string.panal_description, BY_THREE_LEVELS, GameGroup.LETTERS),
+    CROSS_LETTERS("crossletters", R.drawable.ic_game_crossletters, GameTone.TEAL, R.string.crossletters_title, R.string.crossletters_description, BY_THREE_LEVELS, GameGroup.LETTERS),
+    SUDOKU("sudoku", R.drawable.ic_game_sudoku, GameTone.MINT, R.string.sudoku_title, R.string.sudoku_description, BY_DIFFICULTY, GameGroup.NUMBERS),
+    GARDEN("garden", R.drawable.ic_game_garden, GameTone.MINT, R.string.garden_title, R.string.garden_description, BY_DIFFICULTY, GameGroup.VARIOUS),
+    PATH("path", R.drawable.ic_game_path, GameTone.PINK, R.string.path_title, R.string.path_description, BY_DIFFICULTY, GameGroup.VARIOUS),
+    KAKURO("kakuro", R.drawable.ic_game_kakuro, GameTone.LILAC, R.string.kakuro_title, R.string.kakuro_description, BY_DIFFICULTY, GameGroup.NUMBERS),
+    MEMORAMA("memorama", R.drawable.ic_game_memorama, GameTone.LILAC, R.string.memorama_title, R.string.memorama_description, BY_DIFFICULTY, GameGroup.VARIOUS),
+    SLIDING("sliding", R.drawable.ic_game_sliding, GameTone.CORAL, R.string.sliding_title, R.string.sliding_description, BY_DIFFICULTY, GameGroup.NUMBERS),
+    KLONDIKE("klondike", R.drawable.ic_game_klondike, GameTone.LIME, R.string.klondike_title, R.string.klondike_description, BY_DRAW, GameGroup.CARDS),
+    FREECELL("freecell", R.drawable.ic_game_freecell, GameTone.SKY, R.string.freecell_title, R.string.freecell_description, BY_CELLS, GameGroup.CARDS),
+    PYRAMID("pyramid", R.drawable.ic_game_pyramid, GameTone.PEACH, R.string.pyramid_title, R.string.pyramid_description, BY_PASSES, GameGroup.CARDS),
+    TRIPEAKS("tripeaks", R.drawable.ic_game_tripeaks, GameTone.TEAL, R.string.tripeaks_title, R.string.tripeaks_description, BY_WRAP, GameGroup.CARDS),
+    YUKON("yukon", R.drawable.ic_game_yukon, GameTone.SKY, R.string.yukon_title, R.string.yukon_description, BY_RULES, GameGroup.CARDS),
+    SCORPION("scorpion", R.drawable.ic_game_scorpion, GameTone.CORAL, R.string.scorpion_title, R.string.scorpion_description, BY_EMPTY, GameGroup.CARDS),
+    BAKERS_DOZEN("bakersdozen", R.drawable.ic_game_bakersdozen, GameTone.SAND, R.string.bakersdozen_title, R.string.bakersdozen_description, BY_KINGS, GameGroup.CARDS),
 }
 
 /**
  * The groups the home screen sorts the games into, in its order. [VARIOUS] takes those that fit none of
  * the others. A group may have no games yet: it shows as coming soon.
  */
-enum class GameGroup(@param:StringRes val title: Int, val icon: String, val gradient: List<Color>) {
-    LETTERS(R.string.group_letters, "🔤", listOf(PastelLilac, PastelPink)),
-    NUMBERS(R.string.group_numbers, "🔢", listOf(PastelMint, PastelTeal)),
-    CARDS(R.string.group_cards, "🃏", listOf(PastelCoral, PastelPeach)),
-    VARIOUS(R.string.group_various, "🎲", listOf(PastelPeach, PastelMint)),
+enum class GameGroup(@param:StringRes val title: Int) {
+    LETTERS(R.string.group_letters),
+    NUMBERS(R.string.group_numbers),
+    CARDS(R.string.group_cards),
+    VARIOUS(R.string.group_various),
     ;
 
     val games: List<GameInfo> get() = GameInfo.entries.filter { it.group == this }

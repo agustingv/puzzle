@@ -87,7 +87,7 @@ fun GameLoading(title: String, onExit: () -> Unit) {
     BackHandler(onBack = onExit)
 
     Column(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
-        ScreenTopBar(title = title, onBack = onExit, titleInTiles = true)
+        ScreenTopBar(title = title, onBack = onExit, titleInTiles = true, appHeader = false)
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 CircularProgressIndicator()

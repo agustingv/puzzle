@@ -1,8 +1,6 @@
 package com.butaca13.puzzles.ui.menu
 
-import android.content.res.Configuration
 import android.text.format.DateUtils
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
@@ -17,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -28,6 +25,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -50,12 +49,12 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -64,7 +63,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.butaca13.puzzles.R
-import com.butaca13.puzzles.ui.theme.pastelBrush
 import com.butaca13.puzzles.data.Avatar
 import com.butaca13.puzzles.data.GlobalRankings
 import com.butaca13.puzzles.data.KeyValueStore
@@ -75,7 +73,6 @@ import com.butaca13.puzzles.data.RecordEntry
 import com.butaca13.puzzles.data.Records
 import com.butaca13.puzzles.data.ScoreUploads
 import com.butaca13.puzzles.ui.common.AvatarTile
-import com.butaca13.puzzles.ui.common.ScreenTopBar
 import com.butaca13.puzzles.ui.common.formatTime
 import com.butaca13.puzzles.ui.theme.Accent
 import com.butaca13.puzzles.ui.theme.Card
@@ -88,25 +85,25 @@ import java.util.Locale
 private const val LAST_VARIANT_KEY = "last-variant"
 
 /**
- * A game's page: what it is, which level to play, the player's best times on that level and the best
- * of everyone, and how to start.
+ * A game's page, in a sheet that rises over the screen it was opened from: what the game is, which level
+ * to play, the player's best times on that level and the best of everyone, and how to start. Swiping it
+ * down, or back, closes it.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GameDetailScreen(
+fun GameDetailSheet(
     info: GameInfo,
     records: Records,
     rankings: GlobalRankings,
     account: PlayerAccount,
     storage: KeyValueStore,
     onPlay: (variant: String) -> Unit,
-    onBack: () -> Unit,
+    onDismiss: () -> Unit,
     shop: GameShop = GameShop.Free,
     favorite: Boolean = false,
     /** Adds the game to the favourites or takes it away; null where there are none, as in previews. */
     onFavorite: (() -> Unit)? = null,
 ) {
-    BackHandler(onBack = onBack)
-
     // Opens on the last level played, so a repeat game takes one tap.
     val lastKey = "$LAST_VARIANT_KEY/${info.id}"
     var selected by rememberSaveable(info) {
@@ -126,74 +123,59 @@ fun GameDetailScreen(
         onPlay(selected)
     }
 
-    Column(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
-        ScreenTopBar(title = stringResource(info.title), onBack = onBack, titleInTiles = true)
-
-        val intro: @Composable () -> Unit = {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(112.dp)
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(pastelBrush(info.gradient)),
-            ) {
-                Text(text = info.icon, fontSize = 56.sp, modifier = Modifier.clearAndSetSemantics {})
-                if (onFavorite != null) FavoriteButton(favorite, onFavorite, Modifier.align(Alignment.TopEnd))
-            }
-
-            Text(text = stringResource(info.description), color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        val options: @Composable () -> Unit = {
-            VariantSelector(info, selected, onSelect = { selected = it })
-            // Both lists open folded on each game and level: five rows are enough to see where one stands.
-            var allMine by rememberSaveable(info, selected) { mutableStateOf(false) }
-            var allGlobal by rememberSaveable(info, selected) { mutableStateOf(false) }
-            PersonalRecords(records.entries(info.id, selected), allMine, onToggle = { allMine = !allMine })
-            // Not once the player is off the server, as after deleting it: the copy kept is the old one.
-            global?.takeIf { account.registered }?.let { GlobalRanking(it, ownPlayer = account.id, allGlobal, onToggle = { allGlobal = !allGlobal }) }
-        }
-        val spacing = Arrangement.spacedBy(16.dp)
-        val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
-
-        if (landscape) {
-            // Little height: the intro goes beside the options, and each side scrolls on its own.
-            Row(
-                modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(24.dp),
-            ) {
-                Column(
-                    modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()),
-                    verticalArrangement = spacing,
-                ) { intro() }
-                Column(
-                    modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()),
-                    verticalArrangement = spacing,
-                ) { options() }
-            }
-        } else {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        containerColor = Card,
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
             Column(
                 modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
+                    .weight(1f, fill = false)
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = spacing,
+                    .padding(horizontal = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(18.dp),
             ) {
-                intro()
-                options()
-            }
-        }
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    GameIcon(info, 72.dp)
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(info.group.title).uppercase(),
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            text = stringResource(info.title),
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.ExtraBold,
+                            modifier = Modifier.semantics { heading() },
+                        )
+                    }
+                    if (onFavorite != null) FavoriteButton(favorite, onFavorite)
+                }
 
-        val productId = info.productId
-        if (productId != null && !shop.unlocked(info)) {
-            UnlockButtons(productId, shop)
-        } else {
-            Button(
-                onClick = ::play,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp).height(52.dp),
-            ) {
-                Text(stringResource(R.string.play), style = MaterialTheme.typography.titleMedium)
+                Text(text = stringResource(info.description), color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+                VariantSelector(info, selected, onSelect = { selected = it })
+                // Both lists open folded on each game and level: five rows are enough to see where one stands.
+                var allMine by rememberSaveable(info, selected) { mutableStateOf(false) }
+                var allGlobal by rememberSaveable(info, selected) { mutableStateOf(false) }
+                PersonalRecords(records.entries(info.id, selected), allMine, onToggle = { allMine = !allMine })
+                // Not once the player is off the server, as after deleting it: the copy kept is the old one.
+                global?.takeIf { account.registered }?.let { GlobalRanking(it, ownPlayer = account.id, allGlobal, onToggle = { allGlobal = !allGlobal }) }
+            }
+
+            val productId = info.productId
+            if (productId != null && !shop.unlocked(info)) {
+                UnlockButtons(productId, shop)
+            } else {
+                Button(
+                    onClick = ::play,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp).height(56.dp),
+                ) {
+                    Text(stringResource(R.string.play), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.ExtraBold)
+                }
             }
         }
     }
@@ -465,7 +447,7 @@ private fun updatedAgo(fetchedAt: Long): String {
     }
 }
 
-/** The star on a game's picture that keeps it among the favourites on the home screen. */
+/** The star beside a game's name that keeps it among the favourites on the home screen. */
 @Composable
 private fun FavoriteButton(favorite: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val label = stringResource(if (favorite) R.string.favorite_remove else R.string.favorite_add)
@@ -473,7 +455,6 @@ private fun FavoriteButton(favorite: Boolean, onClick: () -> Unit, modifier: Mod
     IconButton(
         onClick = onClick,
         modifier = modifier
-            .padding(4.dp)
             .semantics {
                 contentDescription = label
                 role = Role.Button
@@ -482,13 +463,13 @@ private fun FavoriteButton(favorite: Boolean, onClick: () -> Unit, modifier: Mod
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
-                .size(36.dp)
+                .size(44.dp)
                 .clip(CircleShape)
-                .background(Color.Black.copy(alpha = 0.3f)),
+                .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape),
         ) {
             Text(
                 text = if (favorite) "⭐" else "☆",
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = if (favorite) 18.sp else 22.sp,
                 modifier = Modifier.clearAndSetSemantics {},
             )

@@ -71,6 +71,10 @@ internal data class PuzzleColors(
     val onSecondary: Color,
     val selection: Color,
     val bedDim: Float,
+    /** The home screen's "continue playing" card: deep, to stand out from the pastels, with light text. */
+    val hero: Color,
+    val onHero: Color,
+    val onHeroSoft: Color,
 )
 
 internal val LightColors = PuzzleColors(
@@ -88,6 +92,9 @@ internal val LightColors = PuzzleColors(
     onSecondary = Color.White,
     selection = Pink.copy(alpha = 0.18f),
     bedDim = 0f,
+    hero = Color(0xFF3B2A6B),
+    onHero = Color.White,
+    onHeroSoft = Color(0xFFD8CFF0),
 )
 
 internal val DarkColors = PuzzleColors(
@@ -105,6 +112,9 @@ internal val DarkColors = PuzzleColors(
     onSecondary = Color(0xFF17123F),
     selection = Pink.copy(alpha = 0.32f),
     bedDim = 0.2f,
+    hero = Color(0xFF3A2F66),
+    onHero = Color.White,
+    onHeroSoft = Color(0xFFCFC4EE),
 )
 
 private val LocalColors = staticCompositionLocalOf { LightColors }
@@ -127,6 +137,12 @@ val Alert: Color
     @Composable @ReadOnlyComposable get() = LocalColors.current.alert
 val BedDim: Float
     @Composable @ReadOnlyComposable get() = LocalColors.current.bedDim
+val Hero: Color
+    @Composable @ReadOnlyComposable get() = LocalColors.current.hero
+val OnHero: Color
+    @Composable @ReadOnlyComposable get() = LocalColors.current.onHero
+val OnHeroSoft: Color
+    @Composable @ReadOnlyComposable get() = LocalColors.current.onHeroSoft
 
 private val PlusJakartaSans = FontFamily(
     listOf(FontWeight.Normal, FontWeight.Medium, FontWeight.SemiBold, FontWeight.Bold, FontWeight.ExtraBold).map {

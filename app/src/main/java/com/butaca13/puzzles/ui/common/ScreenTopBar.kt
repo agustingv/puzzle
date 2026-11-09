@@ -57,6 +57,12 @@ class AvatarShortcut(val avatar: Avatar, val open: (() -> Unit)?, val wear: (Ava
 /** Null on screens that do not show the avatar: the settings, which have it already, and its own. */
 val LocalAvatarShortcut = compositionLocalOf<AvatarShortcut?> { null }
 
+/**
+ * True on a screen shown as one of the bottom bar's places: the bar already leads everywhere, so the
+ * screen shows only its own title, without the app's header or the way back.
+ */
+val LocalInTab = compositionLocalOf { false }
+
 private val BackButtonWidth = 58.dp
 
 /** Room for what goes at the right of the title, the clock: the title keeps clear of it on both sides. */
@@ -151,19 +157,33 @@ fun ScreenTopBar(
     modifier: Modifier = Modifier,
     subtitle: String? = null,
     titleInTiles: Boolean = false,
+    /** False in a game: only the way back, the title and the trailing items, to leave room for the board. */
+    appHeader: Boolean = true,
     subtitleAction: @Composable RowScope.() -> Unit = {},
     trailing: (@Composable RowScope.() -> Unit)? = null,
 ) {
     val backLabel = stringResource(R.string.back)
 
-    Column(modifier = modifier.fillMaxWidth()) {
-        AppHeader()
+    if (LocalInTab.current) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.ExtraBold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 28.dp, bottom = 12.dp).semantics { heading() },
+        )
+        return
+    }
+
+    Column(modifier = modifier.fillMaxWidth().padding(top = if (appHeader) 0.dp else 12.dp)) {
+        if (appHeader) AppHeader()
         // The title centred on the screen, clear of the back arrow on the left and of whatever is on the
         // right, such as the clock, which take the same room on both sides so that it stays centred.
         val side = if (trailing != null) TrailingWidth else BackButtonWidth
         Box(modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp), contentAlignment = Alignment.Center) {
             if (titleInTiles) {
-                BarTitle(title, Modifier.fillMaxWidth().padding(horizontal = side), small = true)
+                BarTitle(title, Modifier.fillMaxWidth().padding(horizontal = side), small = true, wrap = !appHeader)
             } else {
                 Text(
                     text = title,

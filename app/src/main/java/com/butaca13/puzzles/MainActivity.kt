@@ -44,8 +44,6 @@ import com.butaca13.puzzles.ui.menu.GameShop
 import com.butaca13.puzzles.data.Products
 import com.butaca13.puzzles.data.Billing
 import com.butaca13.puzzles.data.Favorites
-import com.butaca13.puzzles.ui.menu.GameGroup
-import com.butaca13.puzzles.ui.menu.GroupScreen
 import com.butaca13.puzzles.ui.menu.FakeStoreSheet
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.activity.compose.LocalActivity
@@ -100,7 +98,9 @@ import com.butaca13.puzzles.ui.freecell.FreeCellScreen
 import com.butaca13.puzzles.ui.freecell.FreeCellViewModel
 import com.butaca13.puzzles.ui.menu.AvatarScreen
 import com.butaca13.puzzles.ui.menu.GameInfo
-import com.butaca13.puzzles.ui.menu.GameDetailScreen
+import com.butaca13.puzzles.ui.menu.GameDetailSheet
+import com.butaca13.puzzles.ui.menu.MainTab
+import com.butaca13.puzzles.ui.menu.WithMainNavBar
 import com.butaca13.puzzles.ui.menu.HomeScreen
 import com.butaca13.puzzles.ui.menu.PrivacyScreen
 import com.butaca13.puzzles.ui.menu.SecretDialog
@@ -146,9 +146,6 @@ private fun PuzzlesApp() {
     // Home, then a game's page, then playing it. A game in progress skips its page both ways: its
     // card goes straight to it and leaving it goes home. Its page comes back once no game is running.
     var opened by rememberSaveable { mutableStateOf<GameInfo?>(null) }
-    // The group whose games are listed, if one was opened: a game's page goes back to it. A favourite,
-    // opened from home, goes back home.
-    var group by rememberSaveable { mutableStateOf<GameGroup?>(null) }
     var playing by rememberSaveable { mutableStateOf(false) }
     var showPrivacy by rememberSaveable { mutableStateOf(false) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
@@ -304,6 +301,24 @@ private fun PuzzlesApp() {
         },
     )
 
+    // The bar at the bottom shows on its three places while they stand in for home, a game's page over
+    // it included: the settings opened from a game are a page of their own, with only their way back.
+    val asTabs = game == null || !playing
+
+    @Composable
+    fun InTab(tab: MainTab, content: @Composable () -> Unit) {
+        if (!asTabs) return content()
+        WithMainNavBar(
+            selected = tab,
+            onSelect = { to ->
+                showPrivacy = false
+                showAvatar = to == MainTab.PROFILE
+                showSettings = to == MainTab.SETTINGS
+            },
+            content = content,
+        )
+    }
+
     // The avatar comes over the home screen or the settings, and goes back to the one it came from.
     if (showAvatar) {
         CompositionLocalProvider(
@@ -315,21 +330,23 @@ private fun PuzzlesApp() {
                 showSettings = true
             },
         ) {
-            AvatarScreen(
-                avatar = account.avatar,
-                name = account.name,
-                prizes = prizes,
-                onChange = { avatar ->
-                    account.changeAvatar(avatar)
-                    PlayerSyncScheduler.request(context)
-                },
-                onExit = { showAvatar = false },
-            )
+            InTab(MainTab.PROFILE) {
+                AvatarScreen(
+                    avatar = account.avatar,
+                    name = account.name,
+                    prizes = prizes,
+                    onChange = { avatar ->
+                        account.changeAvatar(avatar)
+                        PlayerSyncScheduler.request(context)
+                    },
+                    onExit = { showAvatar = false },
+                )
+            }
         }
         return
     }
 
-    // The secret message's prize: a game of its own, over everything, from home or the Various group.
+    // The secret message's prize: a game of its own, over everything, from home.
     if (showStarfall) {
         val starfall: StarfallViewModel = viewModel()
         // The medal won at the end can be put on straight away, as any prize.
@@ -368,30 +385,32 @@ private fun PuzzlesApp() {
             LocalAvatarShortcut provides avatarShortcut(open = { showAvatar = true }),
             LocalOnSettings provides true,
         ) {
-            SettingsScreen(
-                sounds = sounds,
-                account = account,
-                serverConfigured = PlayerSyncScheduler.serverConfigured,
-                onRename = { name -> account.rename(name).also { if (it) PlayerSyncScheduler.request(context) } },
-                onOfflineChange = { offline ->
-                    account.changeOffline(offline)
-                    PlayerSyncScheduler.request(context)
-                },
-                onAvatar = { showAvatar = true },
-                onDeletePlayer = {
-                    PlayerSyncScheduler.cancel(context)
-                    val gone = withContext(Dispatchers.IO) {
-                        PlayerDeletion(account, ScoreUploads(storage), PlayerSyncScheduler.deletionApi()).run()
-                    }
-                    // Not deleted: whatever was waiting to be sent still is.
-                    if (!gone) PlayerSyncScheduler.request(context)
-                    gone
-                },
-                onPrivacy = { showPrivacy = true },
-                onExit = { showSettings = false },
-                shop = shop,
-                fakeStore = Billing.fakeStore,
-            )
+            InTab(MainTab.SETTINGS) {
+                SettingsScreen(
+                    sounds = sounds,
+                    account = account,
+                    serverConfigured = PlayerSyncScheduler.serverConfigured,
+                    onRename = { name -> account.rename(name).also { if (it) PlayerSyncScheduler.request(context) } },
+                    onOfflineChange = { offline ->
+                        account.changeOffline(offline)
+                        PlayerSyncScheduler.request(context)
+                    },
+                    onAvatar = { showAvatar = true },
+                    onDeletePlayer = {
+                        PlayerSyncScheduler.cancel(context)
+                        val gone = withContext(Dispatchers.IO) {
+                            PlayerDeletion(account, ScoreUploads(storage), PlayerSyncScheduler.deletionApi()).run()
+                        }
+                        // Not deleted: whatever was waiting to be sent still is.
+                        if (!gone) PlayerSyncScheduler.request(context)
+                        gone
+                    },
+                    onPrivacy = { showPrivacy = true },
+                    onExit = { showSettings = false },
+                    shop = shop,
+                    fakeStore = Billing.fakeStore,
+                )
+            }
         }
         return
     }
@@ -420,36 +439,35 @@ private fun PuzzlesApp() {
             ),
         ) {
             when {
-                game == null && group == null -> HomeScreen(
-                    saved = ::savedGame,
-                    onOpenGroup = { group = it },
-                    onOpen = ::openGame,
-                    favorites = favorites.ids.mapNotNull { id -> GameInfo.entries.find { it.id == id } },
-                    secretSolved = secretSolved,
-                    onSecret = { showSecret = true },
-                    shop = shop,
-                    onStarfall = { showStarfall = true },
-                )
-                game == null -> GroupScreen(
-                    group = group!!,
-                    saved = ::savedGame,
-                    onOpen = ::openGame,
-                    onBack = { group = null },
-                    shop = shop,
-                    onStarfall = { showStarfall = true }.takeIf { secretSolved && group == GameGroup.VARIOUS },
-                )
-                !playing -> GameDetailScreen(
-                    info = game,
-                    records = records,
-                    rankings = rankings,
-                    account = account,
-                    storage = storage,
-                    onPlay = { variant -> startGame(game, variant) },
-                    onBack = { opened = null },
-                    shop = shop,
-                    favorite = game.id in favorites,
-                    onFavorite = { favorites.toggle(game.id) },
-                )
+                // A game's page rises over the home screen.
+                game == null || !playing -> {
+                    InTab(MainTab.PLAY) {
+                        HomeScreen(
+                            playerName = account.name,
+                            saved = ::savedGame,
+                            onOpen = ::openGame,
+                            favorites = favorites.ids.mapNotNull { id -> GameInfo.entries.find { it.id == id } },
+                            secretSolved = secretSolved,
+                            onSecret = { showSecret = true },
+                            shop = shop,
+                            onStarfall = { showStarfall = true },
+                        )
+                    }
+                    if (game != null) {
+                        GameDetailSheet(
+                            info = game,
+                            records = records,
+                            rankings = rankings,
+                            account = account,
+                            storage = storage,
+                            onPlay = { variant -> startGame(game, variant) },
+                            onDismiss = { opened = null },
+                            shop = shop,
+                            favorite = game.id in favorites,
+                            onFavorite = { favorites.toggle(game.id) },
+                        )
+                    }
+                }
                 else -> when (game) {
                     GameInfo.RACE -> RaceScreen(race, ::stopPlaying)
                     GameInfo.HANGMAN -> HangmanScreen(hangman, ::stopPlaying)
