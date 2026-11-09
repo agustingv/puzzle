@@ -35,11 +35,11 @@ class GameCatalogTest {
     @Test
     fun `the groups hold the games they were made for`() {
         assertEquals(
-            listOf(GameInfo.RACE, GameInfo.HANGMAN, GameInfo.WORD, GameInfo.WORD_SEARCH, GameInfo.CROSSWORD, GameInfo.ANAGRAM, GameInfo.LADDER, GameInfo.PANAL, GameInfo.CRYPTOGRAM, GameInfo.CROSS_LETTERS),
+            listOf(GameInfo.RACE, GameInfo.HANGMAN, GameInfo.WORD, GameInfo.WORD_SEARCH, GameInfo.CROSSWORD, GameInfo.PANAL, GameInfo.CROSS_LETTERS),
             GameGroup.LETTERS.games,
         )
         assertEquals(setOf(GameInfo.SUDOKU, GameInfo.KAKURO, GameInfo.SLIDING), GameGroup.NUMBERS.games.toSet())
-        assertEquals(listOf(GameInfo.KLONDIKE, GameInfo.FREECELL, GameInfo.SPIDER, GameInfo.PYRAMID, GameInfo.TRIPEAKS, GameInfo.YUKON, GameInfo.FORTY_THIEVES, GameInfo.SCORPION, GameInfo.BAKERS_DOZEN, GameInfo.GOLF, GameInfo.CANFIELD), GameGroup.CARDS.games)
+        assertEquals(listOf(GameInfo.KLONDIKE, GameInfo.FREECELL, GameInfo.PYRAMID, GameInfo.TRIPEAKS, GameInfo.YUKON, GameInfo.SCORPION, GameInfo.BAKERS_DOZEN), GameGroup.CARDS.games)
         assertEquals(setOf(GameInfo.GARDEN, GameInfo.PATH, GameInfo.MEMORAMA), GameGroup.VARIOUS.games.toSet())
     }
 }

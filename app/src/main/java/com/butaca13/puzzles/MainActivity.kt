@@ -77,43 +77,25 @@ import com.butaca13.puzzles.ui.klondike.KlondikeScreen
 import com.butaca13.puzzles.ui.klondike.KlondikeViewModel
 import com.butaca13.puzzles.game.klondike.KlondikeGame
 import com.butaca13.puzzles.game.freecell.FreeCellGame
-import com.butaca13.puzzles.game.spider.SpiderGame
 import com.butaca13.puzzles.game.pyramid.PyramidGame
 import com.butaca13.puzzles.game.tripeaks.TriPeaksGame
 import com.butaca13.puzzles.game.yukon.YukonGame
-import com.butaca13.puzzles.game.fortythieves.FortyThievesGame
 import com.butaca13.puzzles.game.scorpion.ScorpionGame
 import com.butaca13.puzzles.game.bakersdozen.BakersDozenGame
-import com.butaca13.puzzles.game.golf.GolfGame
-import com.butaca13.puzzles.game.canfield.CanfieldGame
-import com.butaca13.puzzles.ui.anagram.AnagramScreen
-import com.butaca13.puzzles.ui.anagram.AnagramViewModel
-import com.butaca13.puzzles.ui.ladder.LadderScreen
-import com.butaca13.puzzles.ui.ladder.LadderViewModel
 import com.butaca13.puzzles.ui.panal.PanalScreen
 import com.butaca13.puzzles.ui.panal.PanalViewModel
-import com.butaca13.puzzles.ui.cryptogram.CryptogramScreen
-import com.butaca13.puzzles.ui.cryptogram.CryptogramViewModel
 import com.butaca13.puzzles.ui.crossletters.CrossLettersScreen
 import com.butaca13.puzzles.ui.crossletters.CrossLettersViewModel
-import com.butaca13.puzzles.ui.canfield.CanfieldScreen
-import com.butaca13.puzzles.ui.canfield.CanfieldViewModel
-import com.butaca13.puzzles.ui.golf.GolfScreen
-import com.butaca13.puzzles.ui.golf.GolfViewModel
 import com.butaca13.puzzles.ui.bakersdozen.BakersDozenScreen
 import com.butaca13.puzzles.ui.bakersdozen.BakersDozenViewModel
 import com.butaca13.puzzles.ui.scorpion.ScorpionScreen
 import com.butaca13.puzzles.ui.scorpion.ScorpionViewModel
-import com.butaca13.puzzles.ui.fortythieves.FortyThievesScreen
-import com.butaca13.puzzles.ui.fortythieves.FortyThievesViewModel
 import com.butaca13.puzzles.ui.yukon.YukonScreen
 import com.butaca13.puzzles.ui.yukon.YukonViewModel
 import com.butaca13.puzzles.ui.tripeaks.TriPeaksScreen
 import com.butaca13.puzzles.ui.tripeaks.TriPeaksViewModel
 import com.butaca13.puzzles.ui.pyramid.PyramidScreen
 import com.butaca13.puzzles.ui.pyramid.PyramidViewModel
-import com.butaca13.puzzles.ui.spider.SpiderScreen
-import com.butaca13.puzzles.ui.spider.SpiderViewModel
 import com.butaca13.puzzles.ui.freecell.FreeCellScreen
 import com.butaca13.puzzles.ui.freecell.FreeCellViewModel
 import com.butaca13.puzzles.ui.menu.AvatarScreen
@@ -190,19 +172,12 @@ private fun PuzzlesApp() {
     val memorama: MemoramaViewModel = viewModel()
     val klondike: KlondikeViewModel = viewModel()
     val freeCell: FreeCellViewModel = viewModel()
-    val spider: SpiderViewModel = viewModel()
     val pyramid: PyramidViewModel = viewModel()
     val triPeaks: TriPeaksViewModel = viewModel()
     val yukon: YukonViewModel = viewModel()
-    val fortyThieves: FortyThievesViewModel = viewModel()
     val scorpion: ScorpionViewModel = viewModel()
     val bakersDozen: BakersDozenViewModel = viewModel()
-    val golf: GolfViewModel = viewModel()
-    val canfield: CanfieldViewModel = viewModel()
-    val anagram: AnagramViewModel = viewModel()
-    val ladder: LadderViewModel = viewModel()
     val panal: PanalViewModel = viewModel()
-    val cryptogram: CryptogramViewModel = viewModel()
     val crossLetters: CrossLettersViewModel = viewModel()
     val sliding: SlidingViewModel = viewModel()
 
@@ -248,11 +223,10 @@ private fun PuzzlesApp() {
     val rankedWins = listOf(
         race.session, hangman.session, word.session, wordSearch.session, crossword.session, sudoku.session,
         garden.session, path.session, kakuro.session, memorama.session, sliding.session, klondike.session,
-        freeCell.session, spider.session, pyramid.session, triPeaks.session,
-        yukon.session, fortyThieves.session, scorpion.session,
-        bakersDozen.session, golf.session, canfield.session,
-        anagram.session, ladder.session, panal.session,
-        cryptogram.session, crossLetters.session,
+        freeCell.session, pyramid.session, triPeaks.session,
+        yukon.session, scorpion.session,
+        bakersDozen.session,
+        panal.session, crossLetters.session,
     ).map { session -> session.lastRecord?.takeIf { it.rank != null } }
     LaunchedEffect(rankedWins) {
         if (rankedWins.any { it != null }) PlayerSyncScheduler.request(context)
@@ -271,19 +245,12 @@ private fun PuzzlesApp() {
         GameInfo.MEMORAMA -> memorama.session.saved
         GameInfo.KLONDIKE -> klondike.session.saved
         GameInfo.FREECELL -> freeCell.session.saved
-        GameInfo.SPIDER -> spider.session.saved
         GameInfo.PYRAMID -> pyramid.session.saved
         GameInfo.TRIPEAKS -> triPeaks.session.saved
         GameInfo.YUKON -> yukon.session.saved
-        GameInfo.FORTY_THIEVES -> fortyThieves.session.saved
         GameInfo.SCORPION -> scorpion.session.saved
         GameInfo.BAKERS_DOZEN -> bakersDozen.session.saved
-        GameInfo.GOLF -> golf.session.saved
-        GameInfo.CANFIELD -> canfield.session.saved
-        GameInfo.ANAGRAM -> anagram.session.saved
-        GameInfo.LADDER -> ladder.session.saved
         GameInfo.PANAL -> panal.session.saved
-        GameInfo.CRYPTOGRAM -> cryptogram.session.saved
         GameInfo.CROSS_LETTERS -> crossLetters.session.saved
         GameInfo.SLIDING -> sliding.session.saved
     }
@@ -313,19 +280,12 @@ private fun PuzzlesApp() {
             GameInfo.MEMORAMA -> memorama.newGame(Difficulty.valueOf(variant))
             GameInfo.KLONDIKE -> klondike.newGame(KlondikeGame.drawCountOf(variant))
             GameInfo.FREECELL -> freeCell.newGame(FreeCellGame.cellCountOf(variant))
-            GameInfo.SPIDER -> spider.newGame(SpiderGame.suitsOf(variant))
             GameInfo.PYRAMID -> pyramid.newGame(PyramidGame.passesOf(variant))
             GameInfo.TRIPEAKS -> triPeaks.newGame(TriPeaksGame.wrapsOf(variant))
             GameInfo.YUKON -> yukon.newGame(YukonGame.sameSuitOf(variant))
-            GameInfo.FORTY_THIEVES -> fortyThieves.newGame(FortyThievesGame.passesOf(variant))
             GameInfo.SCORPION -> scorpion.newGame(ScorpionGame.anyOnEmptyOf(variant))
             GameInfo.BAKERS_DOZEN -> bakersDozen.newGame(BakersDozenGame.kingsOnEmptyOf(variant))
-            GameInfo.GOLF -> golf.newGame(GolfGame.wrapsOf(variant))
-            GameInfo.CANFIELD -> canfield.newGame(CanfieldGame.drawCountOf(variant))
-            GameInfo.ANAGRAM -> anagram.newGame(variant.toInt())
-            GameInfo.LADDER -> ladder.newGame(Difficulty.valueOf(variant))
             GameInfo.PANAL -> panal.newGame(Difficulty.valueOf(variant))
-            GameInfo.CRYPTOGRAM -> cryptogram.newGame(Difficulty.valueOf(variant))
             GameInfo.CROSS_LETTERS -> crossLetters.newGame(Difficulty.valueOf(variant))
             GameInfo.SLIDING -> sliding.newGame(Difficulty.valueOf(variant))
         }
@@ -503,19 +463,12 @@ private fun PuzzlesApp() {
                     GameInfo.MEMORAMA -> MemoramaScreen(memorama, ::stopPlaying)
                     GameInfo.KLONDIKE -> KlondikeScreen(klondike, ::stopPlaying)
                     GameInfo.FREECELL -> FreeCellScreen(freeCell, ::stopPlaying)
-                    GameInfo.SPIDER -> SpiderScreen(spider, ::stopPlaying)
                     GameInfo.PYRAMID -> PyramidScreen(pyramid, ::stopPlaying)
                     GameInfo.TRIPEAKS -> TriPeaksScreen(triPeaks, ::stopPlaying)
                     GameInfo.YUKON -> YukonScreen(yukon, ::stopPlaying)
-                    GameInfo.FORTY_THIEVES -> FortyThievesScreen(fortyThieves, ::stopPlaying)
                     GameInfo.SCORPION -> ScorpionScreen(scorpion, ::stopPlaying)
                     GameInfo.BAKERS_DOZEN -> BakersDozenScreen(bakersDozen, ::stopPlaying)
-                    GameInfo.GOLF -> GolfScreen(golf, ::stopPlaying)
-                    GameInfo.CANFIELD -> CanfieldScreen(canfield, ::stopPlaying)
-                    GameInfo.ANAGRAM -> AnagramScreen(anagram, ::stopPlaying)
-                    GameInfo.LADDER -> LadderScreen(ladder, ::stopPlaying)
                     GameInfo.PANAL -> PanalScreen(panal, ::stopPlaying)
-                    GameInfo.CRYPTOGRAM -> CryptogramScreen(cryptogram, ::stopPlaying)
                     GameInfo.CROSS_LETTERS -> CrossLettersScreen(crossLetters, ::stopPlaying)
                     GameInfo.SLIDING -> SlidingScreen(sliding, ::stopPlaying)
                 }

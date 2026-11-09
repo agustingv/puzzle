@@ -4,7 +4,7 @@ enum class Suit(val red: Boolean) { SPADES(false), HEARTS(true), DIAMONDS(true),
 
 /**
  * One card: [id] says which, 13 per suit in [Suit]'s order, so 0 to 51 for one deck. Games that play
- * with several copies of a card, like Spider, give each copy its own id 52 further on, so that every
+ * with several copies of a card give each copy its own id 52 further on, so that every
  * card on the table is still told apart. [rank] 1 is the ace, 13 the king.
  */
 data class Card(val id: Int, val faceUp: Boolean = true) {

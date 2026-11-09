@@ -57,8 +57,8 @@ fun CrossLettersScreen(viewModel: CrossLettersViewModel, onExit: () -> Unit) {
         return
     }
     val status = buildList {
-        add(pluralStringResource(R.plurals.cryptogram_left, game.tray.size, game.tray.size))
-        if (game.hints > 0) add(pluralStringResource(R.plurals.ladder_hints, game.hints, game.hints))
+        add(pluralStringResource(R.plurals.crossletters_left, game.tray.size, game.tray.size))
+        if (game.hints > 0) add(pluralStringResource(R.plurals.crossletters_hints, game.hints, game.hints))
     }.joinToString(" · ")
 
     GameScaffold(
@@ -76,7 +76,7 @@ fun CrossLettersScreen(viewModel: CrossLettersViewModel, onExit: () -> Unit) {
             } else {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     GameActionButton(stringResource(R.string.panal_shuffle), viewModel::shuffle, enabled = game.tray.size > 1)
-                    GameActionButton(stringResource(R.string.ladder_hint), viewModel::hint)
+                    GameActionButton(stringResource(R.string.crossletters_hint), viewModel::hint)
                 }
             }
         },
@@ -96,7 +96,7 @@ private fun Board(game: CrossLettersGame, side: Dp, viewModel: CrossLettersViewM
     val cell = min((side * 0.7f - Gap * (n - 1)) / n, 72.dp)
     val trayLetter = min((side - Gap * 7) / 8, 44.dp)
     val words = (0 until n).map { game.row(it) } to (0 until n).map { game.column(it) }
-    val pick = stringResource(R.string.ladder_pick)
+    val pick = stringResource(R.string.crossletters_pick)
 
     Column(
         modifier = Modifier.width(side),

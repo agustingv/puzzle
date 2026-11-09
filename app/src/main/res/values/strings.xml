@@ -269,24 +269,8 @@
     <string name="freecell_cell">Celda %1$d: %2$s</string>
     <string name="freecell_cell_empty">Celda %1$d, vacía</string>
     <string name="freecell_column">Columna %1$d: %2$s</string>
-    <string name="spider_title">Spider</string>
-    <string name="spider_description">Dos barajas en diez columnas. Sobre una carta puede ir cualquier otra un número menor, sea del palo que sea, pero solo se mueven juntas las cartas seguidas del mismo palo. Cuando juntas una escalera completa de un palo, del rey al as, sale de la mesa; saca las ocho para ganar. Toca el mazo para repartir una carta más en cada columna, siempre que no haya ninguna vacía. Arrastra las cartas, o tócalas para mandarlas a su mejor sitio.</string>
-    <string name="option_suits">Palos</string>
-    <string name="spider_one_suit">1 palo</string>
-    <string name="spider_two_suits">2 palos</string>
-    <string name="spider_four_suits">4 palos</string>
-    <string name="spider_deal_hint">reparte del mazo</string>
-    <string name="spider_fill_hint">llena las columnas vacías para repartir</string>
-    <plurals name="spider_won">
-        <item quantity="one">¡Spider completado en %1$d movimiento!</item>
-        <item quantity="other">¡Spider completado en %1$d movimientos!</item>
-    </plurals>
-    <plurals name="spider_stock">
-        <item quantity="one">Mazo, queda %1$d reparto. Repartir</item>
-        <item quantity="other">Mazo, quedan %1$d repartos. Repartir</item>
-    </plurals>
-    <string name="spider_done">Escalera %1$d completada: %2$s</string>
-    <string name="spider_done_empty">Hueco para una escalera completa</string>
+    <string name="scorpion_done">Escalera %1$d completada: %2$s</string>
+    <string name="scorpion_done_empty">Hueco para una escalera completa</string>
     <string name="pyramid_title">Pirámide</string>
     <string name="pyramid_description">Despeja la pirámide quitando parejas de cartas que sumen 13: la jota vale 11, la reina 12 y el rey, que vale 13, se quita solo. Solo cuentan las cartas que no tienen otra encima. Toca el mazo para destapar cartas de una en una; la de arriba del descarte también puede formar pareja. Toca dos cartas, o arrastra una sobre la otra, para quitarlas.</string>
     <string name="option_passes">Vueltas al mazo</string>
@@ -374,14 +358,6 @@
         <item quantity="one">¡Yukon completado en %1$d movimiento!</item>
         <item quantity="other">¡Yukon completado en %1$d movimientos!</item>
     </plurals>
-    <string name="fortythieves_title">Cuarenta Ladrones</string>
-    <string name="fortythieves_description">Dos barajas, diez columnas de cuatro cartas a la vista y ocho casillas que se suben por palo, del as al rey. En las columnas las cartas bajan del mismo palo y se mueven de una en una, y en una columna vacía puede ir cualquier carta. Toca el mazo para destapar cartas de una en una; la de arriba del descarte también se puede jugar. Pide paciencia y planear bien cada jugada. Arrastra las cartas, o tócalas para mandarlas a su mejor sitio.</string>
-    <string name="fortythieves_one_deal">1 vuelta</string>
-    <string name="fortythieves_two_deals">2 vueltas</string>
-    <plurals name="fortythieves_won">
-        <item quantity="one">¡Cuarenta Ladrones completado en %1$d movimiento!</item>
-        <item quantity="other">¡Cuarenta Ladrones completado en %1$d movimientos!</item>
-    </plurals>
     <string name="scorpion_title">Escorpión</string>
     <string name="scorpion_description">Una baraja en siete columnas, algunas cartas boca abajo y tres en reserva. Cualquier carta boca arriba se mueve con todas las que tenga encima, estén en orden o no, sobre otra del mismo palo un número mayor; en una columna vacía solo puede ir un rey, o cualquier carta en la Avispa. Cuando juntas una escalera de un palo del rey al as, sale de la mesa; saca las cuatro para ganar. Toca la reserva para repartir sus tres cartas en las primeras columnas, solo una vez. Arrastra las cartas, o tócalas para mandarlas a su mejor sitio.</string>
     <string name="scorpion_wasp">Avispa</string>
@@ -399,58 +375,12 @@
         <item quantity="one">¡Panadero completado en %1$d movimiento!</item>
         <item quantity="other">¡Panadero completado en %1$d movimientos!</item>
     </plurals>
-    <string name="golf_title">Golf</string>
-    <string name="golf_description">Siete columnas de cinco cartas, todas a la vista. Lleva al descarte la carta de arriba de una columna si es un número más o uno menos que la del descarte, sea del palo que sea, y despeja las siete columnas. Cuando no puedas, toca el mazo para destapar otra. En difícil no se puede poner nada sobre un rey; en fácil, el as y el rey van seguidos. Partidas cortas para un rato. Toca las cartas, o arrástralas al descarte.</string>
-    <plurals name="golf_won">
-        <item quantity="one">¡Golf completado en %1$d movimiento!</item>
-        <item quantity="other">¡Golf completado en %1$d movimientos!</item>
-    </plurals>
-    <plurals name="golf_stuck">
-        <item quantity="one">sin salida, queda %1$d carta</item>
-        <item quantity="other">sin salida, quedan %1$d cartas</item>
-    </plurals>
-    <string name="canfield_title">Canfield</string>
-    <string name="canfield_description">El clásico de casino. Las casillas de arriba no empiezan por el as sino por el número de la primera carta, y suben por palo dando la vuelta del rey al as. En las cuatro columnas las cartas bajan alternando rojo y negro, también del as al rey. Vacía la reserva de la izquierda: sus cartas llenan solas las columnas que quedan vacías, y la de arriba también se puede jugar. Toca el mazo para robar, tantas vueltas como quieras. Arrastra las cartas, o tócalas para mandarlas a su mejor sitio.</string>
-    <string name="canfield_reserve">Reserva, %1$d cartas: %2$s</string>
-    <string name="canfield_reserve_empty">Reserva vacía</string>
-    <string name="canfield_foundation_empty">Casilla %1$d, vacía: empieza por %2$s</string>
-    <plurals name="canfield_won">
-        <item quantity="one">¡Canfield completado en %1$d movimiento!</item>
-        <item quantity="other">¡Canfield completado en %1$d movimientos!</item>
-    </plurals>
-    <string name="anagram_title">Anagrama</string>
-    <string name="anagram_description">Las letras de una palabra, desordenadas. Tócalas en orden para escribirla en las casillas de arriba; toca una casilla para devolver esa letra y las que la siguen. Si te atascas, mezcla las letras para verlas de otra forma o pide la pista: la definición de la palabra. Las tildes no cuentan, y vale cualquier palabra que se forme con todas las letras.</string>
-    <string name="anagram_status">%1$d letras</string>
-    <plurals name="anagram_misses">
-        <item quantity="one">%1$d fallo</item>
-        <item quantity="other">%1$d fallos</item>
-    </plurals>
-    <string name="anagram_clue_used">con pista</string>
-    <string name="anagram_clue">Pista</string>
-    <string name="anagram_shuffle">Mezclar</string>
-    <string name="anagram_clear">Borrar</string>
-    <string name="anagram_won">¡Era %1$s!</string>
-    <string name="anagram_take_back">quitar</string>
-    <string name="anagram_put">poner</string>
-    <string name="ladder_title">Escalera</string>
-    <string name="ladder_description">Llega de una palabra a otra cambiando una sola letra en cada paso, y que cada paso sea una palabra: de PATO a GATO, de GATO a GALO… Toca la letra que quieres cambiar y elige la nueva en el teclado. Toca una palabra anterior para volver a ella. Si te atascas, la pista da el siguiente paso del camino más corto. En fácil y medio las palabras son de cuatro letras; en difícil, de cinco.</string>
-    <plurals name="ladder_steps">
-        <item quantity="one">%1$d paso de %2$d</item>
-        <item quantity="other">%1$d pasos de %2$d</item>
-    </plurals>
-    <plurals name="ladder_hints">
+    <plurals name="crossletters_hints">
         <item quantity="one">%1$d pista</item>
         <item quantity="other">%1$d pistas</item>
     </plurals>
-    <plurals name="ladder_won">
-        <item quantity="one">¡Escalera completada en %1$d paso!</item>
-        <item quantity="other">¡Escalera completada en %1$d pasos!</item>
-    </plurals>
-    <string name="ladder_undo">Atrás</string>
-    <string name="ladder_hint">Pista</string>
-    <string name="ladder_target">HASTA</string>
-    <string name="ladder_pick">tocar para cambiarla</string>
-    <string name="ladder_back_to">volver a esta palabra</string>
+    <string name="crossletters_hint">Pista</string>
+    <string name="crossletters_pick">tocar para cambiarla</string>
     <string name="panal_title">Panal</string>
     <string name="panal_description">Forma palabras de al menos cuatro letras con las siete del panal. Todas tienen que llevar la letra del centro, y cada letra se puede repetir. Una palabra de cuatro letras vale un punto; las más largas, tantos como letras. La que usa las siete es la palabra panal y vale siete más. Llega a los puntos que pide el nivel para ganar. Las tildes no cuentan.</string>
     <string name="panal_status">%1$d de %2$d puntos</string>
@@ -472,15 +402,10 @@
     <string name="panal_no_center">Tiene que llevar la letra del centro</string>
     <string name="panal_already_found">Ya la habías encontrado</string>
     <string name="panal_not_a_word">No está en la lista</string>
-    <string name="cryptogram_title">Criptograma</string>
-    <string name="cryptogram_description">Un refrán escrito en clave: cada letra se ha cambiado por otra, siempre la misma. Toca una letra y elige en el teclado cuál crees que es; se escribirá en todos los sitios donde aparece esa clave. Cada letra solo puede ser una. Algunas vienen ya puestas, más cuanto más fácil es el nivel, y la pista te da otra. Las tildes no cuentan.</string>
-    <plurals name="cryptogram_left">
+    <plurals name="crossletters_left">
         <item quantity="one">falta %1$d letra</item>
         <item quantity="other">faltan %1$d letras</item>
     </plurals>
-    <string name="cryptogram_won">¡Refrán descifrado!</string>
-    <string name="cryptogram_clear">Borrar</string>
-    <string name="cryptogram_cell">Clave %1$s, leída como %2$s</string>
     <string name="crossletters_title">Letras Cruzadas</string>
     <string name="crossletters_description">Coloca las letras en la cuadrícula para que cada fila y cada columna sea una palabra. Algunas letras ya están en su sitio. Toca una casilla y luego la letra que quieres poner; toca una casilla llena para devolver su letra. Vale cualquier solución en la que todas las filas y columnas sean palabras. En fácil y medio la cuadrícula es de cuatro por cuatro; en difícil, de cinco por cinco.</string>
     <string name="crossletters_won">¡Todas las filas y columnas son palabras!</string>

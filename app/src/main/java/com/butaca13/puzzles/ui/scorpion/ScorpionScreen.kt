@@ -114,7 +114,7 @@ private fun Table(game: ScorpionGame, side: Dp, viewModel: ScorpionViewModel) {
         layout as TableLayout
         if (game.reserve.isEmpty()) CardSlot(0f, 0f, cardWidth, cardHeight, "", stringResource(R.string.scorpion_reserve_empty))
         for (run in game.done.size until ScorpionGame.RUNS) {
-            CardSlot(layout.doneX(run), 0f, cardWidth, cardHeight, "K", stringResource(R.string.spider_done_empty))
+            CardSlot(layout.doneX(run), 0f, cardWidth, cardHeight, "K", stringResource(R.string.scorpion_done_empty))
         }
         for (column in game.columns.indices) {
             if (game.columns[column].isEmpty()) {
@@ -137,7 +137,7 @@ private fun ScorpionGame.positions(): Map<Int, Any> = buildMap {
 private fun describe(game: ScorpionGame, spot: Spot): String = when (val heap = spot.pile) {
     // The reserve speaks once, by its top card; the runs done, by their king.
     Heap.Reserve -> if (spot.index == game.reserve.lastIndex) stringResource(R.string.scorpion_reserve) else ""
-    is Heap.Done -> if (spot.index == 12) stringResource(R.string.spider_done, heap.index + 1, cardName(spot.card)) else ""
+    is Heap.Done -> if (spot.index == 12) stringResource(R.string.scorpion_done, heap.index + 1, cardName(spot.card)) else ""
     is Heap.Column -> {
         val hidden = game.columns[heap.index].take(spot.index).count { !it.faceUp }
         if (spot.card.faceUp) stringResource(R.string.klondike_column, heap.index + 1, hidden, cardName(spot.card)) else ""

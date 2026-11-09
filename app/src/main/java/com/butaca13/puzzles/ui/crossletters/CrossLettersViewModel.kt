@@ -40,7 +40,7 @@ class CrossLettersViewModel(application: Application) : AndroidViewModel(applica
         ),
     )
 
-    /** The words: the ladder's list of four and five letters, and the app's common words. */
+    /** The words: ladder.txt's four and five letter words, and the app's common words. */
     private val words: SquareWords by lazy {
         val app = getApplication<Application>()
         val all = app.assets.open("ladder.txt").bufferedReader().readLines().filter { it.isNotBlank() }

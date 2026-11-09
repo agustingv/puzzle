@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """
-The words the word ladder accepts as steps: every Spanish word of 4 and 5 letters in the public-domain
+The words Letras Cruzadas accepts in its squares: every Spanish word of 4 and 5 letters in the public-domain
 word list of Debian's wspanish package (/usr/share/dict/spanish), plain, without accents, plus the
-app's own words of those lengths. A step may be any of them, though puzzles are made from the app's
-own, common words.
+app's own words of those lengths. The file keeps its name from the word ladder game it was first made for.
 
 Writes app/src/main/assets/ladder.txt, one word per line. Re-run with wspanish installed:
     python3 tools/generate_ladder_words.py
