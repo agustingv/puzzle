@@ -65,6 +65,18 @@ class GardenGameTest {
     }
 
     @Test
+    fun `a drag from a mark takes marks off and leaves the rest alone`() {
+        val marked = game.mark(3).mark(4)
+        assertEquals(GardenCell.EMPTY, marked.unmark(3).cells[3])
+        assertEquals(GardenCell.MARK, marked.unmark(3).cells[4])
+
+        assertSame(game, game.unmark(3))
+        val planted = game.plant(3)
+        assertSame(planted, planted.unmark(3))
+        assertSame(game, game.unmark(25))
+    }
+
+    @Test
     fun `two flowers in a row, column, bed or touching clash`() {
         assertEquals("row", setOf(0, 4), game.plant(0, 4).conflicts)
         assertEquals("column", setOf(0, 20), game.plant(0, 20).conflicts)

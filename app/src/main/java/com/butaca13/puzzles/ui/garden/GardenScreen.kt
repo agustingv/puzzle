@@ -15,12 +15,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.lerp
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -50,6 +52,7 @@ import com.butaca13.puzzles.ui.theme.BedDim
 import com.butaca13.puzzles.ui.theme.Danger
 import com.butaca13.puzzles.ui.theme.GardenBeds
 import com.butaca13.puzzles.ui.theme.GardenInk
+import kotlin.math.ceil
 
 @Composable
 fun GardenScreen(viewModel: GardenViewModel, onExit: () -> Unit) {
@@ -97,6 +100,8 @@ private fun Board(game: GardenGame, side: Dp, viewModel: GardenViewModel) {
     // The cell of the last single tap: a double tap plants only where its first tap fell, and two quick
     // taps on neighbouring cells are two single ones.
     var lastTap by remember { mutableIntStateOf(-1) }
+    // Where the finger was at the last report of a drag, as a fraction of the board.
+    var dragAt by remember { mutableStateOf<Offset?>(null) }
 
     ZoomableBoard(
         side = side,
@@ -111,8 +116,19 @@ private fun Board(game: GardenGame, side: Dp, viewModel: GardenViewModel) {
             if (cell == lastTap) viewModel.toggleFlower(cell) else viewModel.tap(cell)
             lastTap = -1
         },
-        onDragStart = { viewModel.mark(cellAt(it)) },
-        onDrag = { viewModel.mark(cellAt(it)) },
+        onDragStart = {
+            dragAt = it
+            viewModel.startDrag(cellAt(it))
+        },
+        onDrag = { to ->
+            // A quick finger moves more than a cell between two reports: every cell on the way counts.
+            val from = dragAt ?: to
+            val steps = ceil((to - from).getDistance() * size * DRAG_SAMPLES_PER_CELL).toInt().coerceAtLeast(1)
+            for (step in 1..steps) viewModel.drag(cellAt(lerp(from, to, step.toFloat() / steps)))
+            dragAt = to
+        },
+        onDragEnd = { dragAt = null },
+        onDragCancel = { dragAt = null },
     ) { boardSide ->
         val cell = boardSide / size
         val colors = remember(game.beds) { bedColors(game.beds, size) }
@@ -208,3 +224,6 @@ private fun GardenCellView(
         }
     }
 }
+
+/** How often a drag's way is looked at, per cell crossed: enough not to miss one it only clips. */
+private const val DRAG_SAMPLES_PER_CELL = 4

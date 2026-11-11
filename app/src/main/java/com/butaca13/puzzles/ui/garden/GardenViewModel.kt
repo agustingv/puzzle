@@ -57,7 +57,16 @@ class GardenViewModel(application: Application) : AndroidViewModel(application) 
 
     fun tap(cell: Int) = play { it.tap(cell) }
 
-    fun mark(cell: Int) = play { it.mark(cell) }
+    /** Whether the drag under way takes marks off: it does when it started on one. */
+    private var unmarking = false
+
+    /** A drag does to every cell it crosses what it would do to the one it started on, mark or unmark. */
+    fun startDrag(cell: Int) {
+        unmarking = session.game?.cells?.getOrNull(cell) == GardenCell.MARK
+        drag(cell)
+    }
+
+    fun drag(cell: Int) = play { if (unmarking) it.unmark(cell) else it.mark(cell) }
 
     fun toggleFlower(cell: Int) = play { it.toggleFlower(cell) }
 

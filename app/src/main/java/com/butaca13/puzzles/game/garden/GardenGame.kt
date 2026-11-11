@@ -71,6 +71,12 @@ data class GardenGame(
         return withCell(cell, GardenCell.MARK)
     }
 
+    /** A drag that started on a mark takes off the marks it crosses, and leaves flowers alone. */
+    fun unmark(cell: Int): GardenGame {
+        if (isComplete || cell !in cells.indices || cells[cell] != GardenCell.MARK) return this
+        return withCell(cell, GardenCell.EMPTY)
+    }
+
     fun reset(): GardenGame = if (isComplete) this else copy(cells = List(size * size) { GardenCell.EMPTY })
 
     private fun withCell(cell: Int, value: GardenCell) =
