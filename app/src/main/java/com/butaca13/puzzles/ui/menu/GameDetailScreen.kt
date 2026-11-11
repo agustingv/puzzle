@@ -13,7 +13,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -31,9 +33,11 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -119,10 +123,22 @@ fun GameDetailSheet(
 
     // The global ranking shows as last downloaded, at once, and is brought up to date behind it, and
     // again whenever a time sent in the background reaches the server: a win just before opening this
-    // page is usually still on its way.
+    // page is usually still on its way. While it is on its way, and if it never comes, the card says so.
     var global by remember(info, selected) { mutableStateOf(rankings.cached(info.id, selected)) }
-    LaunchedEffect(info, selected, account.registered, account.offline, ScoreUploads.filed) {
-        withContext(Dispatchers.IO) { rankings.refresh(account, info.id, selected) }?.let { global = it }
+    val online = rankings.canRefresh(account)
+    var loading by remember(info, selected) { mutableStateOf(online) }
+    var failed by remember(info, selected) { mutableStateOf(false) }
+    var attempt by remember(info, selected) { mutableIntStateOf(0) }
+    LaunchedEffect(info, selected, account.registered, account.offline, ScoreUploads.filed, attempt) {
+        if (!rankings.canRefresh(account)) {
+            loading = false
+            return@LaunchedEffect
+        }
+        loading = true
+        val fresh = withContext(Dispatchers.IO) { rankings.refresh(account, info.id, selected) }
+        if (fresh != null) global = fresh
+        failed = fresh == null
+        loading = false
     }
 
     fun play() {
@@ -178,7 +194,18 @@ fun GameDetailSheet(
                 var allGlobal by rememberSaveable(info, selected) { mutableStateOf(false) }
                 PersonalRecords(records.entries(info.id, selected), allMine, onToggle = { allMine = !allMine })
                 // Not once the player is off the server, as after deleting it: the copy kept is the old one.
-                global?.takeIf { account.registered }?.let { GlobalRanking(it, ownPlayer = account.id, allGlobal, onToggle = { allGlobal = !allGlobal }) }
+                if (account.registered) {
+                    GlobalRanking(
+                        ranking = global,
+                        ownPlayer = account.id,
+                        expanded = allGlobal,
+                        onToggle = { allGlobal = !allGlobal },
+                        // Without a connection by choice there is nothing to wait for, nor to fail.
+                        loading = online && loading,
+                        failed = online && failed,
+                        onRetry = { attempt++ },
+                    )
+                }
             }
 
             val productId = info.productId
@@ -394,11 +421,28 @@ private fun PersonalRecords(entries: List<RecordEntry>, expanded: Boolean, onTog
 
 /**
  * The ten best times of everyone, as last downloaded, with who won each. The player's own places
- * stand out. Without a connection it is the copy kept, and says how old it is.
+ * stand out. Without a connection it is the copy kept, and says how old it is. Never downloaded, it
+ * keeps the room of its rows with a spinner while it [loading], or says it [failed], with a way to try
+ * again; nothing at all when neither, as without a connection by choice.
  */
 @Composable
-private fun GlobalRanking(ranking: Ranking, ownPlayer: String, expanded: Boolean, onToggle: () -> Unit) {
+private fun GlobalRanking(
+    ranking: Ranking?,
+    ownPlayer: String,
+    expanded: Boolean,
+    onToggle: () -> Unit,
+    loading: Boolean,
+    failed: Boolean,
+    onRetry: () -> Unit,
+) {
+    if (ranking == null && !loading && !failed) return
+
     RecordsCard(stringResource(R.string.ranking_global)) {
+        if (ranking == null) {
+            if (loading) RankingLoading() else RankingFailed(onRetry)
+            return@RecordsCard
+        }
+
         if (ranking.entries.isEmpty()) {
             Text(text = stringResource(R.string.ranking_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
@@ -442,13 +486,66 @@ private fun GlobalRanking(ranking: Ranking, ownPlayer: String, expanded: Boolean
             hint = ownHidden?.let { stringResource(R.string.ranking_you_at, it.rank) },
         )
 
-        Text(
-            text = stringResource(R.string.ranking_updated, updatedAgo(ranking.fetchedAt)),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        // How old the copy shown is, and whether a newer one is coming or could not be had.
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().heightIn(min = 32.dp)) {
+            Text(
+                text = stringResource(R.string.ranking_updated, updatedAgo(ranking.fetchedAt)) + when {
+                    loading -> " · " + stringResource(R.string.ranking_updating)
+                    failed -> " · " + stringResource(R.string.ranking_update_failed)
+                    else -> ""
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = if (failed && !loading) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.weight(1f),
+            )
+            if (loading) {
+                CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+            } else if (failed) {
+                TextButton(onClick = onRetry, contentPadding = PaddingValues(horizontal = 8.dp)) {
+                    Text(stringResource(R.string.ranking_retry), style = MaterialTheme.typography.labelMedium)
+                }
+            }
+        }
     }
 }
+
+/** The room of a folded ranking, with a spinner in it, so that nothing jumps once it arrives. */
+@Composable
+private fun RankingLoading() {
+    val label = stringResource(R.string.ranking_loading)
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(RankingRowHeight * FOLDED_ROWS + RankingRowGap * (FOLDED_ROWS - 1))
+            .semantics { contentDescription = label },
+    ) {
+        CircularProgressIndicator(modifier = Modifier.size(32.dp))
+    }
+}
+
+/** A ranking that never arrived: no connection, or no answer from the server in time. */
+@Composable
+private fun RankingFailed(onRetry: () -> Unit) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = RankingRowHeight * FOLDED_ROWS + RankingRowGap * (FOLDED_ROWS - 1)),
+    ) {
+        Text(
+            text = stringResource(R.string.ranking_error),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+        TextButton(onClick = onRetry) { Text(stringResource(R.string.ranking_retry)) }
+    }
+}
+
+/** A row of the global ranking: its avatar and padding; and the gap between rows, as in [RecordsCard]. */
+private val RankingRowHeight = 32.dp
+private val RankingRowGap = 6.dp
 
 /** In the app's words, not the system's: Android's own would follow the phone's language. */
 @Composable

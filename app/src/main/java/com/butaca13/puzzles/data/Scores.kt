@@ -179,7 +179,7 @@ class HttpScoreApi(
     }
 
     override fun ranking(game: String, variant: String): List<RankingEntry>? {
-        val connection = open("rankings/$game/$variant") ?: return null
+        val connection = open("rankings/$game/$variant", RANKING_TIMEOUT_MILLIS) ?: return null
 
         return try {
             if (connection.responseCode != 200) {
@@ -209,10 +209,10 @@ class HttpScoreApi(
         }
     }
 
-    private fun open(path: String): HttpURLConnection? = try {
+    private fun open(path: String, timeoutMillis: Int = TIMEOUT_MILLIS): HttpURLConnection? = try {
         (URL("$baseUrl$path").openConnection() as HttpURLConnection).apply {
-            connectTimeout = TIMEOUT_MILLIS
-            readTimeout = TIMEOUT_MILLIS
+            connectTimeout = timeoutMillis
+            readTimeout = timeoutMillis
             setRequestProperty("Accept", "application/json")
         }
     } catch (e: IOException) {
@@ -221,7 +221,14 @@ class HttpScoreApi(
     }
 
     private companion object {
+        /** For the times, sent in the background: no one is waiting for them. */
         const val TIMEOUT_MILLIS = 15_000
+
+        /**
+         * For a ranking, which someone is looking at a spinner for: as much to connect as to read the
+         * answer, so that it says it failed within about 8 seconds.
+         */
+        const val RANKING_TIMEOUT_MILLIS = 4_000
 
         fun isoDate(millis: Long): String =
             SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.ROOT)
@@ -326,13 +333,18 @@ class GlobalRankings(
     }
 
     /**
-     * Downloads a ranking and keeps it, unless the player has never been on the server, which is when
-     * the rankings are not theirs to see yet, or wants no connections. Blocks: call it off the main
-     * thread. Null if nothing new could be had.
+     * Whether [refresh] would ask the server: not if the player has never been on it, which is when the
+     * rankings are not theirs to see yet, nor if it wants no connections.
+     */
+    fun canRefresh(account: PlayerAccount): Boolean = api != null && !account.offline && account.registered
+
+    /**
+     * Downloads a ranking and keeps it, when [canRefresh]. Blocks: call it off the main thread. Null if
+     * nothing new could be had: not allowed, no answer, or a fault on the server's side.
      */
     fun refresh(account: PlayerAccount, game: String, variant: String): Ranking? {
-        if (api == null || account.offline || !account.registered) return null
-        val entries = api.ranking(game, variant) ?: return null
+        if (!canRefresh(account)) return null
+        val entries = api?.ranking(game, variant) ?: return null
 
         val ranking = Ranking(entries, clock())
         val array = JSONArray()

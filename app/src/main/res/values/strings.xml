@@ -154,6 +154,11 @@
     <string name="ranking_you">tú</string>
     <string name="ranking_updated">Actualizado %1$s</string>
     <string name="ranking_just_now">ahora mismo</string>
+    <string name="ranking_loading">Cargando el ranking global</string>
+    <string name="ranking_updating">Actualizando…</string>
+    <string name="ranking_error">No se ha podido cargar el ranking. Comprueba tu conexión.</string>
+    <string name="ranking_update_failed">No se ha podido actualizar.</string>
+    <string name="ranking_retry">Reintentar</string>
     <string name="ranking_you_at">estás en el %1$dº</string>
     <plurals name="records_show_more">
         <item quantity="one">Ver %1$d tiempo más</item>

@@ -315,6 +315,18 @@ class ScoresTest {
     }
 
     @Test
+    fun `a ranking is only waited for when it will be asked for`() {
+        val rankings = GlobalRankings(store, FakeScoreApi(), clock = { now })
+
+        assertFalse(rankings.canRefresh(PlayerAccount(store, Random(1))))
+        val account = registeredAccount()
+        assertTrue(rankings.canRefresh(account))
+        assertFalse(GlobalRankings(store, null).canRefresh(account))
+        account.changeOffline(true)
+        assertFalse(rankings.canRefresh(account))
+    }
+
+    @Test
     fun `a ranking fetched is kept for when there is no connection`() {
         val api = FakeScoreApi().apply { board = listOf(entry, entry.copy(rank = 2, id = "s2", seconds = 50, playerAvatar = null)) }
         val rankings = GlobalRankings(store, api, clock = { now })
