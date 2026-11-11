@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="paper">#FFFBF9FD</color>
+    <!-- The middle of the icon's gradient (tools/generate_icon.py), behind the icon while the app starts. -->
+    <color name="splash">#FFB667C7</color>
 </resources>
