@@ -63,38 +63,11 @@ private const val APP_TITLE_LIT_LETTER = 1
 private val CardTitleMaxTile = 20.dp
 private const val SMALL_TILE_LETTER_RATIO = 0.6f
 
-private val BarTitleMaxTile = 26.dp
-
-/** Two lines of these still fit the height of the top bar. */
-private val BarTitleMaxTileOnTwoLines = 20.dp
-
-/** A screen's own title, under the app's: smaller, as a subtitle, always on one line. */
-private val SubtitleMaxTile = 22.dp
-
 /** Space between tiles, as a share of a tile. */
 private const val TILE_GAP = 0.18f
 
 /** Space between words, as a share of a tile. */
 private const val WORD_GAP = 0.5f
-
-private const val CARD_TITLE_MAX_LINES = 2
-
-/** A title on at most two lines, breaking between words so that the longest line is the shortest possible. */
-internal fun titleLines(title: String): List<String> {
-    val words = title.split(" ")
-    if (words.size == 1) return words
-
-    return (1 until words.size)
-        .map { listOf(words.take(it).joinToString(" "), words.drop(it).joinToString(" ")) }
-        .minBy { lines -> lines.maxOf(::lineWidth) }
-}
-
-/** How wide a line is, measured in tiles. */
-internal fun lineWidth(line: String): Float =
-    line.sumOf { (if (it == ' ') WORD_GAP else 1f).toDouble() }.toFloat() + (line.length - 1) * TILE_GAP
-
-/** How many tiles wide the widest of these titles is: all cards share one tile size. */
-internal fun widestTitle(titles: List<String>): Float = titles.flatMap(::titleLines).maxOf(::lineWidth)
 
 private enum class TileStyle { RAISED, ON_CARD, LIT, PENDING, GOLD }
 
@@ -265,55 +238,6 @@ internal fun AppTitle(solved: Boolean, onLastTile: (() -> Unit)?, modifier: Modi
                 )
             },
         )
-    }
-}
-
-/**
- * A game's title on its card. Every card keeps room for two lines and centres what it has, so that
- * cards in a row stay the same height. [widest] comes from [widestTitle]. The card itself tells
- * screen readers its title, so the tiles say nothing.
- */
-@Composable
-internal fun CardTitle(title: String, widest: Float, modifier: Modifier = Modifier) {
-    BoxWithConstraints(
-        contentAlignment = Alignment.Center,
-        modifier = modifier.fillMaxWidth().clearAndSetSemantics {},
-    ) {
-        val tile = min(CardTitleMaxTile, maxWidth / widest)
-        val gap = tile * TILE_GAP
-
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.height(tile * CARD_TITLE_MAX_LINES + gap),
-        ) {
-            TileLines(titleLines(title), SecretMessage.letterIndexOf(title), tile, gap, TileStyle.ON_CARD, SMALL_TILE_LETTER_RATIO)
-        }
-    }
-}
-
-/**
- * A title in the top bar. Only one is on screen at a time, so each takes the largest tiles that it
- * has room for, instead of sharing a size like the cards do.
- */
-@Composable
-internal fun BarTitle(title: String, modifier: Modifier = Modifier, small: Boolean = false, alignment: Alignment = Alignment.Center) {
-    BoxWithConstraints(
-        contentAlignment = alignment,
-        modifier = modifier.clearAndSetSemantics {
-            contentDescription = title
-            heading()
-        },
-    ) {
-        // A subtitle stays on one line, its tiles as small as that takes.
-        val lines = if (small) listOf(title) else titleLines(title)
-        val largest = when {
-            small -> SubtitleMaxTile
-            lines.size > 1 -> BarTitleMaxTileOnTwoLines
-            else -> BarTitleMaxTile
-        }
-        val tile = min(largest, maxWidth / lines.maxOf(::lineWidth))
-
-        TileLines(lines, SecretMessage.letterIndexOf(title), tile, tile * TILE_GAP, TileStyle.RAISED, SMALL_TILE_LETTER_RATIO)
     }
 }
 

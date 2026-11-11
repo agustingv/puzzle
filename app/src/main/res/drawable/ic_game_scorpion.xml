@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Game pictogram: white strokes, drawn on the game's colour (see GameIcons.kt). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:strokeColor="#FFFFFFFF" android:strokeWidth="2.3" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M5 16a4 2.8 0 1 0 8 0a4 2.8 0 1 0 -8 0 M13 15c4 0 7 -2.5 7 -6 0 -3 -2 -4.5 -4 -3.5s-1 3.5 1.5 3 M5.5 14.5L3 12 M5.5 17.5L3 20 M7 18.5l-1 2.5 M10 18.5l1 2.5" />
+</vector>

@@ -28,7 +28,7 @@ class SecretMessageTest {
     private val catalog = File("src/main/java/com/butaca13/puzzles/ui/menu/GameCatalog.kt").readText()
 
     private fun titleOf(gameId: String): String {
-        val resource = Regex("""\("$gameId",\s*"[^"]*",\s*R\.string\.(\w+),""").find(catalog)!!.groupValues[1]
+        val resource = Regex("""\("$gameId",\s*R\.drawable\.\w+,\s*GameTone\.\w+,\s*R\.string\.(\w+),""").find(catalog)!!.groupValues[1]
         return Regex("""<string name="$resource">([^<]*)</string>""").find(strings)!!.groupValues[1]
     }
 

@@ -124,6 +124,17 @@
     <string name="sync_no_server">Solo en este móvil: esta versión no tiene servidor.</string>
     <string name="sync_rejected">El servidor no ha aceptado el nombre. Prueba con otro.</string>
     <string name="settings_title">Ajustes</string>
+    <string name="home_greeting">Hola, %1$s</string>
+    <string name="home_question">¿A qué jugamos hoy?</string>
+    <string name="home_continue_title">Seguir jugando</string>
+    <string name="home_continue">Continuar</string>
+    <plurals name="home_letters">
+        <item quantity="one">%1$d letra</item>
+        <item quantity="other">%1$d letras</item>
+    </plurals>
+    <string name="nav_play">Jugar</string>
+    <string name="nav_profile">Perfil</string>
+    <string name="nav_settings">Ajustes</string>
     <string name="settings_sound">Sonido</string>
     <string name="settings_volume">Volumen</string>
     <string name="settings_volume_value">%1$d %%</string>
@@ -133,15 +144,6 @@
     <string name="group_numbers">Números</string>
     <string name="group_cards">Cartas</string>
     <string name="group_various">Varios</string>
-    <string name="group_soon">Próximamente</string>
-    <plurals name="group_games">
-        <item quantity="one">%1$d juego</item>
-        <item quantity="other">%1$d juegos</item>
-    </plurals>
-    <plurals name="group_in_progress">
-        <item quantity="one">%1$d en curso</item>
-        <item quantity="other">%1$d en curso</item>
-    </plurals>
     <string name="favorites_title">⭐ Favoritos</string>
     <string name="favorites_empty">Marca un juego con ☆ en su página para tenerlo aquí a mano.</string>
     <string name="favorite_add">Añadir a favoritos</string>
