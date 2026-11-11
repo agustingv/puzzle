@@ -147,6 +147,8 @@ private fun PuzzlesApp() {
     // card goes straight to it and leaving it goes home. Its page comes back once no game is running.
     var opened by rememberSaveable { mutableStateOf<GameInfo?>(null) }
     var playing by rememberSaveable { mutableStateOf(false) }
+    // The game's page sliding away over the game just started from it.
+    var pageLeaving by remember { mutableStateOf(false) }
     var showPrivacy by rememberSaveable { mutableStateOf(false) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
     var showStarfall by rememberSaveable { mutableStateOf(false) }
@@ -254,6 +256,8 @@ private fun PuzzlesApp() {
 
     fun openGame(info: GameInfo) {
         opened = info
+        // A game in progress opens straight away, with no page to slide off it.
+        pageLeaving = false
         // A game no longer owned, refunded say, opens on its page, which offers to buy it.
         playing = savedGame(info) != null && shop.unlocked(info)
     }
@@ -261,6 +265,7 @@ private fun PuzzlesApp() {
     fun stopPlaying() {
         if (game?.let(::savedGame) != null) opened = null
         playing = false
+        pageLeaving = false
     }
 
     fun startGame(info: GameInfo, variant: String) {
@@ -287,6 +292,7 @@ private fun PuzzlesApp() {
             GameInfo.SLIDING -> sliding.newGame(Difficulty.valueOf(variant))
         }
         playing = true
+        pageLeaving = true
     }
 
     // The header's avatar and settings, on every screen. On their own screen each shows disabled, and
@@ -439,7 +445,6 @@ private fun PuzzlesApp() {
             ),
         ) {
             when {
-                // A game's page rises over the home screen.
                 game == null || !playing -> {
                     InTab(MainTab.PLAY) {
                         HomeScreen(
@@ -451,20 +456,6 @@ private fun PuzzlesApp() {
                             onSecret = { showSecret = true },
                             shop = shop,
                             onStarfall = { showStarfall = true },
-                        )
-                    }
-                    if (game != null) {
-                        GameDetailSheet(
-                            info = game,
-                            records = records,
-                            rankings = rankings,
-                            account = account,
-                            storage = storage,
-                            onPlay = { variant -> startGame(game, variant) },
-                            onDismiss = { opened = null },
-                            shop = shop,
-                            favorite = game.id in favorites,
-                            onFavorite = { favorites.toggle(game.id) },
                         )
                     }
                 }
@@ -490,6 +481,25 @@ private fun PuzzlesApp() {
                     GameInfo.CROSS_LETTERS -> CrossLettersScreen(crossLetters, ::stopPlaying)
                     GameInfo.SLIDING -> SlidingScreen(sliding, ::stopPlaying)
                 }
+            }
+
+            // A game's page rises over the home screen. Outside the `when`, so that the same sheet stays
+            // on screen while the game is drawn under it, and only then slides away.
+            if (game != null && (!playing || pageLeaving)) {
+                GameDetailSheet(
+                    info = game,
+                    records = records,
+                    rankings = rankings,
+                    account = account,
+                    storage = storage,
+                    onPlay = { variant -> if (!playing) startGame(game, variant) },
+                    onDismiss = { if (!playing) opened = null },
+                    shop = shop,
+                    favorite = game.id in favorites,
+                    onFavorite = { favorites.toggle(game.id) },
+                    leaving = playing && pageLeaving,
+                    onLeft = { pageLeaving = false },
+                )
             }
 
             if (showSecret) {

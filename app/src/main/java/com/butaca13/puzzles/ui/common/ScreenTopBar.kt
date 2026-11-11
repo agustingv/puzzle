@@ -31,7 +31,11 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -40,6 +44,8 @@ import androidx.compose.ui.unit.sp
 import com.butaca13.puzzles.R
 import com.butaca13.puzzles.data.Avatar
 import com.butaca13.puzzles.data.AvatarPiece
+import com.butaca13.puzzles.data.SecretMessage
+import com.butaca13.puzzles.ui.theme.AccentDark
 import com.butaca13.puzzles.ui.theme.Card
 
 /** Opens the settings from wherever the player is. Null on screens that do not offer them. */
@@ -156,7 +162,6 @@ fun ScreenTopBar(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
     subtitle: String? = null,
-    titleInTiles: Boolean = false,
     /** False in a game: only the way back, the title and the trailing items, to leave room for the board. */
     appHeader: Boolean = true,
     subtitleAction: @Composable RowScope.() -> Unit = {},
@@ -182,19 +187,17 @@ fun ScreenTopBar(
         // right, such as the clock, which take the same room on both sides so that it stays centred.
         val side = if (trailing != null) TrailingWidth else BackButtonWidth
         Box(modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp), contentAlignment = Alignment.Center) {
-            if (titleInTiles) {
-                BarTitle(title, Modifier.fillMaxWidth().padding(horizontal = side), small = true, wrap = !appHeader)
-            } else {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = side).semantics { heading() },
-                )
-            }
+            Text(
+                // In a game, its letter of the secret message stands out, as the only hint to it.
+                text = if (appHeader) AnnotatedString(title) else withSecretLetter(title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                // A game's bar is narrow: a long title takes two lines rather than being cut.
+                maxLines = if (appHeader) 1 else 2,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = side).semantics { heading() },
+            )
             TextButton(
                 onClick = onBack,
                 modifier = Modifier
@@ -221,6 +224,19 @@ fun ScreenTopBar(
                 )
                 subtitleAction()
             }
+        }
+    }
+}
+
+/** The [title] with the letter that it lights up for the secret message, if any, in the accent colour. */
+private fun withSecretLetter(title: String): AnnotatedString = buildAnnotatedString {
+    // Counted as the clue counts it, skipping spaces.
+    var lit = SecretMessage.letterIndexOf(title)
+    for (char in title) {
+        if (char != ' ' && lit-- == 0) {
+            withStyle(SpanStyle(color = AccentDark, fontWeight = FontWeight.ExtraBold)) { append(char) }
+        } else {
+            append(char)
         }
     }
 }

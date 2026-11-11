@@ -103,6 +103,13 @@ fun GameDetailSheet(
     favorite: Boolean = false,
     /** Adds the game to the favourites or takes it away; null where there are none, as in previews. */
     onFavorite: (() -> Unit)? = null,
+    /**
+     * True once the game has started: the sheet slides away, uncovering it, and then [onLeft] is
+     * called. Being its own window, the sheet would otherwise vanish at once, before the game is drawn,
+     * and the home screen would flash in between.
+     */
+    leaving: Boolean = false,
+    onLeft: () -> Unit = {},
 ) {
     // Opens on the last level played, so a repeat game takes one tap.
     val lastKey = "$LAST_VARIANT_KEY/${info.id}"
@@ -123,9 +130,17 @@ fun GameDetailSheet(
         onPlay(selected)
     }
 
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    LaunchedEffect(leaving) {
+        if (leaving) {
+            sheetState.hide()
+            onLeft()
+        }
+    }
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        sheetState = sheetState,
         containerColor = Card,
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {

@@ -71,12 +71,11 @@ fun GameScaffold(
     val topBar: @Composable () -> Unit = {
         val running = session.saved != null
 
-        // Compact, for the board's sake: the way back, the title in tiles and the clock on one line, and
+        // Compact, for the board's sake: the way back, the title and the clock on one line, and
         // under it the status with the way to give up.
         ScreenTopBar(
             title = title,
             subtitle = status,
-            titleInTiles = true,
             appHeader = false,
             onBack = onExit,
             trailing = { TimerPill(session.elapsedSeconds) },
