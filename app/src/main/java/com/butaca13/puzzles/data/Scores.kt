@@ -362,5 +362,10 @@ class GlobalRankings(
         return ranking
     }
 
+    /** Drops the downloaded rankings, as when they are another server's. */
+    fun forgetAll(games: List<String>, variants: List<String>) {
+        for (game in games) for (variant in variants) store.remove(key(game, variant))
+    }
+
     private fun key(game: String, variant: String) = "ranking/$game/$variant"
 }

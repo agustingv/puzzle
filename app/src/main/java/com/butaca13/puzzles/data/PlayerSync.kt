@@ -197,11 +197,12 @@ class PlayerSync(private val account: PlayerAccount, private val api: PlayerApi?
 class PlayerSyncWorker(context: Context, parameters: WorkerParameters) : CoroutineWorker(context, parameters) {
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
+        val backend = PlayerSyncScheduler.backend(applicationContext)
         val outcome = FullSync(
             account = PlayerAccount.of(applicationContext),
-            playerApi = PlayerSyncScheduler.api(),
+            playerApi = backend?.players,
             uploads = ScoreUploads(AppStorage.of(applicationContext)),
-            scoreApi = PlayerSyncScheduler.scoreApi(),
+            scoreApi = backend?.scores,
         ).run()
         if (outcome == PlayerSync.Outcome.TRY_LATER) Result.retry() else Result.success()
     }
@@ -212,30 +213,27 @@ object PlayerSyncScheduler {
     private const val FIRST_RETRY_SECONDS = 30L
     private const val LOG_TAG = "PlayerSync"
 
-    /** Empty when this build has no server, as release builds until one is set up. */
-    val serverConfigured: Boolean get() = BuildConfig.API_URL.isNotEmpty()
+    private val kind = BackendKind.of(BuildConfig.BACKEND)
 
-    fun api(): PlayerApi? = if (!serverConfigured) {
-        null
-    } else {
-        HttpPlayerApi(BuildConfig.API_URL) { reason, error -> Log.w(LOG_TAG, reason, error) }
-    }
+    /** False when this build has no server, as release builds until one is set up. */
+    val serverConfigured: Boolean get() = Backends.configured(kind, BuildConfig.API_URL)
 
-    fun deletionApi(): PlayerDeletionApi? = if (!serverConfigured) {
-        null
-    } else {
-        HttpPlayerApi(BuildConfig.API_URL) { reason, error -> Log.w(LOG_TAG, reason, error) }
+    @Volatile
+    private var made: Backend? = null
+
+    /** The server this build talks to (see [Backends]), made once, or null when it has none. */
+    fun backend(context: Context): Backend? {
+        if (!serverConfigured) return null
+        return made ?: synchronized(this) {
+            made ?: Backends.create(kind, BuildConfig.API_URL, firebase = { SdkFirebaseCalls(context) }) { reason, error ->
+                Log.w(LOG_TAG, reason, error)
+            }.also { made = it }
+        }
     }
 
     /** Stops a waiting or running sync, so that it does not send the player while it is being deleted. */
     fun cancel(context: Context) {
         WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)
-    }
-
-    fun scoreApi(): ScoreApi? = if (!serverConfigured) {
-        null
-    } else {
-        HttpScoreApi(BuildConfig.API_URL) { reason, error -> Log.w(LOG_TAG, reason, error) }
     }
 
     /**

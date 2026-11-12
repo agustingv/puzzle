@@ -186,7 +186,7 @@ private fun PuzzlesApp() {
     val context = LocalContext.current
     val storage = remember { AppStorage.of(context) }
     val records = remember { Records(storage) }
-    val rankings = remember { GlobalRankings(storage, PlayerSyncScheduler.scoreApi()) }
+    val rankings = remember { GlobalRankings(storage, PlayerSyncScheduler.backend(context)?.scores) }
     val sounds = remember { GameSounds.of(context) }
     val secret = remember { SecretProgress(storage) }
     val account = remember { PlayerAccount.of(context) }
@@ -408,7 +408,7 @@ private fun PuzzlesApp() {
                     onDeletePlayer = {
                         PlayerSyncScheduler.cancel(context)
                         val gone = withContext(Dispatchers.IO) {
-                            PlayerDeletion(account, ScoreUploads(storage), PlayerSyncScheduler.deletionApi()).run()
+                            PlayerDeletion(account, ScoreUploads(storage), PlayerSyncScheduler.backend(context)?.deletion).run()
                         }
                         // Not deleted: whatever was waiting to be sent still is.
                         if (!gone) PlayerSyncScheduler.request(context)

@@ -3,6 +3,8 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    // Reads app/google-services.json (the Firebase project) into resources, for -PpuzzlesBackend=firebase.
+    alias(libs.plugins.google.services)
 }
 
 // Where the player API lives. Debug builds use the production API unless told otherwise; release
@@ -12,6 +14,20 @@ plugins {
 // phone over USB): from Android 17 on, an app needs a special permission for the local network, but
 // not for localhost, which the debug network config lets through without TLS.
 val apiUrl: String? = providers.gradleProperty("puzzlesApiUrl").orNull
+
+// Which server the app talks to (data/Backend.kt): -PpuzzlesBackend=api, firebase or none. Unset, it is the API
+// whenever the build has an address for it, and none otherwise, as release builds without -PpuzzlesApiUrl.
+// The API with no address is no server either (Backends.create).
+val backend: String? = providers.gradleProperty("puzzlesBackend").orNull
+
+fun backendFor(url: String): String {
+    val chosen = backend ?: if (url.isEmpty()) "none" else "api"
+    require(chosen in setOf("none", "api", "firebase")) { "-PpuzzlesBackend=$chosen: los servidores son api, firebase y none" }
+    return chosen
+}
+
+val debugApiUrl = apiUrl ?: "https://api.puzzles.butaca13.com/api/v1/"
+val releaseApiUrl = apiUrl.orEmpty()
 
 // Debug builds buy from a simulated store (FakeStore), to try purchases without Play Console; with
 // -PfakeStore=false they use Google Play, which needs the app uploaded there and a tester account.
@@ -52,11 +68,13 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField("String", "API_URL", "\"${apiUrl ?: "https://api.puzzles.butaca13.com/api/v1/"}\"")
+            buildConfigField("String", "API_URL", "\"$debugApiUrl\"")
+            buildConfigField("String", "BACKEND", "\"${backendFor(debugApiUrl)}\"")
             buildConfigField("boolean", "FAKE_STORE", fakeStore.toString())
         }
         release {
-            buildConfigField("String", "API_URL", "\"${apiUrl.orEmpty()}\"")
+            buildConfigField("String", "API_URL", "\"$releaseApiUrl\"")
+            buildConfigField("String", "BACKEND", "\"${backendFor(releaseApiUrl)}\"")
             buildConfigField("boolean", "FAKE_STORE", "false")
             if (keystoreProperties != null) signingConfig = signingConfigs.getByName("release")
             // Whole-app R8. Limiting it with packageScope to androidx and kotlin, as the project
@@ -79,6 +97,9 @@ android {
 dependencies {
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.billing.ktx)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.functions)
+    implementation(libs.firebase.firestore)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.splashscreen)

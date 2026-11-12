@@ -82,6 +82,13 @@ class Records(
         for (game in games) for (variant in variants) entries(game, variant)
     }
 
+    /** Queues every best time for the rankings again, as for a server that has none of them. */
+    fun queueAll(games: List<String>, variants: List<String>) {
+        for (game in games) for (variant in variants) {
+            entries(game, variant).forEach { uploads.add(PendingScore(it.id, game, variant, it.seconds, it.playedAt)) }
+        }
+    }
+
     private fun upgrade(game: String, variant: String, array: JSONArray): List<RecordEntry> {
         val entries = List(array.length()) { RecordEntry(newId(), array.getInt(it), null) }
         save(game, variant, entries)

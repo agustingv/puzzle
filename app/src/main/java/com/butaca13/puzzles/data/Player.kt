@@ -163,6 +163,16 @@ class PlayerAccount(private val store: KeyValueStore, private val random: Random
         updatePending(true)
     }
 
+    /**
+     * The app now talks to another server, which has never seen this player. It is sent there as it is,
+     * with the same id and secret; a name the old server refused is tried again, as the new one may take it.
+     */
+    internal fun markMovedToAnotherServer() {
+        updateFailed(false)
+        updateRejected(false)
+        markUnknownToServer()
+    }
+
     internal fun markRejected() {
         updateFailed(false)
         updateRejected(true)
