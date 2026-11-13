@@ -15,15 +15,14 @@ plugins {
 // not for localhost, which the debug network config lets through without TLS.
 val apiUrl: String? = providers.gradleProperty("puzzlesApiUrl").orNull
 
-// Which server the app talks to (data/Backend.kt): -PpuzzlesBackend=api, firebase or none. Unset, it is the API
-// whenever the build has an address for it, and none otherwise, as release builds without -PpuzzlesApiUrl.
-// The API with no address is no server either (Backends.create).
+// Which server the app talks to (data/Backend.kt): -PpuzzlesBackend=api, firebase or none. Unset, it is
+// Firebase, the server of the published app, unless -PpuzzlesApiUrl was given: then the API at that address.
+// -PpuzzlesBackend=api alone uses the production API in debug builds; in release ones, with no address, the API
+// is no server at all (Backends.create).
 val backend: String? = providers.gradleProperty("puzzlesBackend").orNull
 
-fun backendFor(url: String): String {
-    val chosen = backend ?: if (url.isEmpty()) "none" else "api"
+val chosenBackend: String = (backend ?: if (apiUrl != null) "api" else "firebase").also { chosen ->
     require(chosen in setOf("none", "api", "firebase")) { "-PpuzzlesBackend=$chosen: los servidores son api, firebase y none" }
-    return chosen
 }
 
 val debugApiUrl = apiUrl ?: "https://api.puzzles.butaca13.com/api/v1/"
@@ -69,12 +68,12 @@ android {
     buildTypes {
         debug {
             buildConfigField("String", "API_URL", "\"$debugApiUrl\"")
-            buildConfigField("String", "BACKEND", "\"${backendFor(debugApiUrl)}\"")
+            buildConfigField("String", "BACKEND", "\"$chosenBackend\"")
             buildConfigField("boolean", "FAKE_STORE", fakeStore.toString())
         }
         release {
             buildConfigField("String", "API_URL", "\"$releaseApiUrl\"")
-            buildConfigField("String", "BACKEND", "\"${backendFor(releaseApiUrl)}\"")
+            buildConfigField("String", "BACKEND", "\"$chosenBackend\"")
             buildConfigField("boolean", "FAKE_STORE", "false")
             if (keystoreProperties != null) signingConfig = signingConfigs.getByName("release")
             // Whole-app R8. Limiting it with packageScope to androidx and kotlin, as the project
