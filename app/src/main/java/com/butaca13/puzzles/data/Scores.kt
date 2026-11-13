@@ -76,14 +76,15 @@ class ScoreUploads(private val store: KeyValueStore) {
 
     companion object {
         /**
-         * How many times the server has filed since the app started. Compose state, so that a ranking on
-         * screen downloads again once a time sent in the background has reached it.
+         * How many times sent since the app started have made a global ranking. Compose state, so that a
+         * ranking on screen downloads again once a time sent in the background has changed it; one that
+         * did not make it changed nothing, and is not counted.
          */
-        var filed by mutableIntStateOf(0)
+        var ranked by mutableIntStateOf(0)
             private set
 
-        internal fun noteFiled() {
-            filed++
+        internal fun noteRanked() {
+            ranked++
         }
 
         private const val KEY = "scores/pending"
@@ -127,7 +128,8 @@ data class Ranking(val entries: List<RankingEntry>, val fetchedAt: Long)
 
 /** The rankings on the server, behind an interface so that they can be tested without one. Calls block. */
 interface ScoreApi {
-    fun submit(secret: String, score: PendingScore): SubmitResult
+    /** [playerId] is the player the [secret] is for: Firebase finds it by id; the API, by the secret alone. */
+    fun submit(playerId: String, secret: String, score: PendingScore): SubmitResult
 
     /** Null when it could not be had: no connection, or no sensible answer. */
     fun ranking(game: String, variant: String): List<RankingEntry>?
@@ -142,7 +144,7 @@ class HttpScoreApi(
     private val onFailure: (String, Throwable?) -> Unit = { _, _ -> },
 ) : ScoreApi {
 
-    override fun submit(secret: String, score: PendingScore): SubmitResult {
+    override fun submit(playerId: String, secret: String, score: PendingScore): SubmitResult {
         val connection = open("scores/${score.id}") ?: return SubmitResult.Failed
 
         return try {
@@ -241,16 +243,29 @@ class HttpScoreApi(
  * Sends the queued times, once the server knows the player: before that, it could not tell whose they
  * are. With the mode without connection on, nothing goes out, as with the player.
  */
-class ScoreSync(private val account: PlayerAccount, private val uploads: ScoreUploads, private val api: ScoreApi?) {
+class ScoreSync(
+    private val account: PlayerAccount,
+    private val uploads: ScoreUploads,
+    private val api: ScoreApi?,
+    /** The rankings as last downloaded: what a time can not make is not sent, and what it makes is marked out of date. */
+    private val rankings: GlobalRankings? = null,
+) {
 
     fun run(): PlayerSync.Outcome {
         if (account.offline || api == null || !account.registered) return PlayerSync.Outcome.DONE
 
         for (score in uploads.all()) {
-            when (api.submit(account.secret, score)) {
+            if (rankings?.cannotEnter(score) == true) {
+                uploads.remove(score.id)
+                continue
+            }
+            when (val result = api.submit(account.id, account.secret, score)) {
                 is SubmitResult.Filed -> {
                     uploads.remove(score.id)
-                    ScoreUploads.noteFiled()
+                    if (result.rank != null) {
+                        rankings?.markStale(score.game, score.variant)
+                        ScoreUploads.noteRanked()
+                    }
                 }
                 SubmitResult.Rejected -> uploads.remove(score.id)
                 SubmitResult.Failed -> return PlayerSync.Outcome.TRY_LATER
@@ -273,12 +288,13 @@ class FullSync(
     private val playerApi: PlayerApi?,
     private val uploads: ScoreUploads,
     private val scoreApi: ScoreApi?,
+    private val rankings: GlobalRankings? = null,
 ) {
     fun run(): PlayerSync.Outcome {
         repeat(ROUNDS) {
             val player = PlayerSync(account, playerApi).run()
             val wasRegistered = account.registered
-            val scores = ScoreSync(account, uploads, scoreApi).run()
+            val scores = ScoreSync(account, uploads, scoreApi, rankings).run()
             // Only the times can find out that the server lost the player: they unregister it.
             val lostPlayer = wasRegistered && !account.registered
             if (!lostPlayer) {
@@ -300,7 +316,8 @@ class FullSync(
 
 /**
  * The global rankings, each kept as last downloaded so that it can still be seen without a
- * connection. One that was never downloaded is not shown at all.
+ * connection. One that was never downloaded is not shown at all. A copy is good for [MAX_AGE_MILLIS]:
+ * every download is a read paid for on the server, and a ranking seldom changes from one minute to the next.
  */
 class GlobalRankings(
     private val store: KeyValueStore,
@@ -339,14 +356,46 @@ class GlobalRankings(
     fun canRefresh(account: PlayerAccount): Boolean = api != null && !account.offline && account.registered
 
     /**
+     * Whether the copy kept is recent enough to show without asking again: downloaded less than
+     * [MAX_AGE_MILLIS] ago, after any time of this player's made it ([markStale]), and with this player's
+     * current name and avatar on its times, once the server has them.
+     */
+    fun isFresh(account: PlayerAccount, game: String, variant: String): Boolean {
+        val ranking = cached(game, variant) ?: return false
+        if (clock() - ranking.fetchedAt !in 0 until MAX_AGE_MILLIS) return false
+        val staleAt = store.get(staleKey(game, variant))?.toLongOrNull()
+        if (staleAt != null && staleAt >= ranking.fetchedAt) return false
+        if (account.pending) return true
+        val avatar = account.avatar.encode()
+        return ranking.entries.none { it.playerId == account.id && (it.playerName != account.name || it.playerAvatar != avatar) }
+    }
+
+    /** Marks a ranking out of date, as when a time of this player's has just made it. */
+    fun markStale(game: String, variant: String) {
+        store.put(staleKey(game, variant), clock().toString())
+    }
+
+    /**
+     * Whether [score] can not make its ranking, going by the copy kept: ten times there already, each
+     * as fast or faster (a tie ranks after the one that got there first). Rankings only get faster, so
+     * an old copy will do; the one way to lose a place is a player deleted, too rare to send for.
+     */
+    fun cannotEnter(score: PendingScore): Boolean {
+        val entries = cached(score.game, score.variant)?.entries ?: return false
+        return entries.none { it.id == score.id } && entries.count { it.seconds <= score.seconds } >= RANKING_SIZE
+    }
+
+    /**
      * Downloads a ranking and keeps it, when [canRefresh]. Blocks: call it off the main thread. Null if
      * nothing new could be had: not allowed, no answer, or a fault on the server's side.
      */
     fun refresh(account: PlayerAccount, game: String, variant: String): Ranking? {
         if (!canRefresh(account)) return null
+        // When it was asked for, not answered: a time made meanwhile may be missing from the answer.
+        val askedAt = clock()
         val entries = api?.ranking(game, variant) ?: return null
 
-        val ranking = Ranking(entries, clock())
+        val ranking = Ranking(entries, askedAt)
         val array = JSONArray()
         for (entry in entries) {
             val item = JSONObject()
@@ -364,8 +413,21 @@ class GlobalRankings(
 
     /** Drops the downloaded rankings, as when they are another server's. */
     fun forgetAll(games: List<String>, variants: List<String>) {
-        for (game in games) for (variant in variants) store.remove(key(game, variant))
+        for (game in games) for (variant in variants) {
+            store.remove(key(game, variant))
+            store.remove(staleKey(game, variant))
+        }
     }
 
     private fun key(game: String, variant: String) = "ranking/$game/$variant"
+
+    private fun staleKey(game: String, variant: String) = "ranking-stale/$game/$variant"
+
+    companion object {
+        /** How long a downloaded ranking is shown without asking for it again. */
+        const val MAX_AGE_MILLIS = 10 * 60 * 1000L
+
+        /** As on the server: the ten best of everyone. */
+        const val RANKING_SIZE = 10
+    }
 }

@@ -198,11 +198,13 @@ class PlayerSyncWorker(context: Context, parameters: WorkerParameters) : Corouti
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         val backend = PlayerSyncScheduler.backend(applicationContext)
+        val storage = AppStorage.of(applicationContext)
         val outcome = FullSync(
             account = PlayerAccount.of(applicationContext),
             playerApi = backend?.players,
-            uploads = ScoreUploads(AppStorage.of(applicationContext)),
+            uploads = ScoreUploads(storage),
             scoreApi = backend?.scores,
+            rankings = GlobalRankings(storage, backend?.scores),
         ).run()
         if (outcome == PlayerSync.Outcome.TRY_LATER) Result.retry() else Result.success()
     }

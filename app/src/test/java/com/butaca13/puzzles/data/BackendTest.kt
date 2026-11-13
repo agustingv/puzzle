@@ -89,7 +89,7 @@ class BackendTest {
         val uploads = ScoreUploads(store)
         val account = PlayerAccount(store, Random(1))
         private val oldServer = object : ScoreApi {
-            override fun submit(secret: String, score: PendingScore) = SubmitResult.Filed(1)
+            override fun submit(playerId: String, secret: String, score: PendingScore) = SubmitResult.Filed(1)
             override fun ranking(game: String, variant: String) =
                 listOf(RankingEntry(1, "x", 9, "otro", "Otro", null))
         }

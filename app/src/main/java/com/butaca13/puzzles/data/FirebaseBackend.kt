@@ -24,8 +24,8 @@ import java.util.concurrent.TimeoutException
  * - `savePlayer` {id, name, avatar, secret} → {name}. Errors: ALREADY_EXISTS, the id is another
  *   player's (wrong secret); INVALID_ARGUMENT, a name or avatar it does not take.
  * - `deletePlayer` {id, secret} → anything. NOT_FOUND or UNAUTHENTICATED: no such player (any more).
- * - `submitScore` {secret, id, game, variant, seconds, playedAt?} → {rank: number or null}, with
- *   playedAt in epoch milliseconds. Errors: UNAUTHENTICATED, no player with that secret;
+ * - `submitScore` {secret, playerId, id, game, variant, seconds, playedAt?} → {rank: number or null}, with
+ *   playedAt in epoch milliseconds. With playerId the player is read by id, one read less than by secret. Errors: UNAUTHENTICATED, no player with that secret;
  *   INVALID_ARGUMENT or ALREADY_EXISTS, a bad time or an id that is another player's.
  *
  * And Firestore: `rankings/{game}_{variant}` = {entries: [{id, seconds, playerId, playerName,
@@ -69,9 +69,10 @@ class FirebaseBackend(
     }
 
     override val scores = object : ScoreApi {
-        override fun submit(secret: String, score: PendingScore): SubmitResult = try {
+        override fun submit(playerId: String, secret: String, score: PendingScore): SubmitResult = try {
             val data = buildMap {
                 put("secret", secret)
+                put("playerId", playerId)
                 put("id", score.id)
                 put("game", score.game)
                 put("variant", score.variant)

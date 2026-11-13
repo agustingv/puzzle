@@ -38,11 +38,13 @@ class ScoresTest {
 
     private class FakeScoreApi(var answer: (PendingScore) -> SubmitResult = { SubmitResult.Filed(1) }) : ScoreApi {
         val sent = mutableListOf<Pair<String, PendingScore>>()
+        val players = mutableListOf<String>()
         var board: List<RankingEntry>? = emptyList()
         var asked = 0
 
-        override fun submit(secret: String, score: PendingScore): SubmitResult {
+        override fun submit(playerId: String, secret: String, score: PendingScore): SubmitResult {
             sent += secret to score
+            players += playerId
             return answer(score)
         }
 
@@ -132,7 +134,7 @@ class ScoresTest {
     }
 
     @Test
-    fun `the queue is sent with the player's secret and emptied as the server answers`() {
+    fun `the queue is sent with the player's id and secret and emptied as the server answers`() {
         val account = registeredAccount()
         val api = FakeScoreApi { if (it.seconds == 40) SubmitResult.Filed(null) else SubmitResult.Filed(1) }
         records.add("sudoku", "EASY", 30)
@@ -142,6 +144,7 @@ class ScoresTest {
 
         assertEquals(listOf(30, 40), api.sent.map { it.second.seconds })
         assertTrue(api.sent.all { it.first == account.secret })
+        assertEquals(listOf(account.id, account.id), api.players)
         assertFalse(uploads.isNotEmpty())
     }
 
@@ -172,16 +175,130 @@ class ScoresTest {
     }
 
     @Test
-    fun `each time the server files is noted, for the rankings on screen to reload`() {
+    fun `only a time that makes a global ranking is noted, for the rankings on screen to reload`() {
         val account = registeredAccount()
         records.add("sudoku", "EASY", 30)
         records.add("race", "EASY", 40)
         records.add("hangman", "EASY", 50)
-        val before = ScoreUploads.filed
+        records.add("kakuro", "EASY", 60)
+        val before = ScoreUploads.ranked
 
-        ScoreSync(account, uploads, FakeScoreApi { if (it.seconds == 50) SubmitResult.Rejected else SubmitResult.Filed(1) }).run()
+        ScoreSync(account, uploads, FakeScoreApi {
+            when (it.seconds) {
+                50 -> SubmitResult.Rejected
+                60 -> SubmitResult.Filed(null)
+                else -> SubmitResult.Filed(1)
+            }
+        }).run()
 
-        assertEquals(before + 2, ScoreUploads.filed)
+        assertEquals(before + 2, ScoreUploads.ranked)
+        assertFalse(uploads.isNotEmpty())
+    }
+
+    private fun board(vararg seconds: Int) =
+        seconds.mapIndexed { index, s -> RankingEntry(index + 1, "s$index", s, "p$index", "Jugador $index", null) }
+
+    @Test
+    fun `a time that can not make the ranking kept is dropped without sending it`() {
+        val account = registeredAccount()
+        val api = FakeScoreApi().apply { board = board(10, 20, 30, 40, 50, 60, 70, 80, 90, 100) }
+        val rankings = GlobalRankings(store, api, clock = { now })
+        rankings.refresh(account, "sudoku", "EASY")
+
+        records.add("sudoku", "EASY", 100) // ties the tenth: ranks after it
+        records.add("sudoku", "EASY", 99)
+        records.add("sudoku", "HARD", 500) // no copy of that ranking: sent
+        ScoreSync(account, uploads, api, rankings).run()
+
+        assertEquals(listOf(99, 500), api.sent.map { it.second.seconds })
+        assertFalse(uploads.isNotEmpty())
+    }
+
+    @Test
+    fun `a ranking not full yet, or holding the time already, takes it`() {
+        val account = registeredAccount()
+        val api = FakeScoreApi().apply { board = board(10, 20, 30) }
+        val rankings = GlobalRankings(store, api, clock = { now })
+        rankings.refresh(account, "sudoku", "EASY")
+        assertFalse(rankings.cannotEnter(PendingScore("x", "sudoku", "EASY", 999, null)))
+
+        api.board = board(10, 20, 30, 40, 50, 60, 70, 80, 90, 100)
+        rankings.refresh(account, "sudoku", "EASY")
+        assertTrue(rankings.cannotEnter(PendingScore("x", "sudoku", "EASY", 999, null)))
+        assertFalse(rankings.cannotEnter(PendingScore("s9", "sudoku", "EASY", 100, null)))
+    }
+
+    @Test
+    fun `a ranking is fresh for a while, and stale once a time of the player's makes it`() {
+        val account = registeredAccount()
+        val api = FakeScoreApi().apply { board = board(10, 20) }
+        val rankings = GlobalRankings(store, api, clock = { now })
+
+        assertFalse(rankings.isFresh(account, "sudoku", "EASY"))
+        rankings.refresh(account, "sudoku", "EASY")
+        assertTrue(rankings.isFresh(account, "sudoku", "EASY"))
+        now += GlobalRankings.MAX_AGE_MILLIS - 1
+        assertTrue(rankings.isFresh(account, "sudoku", "EASY"))
+        now += 1
+        assertFalse(rankings.isFresh(account, "sudoku", "EASY"))
+
+        rankings.refresh(account, "sudoku", "EASY")
+        records.add("sudoku", "EASY", 15)
+        now += 1
+        ScoreSync(account, uploads, FakeScoreApi { SubmitResult.Filed(2) }, rankings).run()
+        assertFalse(rankings.isFresh(account, "sudoku", "EASY"))
+        assertTrue(rankings.cached("sudoku", "EASY") != null)
+
+        now += 1
+        rankings.refresh(account, "sudoku", "EASY")
+        assertTrue(rankings.isFresh(account, "sudoku", "EASY"))
+    }
+
+    @Test
+    fun `a time made while the ranking was being asked for leaves it stale`() {
+        val account = registeredAccount()
+        val rankings = GlobalRankings(store, null, clock = { now })
+        val api = object : ScoreApi {
+            override fun submit(playerId: String, secret: String, score: PendingScore) = SubmitResult.Filed(1)
+            override fun ranking(game: String, variant: String): List<RankingEntry> {
+                rankings.markStale(game, variant) // the time is filed while this answer is on its way
+                now += 300
+                return board(10)
+            }
+        }
+
+        GlobalRankings(store, api, clock = { now }).refresh(account, "sudoku", "EASY")
+
+        assertFalse(rankings.isFresh(account, "sudoku", "EASY"))
+    }
+
+    @Test
+    fun `a ranking showing the player's old name or avatar is stale once the server has the new ones`() {
+        val account = registeredAccount()
+        val mine = RankingEntry(1, "s1", 10, account.id, account.name, account.avatar.encode())
+        val api = FakeScoreApi().apply { board = listOf(mine) }
+        val rankings = GlobalRankings(store, api, clock = { now })
+        rankings.refresh(account, "sudoku", "EASY")
+        assertTrue(rankings.isFresh(account, "sudoku", "EASY"))
+
+        account.rename("Otro Nombre 5")
+        assertTrue(account.pending)
+        assertTrue(rankings.isFresh(account, "sudoku", "EASY")) // the server does not have it yet
+        PlayerSync(account) { _, name, _, _ -> SaveResult.Saved(name) }.run()
+        assertFalse(rankings.isFresh(account, "sudoku", "EASY"))
+    }
+
+    @Test
+    fun `forgetting the rankings forgets that they were stale too`() {
+        val account = registeredAccount()
+        val rankings = GlobalRankings(store, FakeScoreApi().apply { board = board(10) }, clock = { now })
+        rankings.markStale("sudoku", "EASY")
+        rankings.forgetAll(listOf("sudoku"), listOf("EASY"))
+
+        assertTrue(store.values.keys.none { it.startsWith("ranking") })
+        now += 1
+        rankings.refresh(account, "sudoku", "EASY")
+        assertTrue(rankings.isFresh(account, "sudoku", "EASY"))
     }
 
     @Test
@@ -233,7 +350,7 @@ class ScoresTest {
         }
 
         val scoreApi = object : ScoreApi {
-            override fun submit(secret: String, score: PendingScore): SubmitResult = when {
+            override fun submit(playerId: String, secret: String, score: PendingScore): SubmitResult = when {
                 !reachable -> SubmitResult.Failed
                 secret !in known -> SubmitResult.PlayerUnknown
                 else -> SubmitResult.Filed(1).also { filed += score.seconds }
@@ -271,8 +388,8 @@ class ScoresTest {
 
         // The time finds the player lost; then the connection drops before it is sent again.
         val flaky = object : ScoreApi by server.scoreApi {
-            override fun submit(secret: String, score: PendingScore) =
-                server.scoreApi.submit(secret, score).also { server.reachable = false }
+            override fun submit(playerId: String, secret: String, score: PendingScore) =
+                server.scoreApi.submit(playerId, secret, score).also { server.reachable = false }
         }
 
         assertEquals(PlayerSync.Outcome.TRY_LATER, FullSync(account, server.playerApi, uploads, flaky).run())
@@ -368,7 +485,7 @@ class ScoresTest {
     @Test
     fun `the client puts a time at its own address with the player's secret`() {
         withServer(200, """{"id":"s-1","game":"sudoku","variant":"EASY","seconds":95,"rank":3}""") { url, received ->
-            assertEquals(SubmitResult.Filed(3), HttpScoreApi(url).submit("secreto", score))
+            assertEquals(SubmitResult.Filed(3), HttpScoreApi(url).submit("p1", "secreto", score))
 
             assertEquals("PUT /api/v1/scores/s-1 Bearer secreto", received[0])
             val sent = JSONObject(received[1])
@@ -378,7 +495,7 @@ class ScoresTest {
             assertEquals("2026-11-04T09:00:00Z", sent.getString("playedAt"))
         }
         withServer(200, """{"rank":null}""") { url, received ->
-            assertEquals(SubmitResult.Filed(null), HttpScoreApi(url).submit("s", score.copy(playedAt = null)))
+            assertEquals(SubmitResult.Filed(null), HttpScoreApi(url).submit("p1", "s", score.copy(playedAt = null)))
             assertFalse(JSONObject(received[1]).has("playedAt"))
         }
     }
@@ -386,14 +503,14 @@ class ScoresTest {
     @Test
     fun `the client tells apart the server's answers to a time`() {
         for (refused in listOf(400, 409, 422)) {
-            withServer(refused, "{}") { url, _ -> assertEquals(SubmitResult.Rejected, HttpScoreApi(url).submit("s", score)) }
+            withServer(refused, "{}") { url, _ -> assertEquals(SubmitResult.Rejected, HttpScoreApi(url).submit("p1", "s", score)) }
         }
-        withServer(401, "") { url, _ -> assertEquals(SubmitResult.PlayerUnknown, HttpScoreApi(url).submit("s", score)) }
+        withServer(401, "") { url, _ -> assertEquals(SubmitResult.PlayerUnknown, HttpScoreApi(url).submit("p1", "s", score)) }
         for (later in listOf(500, 503)) {
-            withServer(later, "") { url, _ -> assertEquals(SubmitResult.Failed, HttpScoreApi(url).submit("s", score)) }
+            withServer(later, "") { url, _ -> assertEquals(SubmitResult.Failed, HttpScoreApi(url).submit("p1", "s", score)) }
         }
-        withServer(200, "no es json") { url, _ -> assertEquals(SubmitResult.Failed, HttpScoreApi(url).submit("s", score)) }
-        assertEquals(SubmitResult.Failed, HttpScoreApi("http://127.0.0.1:9/api/v1/").submit("s", score))
+        withServer(200, "no es json") { url, _ -> assertEquals(SubmitResult.Failed, HttpScoreApi(url).submit("p1", "s", score)) }
+        assertEquals(SubmitResult.Failed, HttpScoreApi("http://127.0.0.1:9/api/v1/").submit("p1", "s", score))
     }
 
     @Test

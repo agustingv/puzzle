@@ -121,16 +121,17 @@ fun GameDetailSheet(
         mutableStateOf(storage.get(lastKey)?.takeIf { it in info.variants } ?: info.variants.first())
     }
 
-    // The global ranking shows as last downloaded, at once, and is brought up to date behind it, and
-    // again whenever a time sent in the background reaches the server: a win just before opening this
-    // page is usually still on its way. While it is on its way, and if it never comes, the card says so.
+    // The global ranking shows as last downloaded, at once, and is brought up to date behind it unless
+    // that copy is recent (see GlobalRankings.isFresh), and again whenever a time sent in the background
+    // makes it: a win just before opening this page is usually still on its way. While it is on its way,
+    // and if it never comes, the card says so. Retrying always asks.
     var global by remember(info, selected) { mutableStateOf(rankings.cached(info.id, selected)) }
     val online = rankings.canRefresh(account)
-    var loading by remember(info, selected) { mutableStateOf(online) }
+    var loading by remember(info, selected) { mutableStateOf(online && !rankings.isFresh(account, info.id, selected)) }
     var failed by remember(info, selected) { mutableStateOf(false) }
     var attempt by remember(info, selected) { mutableIntStateOf(0) }
-    LaunchedEffect(info, selected, account.registered, account.offline, ScoreUploads.filed, attempt) {
-        if (!rankings.canRefresh(account)) {
+    LaunchedEffect(info, selected, account.registered, account.offline, ScoreUploads.ranked, attempt) {
+        if (!rankings.canRefresh(account) || (attempt == 0 && rankings.isFresh(account, info.id, selected))) {
             loading = false
             return@LaunchedEffect
         }

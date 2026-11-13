@@ -81,33 +81,33 @@ class FirebaseBackendTest {
     @Test
     fun sendsATimeAndHearsItsPlace() {
         firebase.answer = { _, _ -> mapOf("rank" to 3L) }
-        assertEquals(SubmitResult.Filed(3), backend.scores.submit("s3cr3t", score))
+        assertEquals(SubmitResult.Filed(3), backend.scores.submit("p1", "s3cr3t", score))
         assertEquals(
             "submitScore" to mapOf(
-                "secret" to "s3cr3t", "id" to "t1", "game" to "sudoku", "variant" to "EASY",
+                "secret" to "s3cr3t", "playerId" to "p1", "id" to "t1", "game" to "sudoku", "variant" to "EASY",
                 "seconds" to 95, "playedAt" to 1_700_000_000_000L,
             ),
             firebase.calls.single(),
         )
 
         firebase.answer = { _, _ -> mapOf("rank" to null) }
-        assertEquals(SubmitResult.Filed(null), backend.scores.submit("s", score.copy(playedAt = null)))
+        assertEquals(SubmitResult.Filed(null), backend.scores.submit("p1", "s", score.copy(playedAt = null)))
         assertTrue("playedAt" !in firebase.calls.last().second)
     }
 
     @Test
     fun sendingATimeAnswersAsTheApiDoes() {
         firebase.answer = failing(FirebaseCallError.Code.UNAUTHENTICATED)
-        assertEquals(SubmitResult.PlayerUnknown, backend.scores.submit("s", score))
+        assertEquals(SubmitResult.PlayerUnknown, backend.scores.submit("p1", "s", score))
         firebase.answer = failing(FirebaseCallError.Code.INVALID_ARGUMENT)
-        assertEquals(SubmitResult.Rejected, backend.scores.submit("s", score))
+        assertEquals(SubmitResult.Rejected, backend.scores.submit("p1", "s", score))
         firebase.answer = failing(FirebaseCallError.Code.ALREADY_EXISTS)
-        assertEquals(SubmitResult.Rejected, backend.scores.submit("s", score))
+        assertEquals(SubmitResult.Rejected, backend.scores.submit("p1", "s", score))
         firebase.answer = failing(FirebaseCallError.Code.UNAVAILABLE)
-        assertEquals(SubmitResult.Failed, backend.scores.submit("s", score))
+        assertEquals(SubmitResult.Failed, backend.scores.submit("p1", "s", score))
         // No rank at all is not "outside the ten best".
         firebase.answer = { _, _ -> emptyMap<String, Any?>() }
-        assertEquals(SubmitResult.Failed, backend.scores.submit("s", score))
+        assertEquals(SubmitResult.Failed, backend.scores.submit("p1", "s", score))
     }
 
     @Test
